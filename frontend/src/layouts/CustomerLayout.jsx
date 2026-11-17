@@ -1,12 +1,16 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, Navigate } from 'react-router-dom';
 import { Package, User, Heart, LogOut, Crown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import MainLayout from './MainLayout';
 import logoImg from '../assets/nimaah-luxe-logo.png';
 
 export const CustomerLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
+
+  if (!loading && !user) {
+    return <Navigate to="/login" replace />;
+  }
 
   const links = [
     { name: 'My Orders & Live Tracking', path: '/account/orders', icon: Package },

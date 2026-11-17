@@ -9,40 +9,7 @@ const seedData = async () => {
   try {
     await connectDB();
 
-    // Seed Users (Admin & Patron)
-    const adminExists = await User.findOne({ email: 'admin@nimaahluxe.com' });
-    if (!adminExists) {
-      await User.create({
-        name: "Ni'maah Luxe Admin",
-        email: 'admin@nimaahluxe.com',
-        password: 'admin123',
-        role: 'admin',
-      });
-      console.log('✓ Admin user created (admin@nimaahluxe.com / admin123)');
-    }
-
-    const customerExists = await User.findOne({ email: 'customer@nimaahluxe.com' });
-    if (!customerExists) {
-      await User.create({
-        name: 'Aisha Al-Mansoor',
-        email: 'customer@nimaahluxe.com',
-        password: 'customer123',
-        role: 'customer',
-        addresses: [
-          {
-            fullName: 'Aisha Al-Mansoor',
-            phone: '+91 8618621612',
-            street: '14 Royal Crescent, Boat Club Road',
-            city: 'Chennai',
-            state: 'Tamil Nadu',
-            postalCode: '600028',
-            country: 'India',
-            isDefault: true,
-          },
-        ],
-      });
-      console.log('✓ Customer user created (customer@nimaahluxe.com / customer123)');
-    }
+    // Note: No dummy users are created. Only real registered users are stored in MongoDB.
 
     // Seed Luxury Dress & Fashion Catalog
     const productCount = await Product.countDocuments();

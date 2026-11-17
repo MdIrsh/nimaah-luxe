@@ -23,12 +23,12 @@ export const CheckoutPage = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    fullName: user?.addresses?.[0]?.fullName || user?.name || 'Aisha Al-Mansoor',
-    phone: user?.addresses?.[0]?.phone || '+91 8618621612',
-    street: user?.addresses?.[0]?.street || '14 Royal Crescent, Boat Club Road',
-    city: user?.addresses?.[0]?.city || 'Chennai',
-    state: user?.addresses?.[0]?.state || 'Tamil Nadu',
-    postalCode: user?.addresses?.[0]?.postalCode || '600028',
+    fullName: user?.addresses?.[0]?.fullName || user?.name || '',
+    phone: user?.addresses?.[0]?.phone || '',
+    street: user?.addresses?.[0]?.street || '',
+    city: user?.addresses?.[0]?.city || '',
+    state: user?.addresses?.[0]?.state || '',
+    postalCode: user?.addresses?.[0]?.postalCode || '',
     country: 'India',
   });
 

@@ -21,58 +21,19 @@ export const CustomerOrders = () => {
     const fetchOrders = async () => {
       try {
         const data = await orderService.getMyOrders();
-        // If empty, create initial sample order to showcase the workflow timeline immediately!
-        if (!data || data.length === 0) {
-          const sample = [
-            {
-              _id: 'ORD-89421',
-              createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-              totalPrice: 28498,
-              orderStatus: 'Shipped',
-              trackingNumber: 'BD-LUXE-90218491',
-              courierPartner: 'BlueDart Luxury Express',
-              shippingAddress: {
-                fullName: user?.name || 'Aisha Al-Mansoor',
-                street: '14 Royal Crescent, Boat Club Road',
-                city: 'Chennai',
-                state: 'Tamil Nadu',
-                postalCode: '600028',
-              },
-              orderItems: [
-                {
-                  product: 'prod_1',
-                  title: 'Aura Velvet Midnight Evening Gown',
-                  image:
-                    'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=400&q=80',
-                  price: 14999,
-                  size: 'M',
-                  color: 'Midnight Navy',
-                  quantity: 1,
-                },
-                {
-                  product: 'prod_7',
-                  title: 'Tailored Structured Double-Breasted Blazer',
-                  image:
-                    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80',
-                  price: 13500,
-                  size: 'M',
-                  color: 'Warm Beige',
-                  quantity: 1,
-                },
-              ],
-            },
-          ];
-          setOrders(sample);
-        } else {
-          setOrders(data);
-        }
+        setOrders(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error fetching customer orders:', err);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchOrders();
+    if (user) {
+      fetchOrders();
+    } else {
+      setLoading(false);
+    }
   }, [user]);
 
   // Workflow steps based on flowchart

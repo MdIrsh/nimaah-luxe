@@ -63,15 +63,8 @@ export const Navbar = () => {
           <span className="text-[#E9E1D6]">Code: <strong className="text-[#C5A059] tracking-widest">NIMAAH20</strong></span>
         </div>
 
-        {/* Quick Role Switcher for instant grading / demo */}
-        <div className="hidden md:flex items-center">
-          <button
-            onClick={() => switchRole(user?.role === 'admin' ? 'customer' : 'admin')}
-            className="text-[10px] bg-[#C5A059]/20 hover:bg-[#C5A059]/35 text-[#E8D3A2] px-2.5 py-1 rounded-xs border border-[#C5A059]/40 transition tracking-wider uppercase font-semibold"
-            title="Switch testing persona"
-          >
-            Role: <span className="underline ml-1 font-bold">{user?.role === 'admin' ? 'ADMIN' : 'CLIENT'}</span>
-          </button>
+        <div className="hidden md:flex items-center text-[10px] text-[#E9E1D6] tracking-widest">
+          <span>Chennai, India • +91 8618621612</span>
         </div>
       </div>
 
@@ -192,80 +185,92 @@ export const Navbar = () => {
               )}
             </Link>
 
-            {/* Patron Profile Menu */}
+            {/* Patron Profile Menu or Sign In */}
             <div className="relative pl-1">
-              <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-1.5 p-1 text-[#29251F] hover:text-[#A68B66] transition-colors focus:outline-none"
-                aria-expanded={isUserMenuOpen}
-              >
-                <div className="w-8 h-8 rounded-full border border-[#C5A059]/60 overflow-hidden bg-[#FAF9F6] flex items-center justify-center shadow-xs">
-                  {user?.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={16} />
-                  )}
-                </div>
-                <ChevronDown size={14} className="text-[#A68B66]" />
-              </button>
-
-              {/* Dropdown Menu */}
-              {isUserMenuOpen && (
-                <div
-                  className="absolute right-0 mt-3 w-64 bg-white border border-[#E9E1D6] shadow-xl py-2 z-50 rounded-xs"
-                  onMouseLeave={() => setIsUserMenuOpen(false)}
-                >
-                  <div className="px-5 py-3 border-b border-[#FAF9F6] space-y-1">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">Patron Sanctuary</p>
-                    <p className="text-sm font-semibold text-[#29251F] truncate">{user?.name || 'Valued Client'}</p>
-                    <span className="inline-block mt-1 text-[9.5px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-xs bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6]">
-                      {user?.role === 'admin' ? 'Store Administrator' : 'Ni\'maah Privé Client'}
-                    </span>
-                  </div>
-
-                  {user?.role === 'admin' && (
-                    <Link
-                      to="/admin"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
-                    >
-                      <ShieldCheck size={16} className="mr-3 text-[#A68B66]" />
-                      Admin Command Portal
-                    </Link>
-                  )}
-
-                  <Link
-                    to="/account/orders"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
-                  >
-                    <Package size={16} className="mr-3 text-[#A68B66]" />
-                    Orders & Live Delivery Tracker
-                  </Link>
-
-                  <Link
-                    to="/account/profile"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
-                  >
-                    <User size={16} className="mr-3 text-[#A68B66]" />
-                    Atelier Profile & Addresses
-                  </Link>
-
-                  <div className="border-t border-[#E9E1D6] my-1"></div>
-
+              {user ? (
+                <>
                   <button
-                    onClick={() => {
-                      logout();
-                      setIsUserMenuOpen(false);
-                      navigate('/login');
-                    }}
-                    className="w-full flex items-center px-5 py-3 text-xs text-red-600 hover:bg-red-50 transition font-medium text-left"
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center space-x-1.5 p-1 text-[#29251F] hover:text-[#A68B66] transition-colors focus:outline-none"
+                    aria-expanded={isUserMenuOpen}
                   >
-                    <LogOut size={16} className="mr-3" />
-                    Sign Out
+                    <div className="w-8 h-8 rounded-full border border-[#C5A059]/60 overflow-hidden bg-[#FAF9F6] flex items-center justify-center shadow-xs">
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={16} />
+                      )}
+                    </div>
+                    <ChevronDown size={14} className="text-[#A68B66]" />
                   </button>
-                </div>
+
+                  {/* Dropdown Menu */}
+                  {isUserMenuOpen && (
+                    <div
+                      className="absolute right-0 mt-3 w-64 bg-white border border-[#E9E1D6] shadow-xl py-2 z-50 rounded-xs"
+                      onMouseLeave={() => setIsUserMenuOpen(false)}
+                    >
+                      <div className="px-5 py-3 border-b border-[#FAF9F6] space-y-1">
+                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">Signed In As</p>
+                        <p className="text-sm font-semibold text-[#29251F] truncate">{user.name}</p>
+                        <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
+                        <span className="inline-block mt-1 text-[9.5px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-xs bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6]">
+                          {user.role === 'admin' ? 'Store Administrator' : "Ni'maah Privé Client"}
+                        </span>
+                      </div>
+
+                      {user.role === 'admin' && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
+                        >
+                          <ShieldCheck size={16} className="mr-3 text-[#A68B66]" />
+                          Admin Command Portal
+                        </Link>
+                      )}
+
+                      <Link
+                        to="/account/orders"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
+                      >
+                        <Package size={16} className="mr-3 text-[#A68B66]" />
+                        Orders & Live Delivery Tracker
+                      </Link>
+
+                      <Link
+                        to="/account/profile"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
+                      >
+                        <User size={16} className="mr-3 text-[#A68B66]" />
+                        Atelier Profile & Addresses
+                      </Link>
+
+                      <div className="border-t border-[#E9E1D6] my-1"></div>
+
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsUserMenuOpen(false);
+                          navigate('/login');
+                        }}
+                        className="w-full flex items-center px-5 py-3 text-xs text-red-600 hover:bg-red-50 transition font-medium text-left"
+                      >
+                        <LogOut size={16} className="mr-3" />
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-4 py-2 bg-[#29251F] hover:bg-[#C5A059] text-white text-[11px] uppercase tracking-[0.2em] font-semibold transition shadow-xs"
+                >
+                  Sign In
+                </Link>
               )}
             </div>
           </div>

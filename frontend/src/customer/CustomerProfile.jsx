@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { User, Mail, MapPin, Plus, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 export const CustomerProfile = () => {
   const { user } = useAuth();
+  const [profile, setProfile] = useState(user);
+  const [addresses, setAddresses] = useState(user?.addresses || []);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [newAddress, setNewAddress] = useState({
     fullName: user?.name || '',
     phone: '',
@@ -14,32 +18,60 @@ export const CustomerProfile = () => {
     postalCode: '',
   });
 
-  const [addresses, setAddresses] = useState(
-    user?.addresses || [
-      {
-        fullName: 'Aisha Al-Mansoor',
-        phone: '+91 8618621612',
-        street: '14 Royal Crescent, Boat Club Road',
-        city: 'Chennai',
-        state: 'Tamil Nadu',
-        postalCode: '600028',
-        isDefault: true,
-      },
-    ]
-  );
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get('/auth/profile');
+        if (res.data?.data) {
+          setProfile(res.data.data);
+          setAddresses(res.data.data.addresses || []);
+        }
+      } catch (err) {
+        console.error('Could not load profile from MongoDB:', err.message);
+      }
+    };
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
 
-  const handleAddAddress = (e) => {
+  const handleAddAddress = async (e) => {
     e.preventDefault();
-    if (newAddress.fullName && newAddress.street) {
-      setAddresses([...addresses, { ...newAddress, isDefault: false }]);
+    if (!newAddress.fullName || !newAddress.street) return;
+
+    setSaving(true);
+    try {
+      const res = await api.post('/users/address', newAddress);
+      if (res.data?.data) {
+        setAddresses(res.data.data);
+      }
       setIsAddingAddress(false);
-      setNewAddress({ fullName: '', phone: '', street: '', city: '', state: '', postalCode: '' });
+      setNewAddress({
+        fullName: profile?.name || '',
+        phone: '',
+        street: '',
+        city: '',
+        state: '',
+        postalCode: '',
+      });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to save address to MongoDB');
+    } finally {
+      setSaving(false);
     }
   };
 
+  if (!profile) {
+    return (
+      <div className="bg-white border border-[#E9E1D6] p-8 text-center text-xs text-gray-500">
+        Please sign in to view your profile.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      {/* Profile Info */}
+      {/* Real Logged-in Client Info */}
       <div className="bg-white border border-[#E9E1D6] p-6 space-y-4">
         <h3 className="font-serif-luxury text-xl text-[#29251F] border-b border-[#E9E1D6] pb-3">
           Client Information
@@ -47,28 +79,32 @@ export const CustomerProfile = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
-            <label className="block uppercase tracking-wider text-gray-400 mb-1">Full Legal Name</label>
-            <p className="font-semibold text-sm text-[#29251F]">{user?.name || 'Aisha Al-Mansoor'}</p>
+            <label className="block uppercase tracking-wider text-gray-400 mb-1">Full Name</label>
+            <p className="font-semibold text-sm text-[#29251F]">{profile.name}</p>
           </div>
 
           <div>
             <label className="block uppercase tracking-wider text-gray-400 mb-1">Email Address</label>
-            <p className="font-semibold text-sm text-[#29251F]">{user?.email || 'customer@stylehub.com'}</p>
+            <p className="font-semibold text-sm text-[#29251F]">{profile.email}</p>
           </div>
 
           <div>
-            <label className="block uppercase tracking-wider text-gray-400 mb-1">Privilege Membership</label>
-            <p className="text-sm text-[#A68B66] font-semibold">StyleHub Haute Privé Patron</p>
+            <label className="block uppercase tracking-wider text-gray-400 mb-1">Account Role</label>
+            <p className="text-sm text-[#C5A059] font-semibold uppercase tracking-wider">{profile.role}</p>
           </div>
 
           <div>
-            <label className="block uppercase tracking-wider text-gray-400 mb-1">Atelier Concierge Access</label>
-            <p className="text-sm text-emerald-700 font-semibold">Active & Complimentary</p>
+            <label className="block uppercase tracking-wider text-gray-400 mb-1">Member Since</label>
+            <p className="text-sm text-[#29251F]">
+              {profile.createdAt
+                ? new Date(profile.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })
+                : 'Active'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Addresses */}
+      {/* Saved Addresses from MongoDB */}
       <div className="bg-white border border-[#E9E1D6] p-6 space-y-6">
         <div className="flex items-center justify-between border-b border-[#E9E1D6] pb-3">
           <h3 className="font-serif-luxury text-xl text-[#29251F]">Saved Delivery Addresses</h3>
@@ -83,7 +119,7 @@ export const CustomerProfile = () => {
 
         {isAddingAddress && (
           <form onSubmit={handleAddAddress} className="bg-[#FAF9F6] p-4 border border-[#E9E1D6] space-y-3 text-xs">
-            <h4 className="font-semibold text-[#29251F] uppercase tracking-wider">New Sanctuary Destination</h4>
+            <h4 className="font-semibold text-[#29251F] uppercase tracking-wider">New Delivery Address</h4>
             <div className="grid grid-cols-2 gap-3">
               <input
                 type="text"
@@ -119,19 +155,28 @@ export const CustomerProfile = () => {
               />
               <input
                 type="text"
+                placeholder="State"
+                required
+                value={newAddress.state}
+                onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+                className="p-2 bg-white border border-[#E9E1D6]"
+              />
+              <input
+                type="text"
                 placeholder="Postal Code"
                 required
                 value={newAddress.postalCode}
                 onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
-                className="p-2 bg-white border border-[#E9E1D6]"
+                className="col-span-2 p-2 bg-white border border-[#E9E1D6]"
               />
             </div>
             <div className="flex space-x-2 pt-2">
               <button
                 type="submit"
+                disabled={saving}
                 className="px-4 py-2 bg-[#29251F] text-white uppercase tracking-widest text-[11px] font-semibold"
               >
-                Save Destination
+                {saving ? 'Saving...' : 'Save Address'}
               </button>
               <button
                 type="button"
@@ -144,23 +189,27 @@ export const CustomerProfile = () => {
           </form>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {addresses.map((addr, idx) => (
-            <div key={idx} className="p-4 border border-[#E9E1D6] bg-[#FAF9F6] relative space-y-1.5 text-xs">
-              {addr.isDefault && (
-                <span className="inline-block bg-[#29251F] text-[#FAF9F6] text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 mb-1">
-                  Default Address
-                </span>
-              )}
-              <h4 className="font-semibold text-sm text-[#29251F]">{addr.fullName}</h4>
-              <p className="text-gray-600">{addr.street}</p>
-              <p className="text-gray-600">
-                {addr.city}, {addr.state} - {addr.postalCode}
-              </p>
-              <p className="text-gray-500">{addr.phone}</p>
-            </div>
-          ))}
-        </div>
+        {addresses.length === 0 ? (
+          <p className="text-xs text-gray-500">No saved delivery addresses yet. Add one above to speed up checkout.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {addresses.map((addr, idx) => (
+              <div key={addr._id || idx} className="p-4 border border-[#E9E1D6] bg-[#FAF9F6] relative space-y-1.5 text-xs">
+                {addr.isDefault && (
+                  <span className="inline-block bg-[#29251F] text-[#FAF9F6] text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 mb-1">
+                    Default Address
+                  </span>
+                )}
+                <h4 className="font-semibold text-sm text-[#29251F]">{addr.fullName}</h4>
+                <p className="text-gray-600">{addr.street}</p>
+                <p className="text-gray-600">
+                  {addr.city}, {addr.state} - {addr.postalCode}
+                </p>
+                <p className="text-gray-500">{addr.phone}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

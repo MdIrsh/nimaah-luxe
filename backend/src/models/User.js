@@ -42,6 +42,14 @@ const userSchema = new mongoose.Schema(
       default: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
     },
     addresses: [addressSchema],
+    lastLoginAt: {
+      type: Date,
+      default: Date.now,
+    },
+    loginCount: {
+      type: Number,
+      default: 1,
+    },
   },
   { timestamps: true }
 );

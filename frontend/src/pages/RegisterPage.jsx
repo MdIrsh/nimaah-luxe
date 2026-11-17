@@ -23,10 +23,10 @@ export const RegisterPage = () => {
       if (role === 'admin') {
         navigate('/admin');
       } else {
-        navigate('/');
+        navigate('/account/profile');
       }
     } catch (err) {
-      setError('Registration error. Please check your details.');
+      setError(err.message || 'Registration failed. Please check your details.');
     } finally {
       setLoading(false);
     }
@@ -36,11 +36,11 @@ export const RegisterPage = () => {
     <div className="max-w-md mx-auto px-4 py-16">
       <div className="bg-white border border-[#E9E1D6] p-8 shadow-sm space-y-6">
         <div className="text-center space-y-1">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-[#A68B66] font-semibold">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-[#C5A059] font-cinzel font-semibold">
             Become a Patron
           </span>
-          <h1 className="font-serif-luxury text-3xl text-[#29251F]">Join StyleHub</h1>
-          <p className="text-xs text-gray-500">Enjoy bespoke fashion consultations, priority runway releases, and private wishlists</p>
+          <h1 className="font-serif-luxury text-3xl text-[#29251F]">Join Ni'maah Luxe</h1>
+          <p className="text-xs text-gray-500">Create your account to shop, save addresses, and track orders</p>
         </div>
 
         {error && (
@@ -51,14 +51,14 @@ export const RegisterPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block uppercase tracking-wider text-gray-500 mb-1">Full Legal Name</label>
+            <label className="block uppercase tracking-wider text-gray-500 mb-1">Full Name</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Princess Aisha"
-              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+              placeholder="Enter your full name"
+              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#C5A059]"
             />
           </div>
 
@@ -69,8 +69,8 @@ export const RegisterPage = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. patron@stylehub.com"
-              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+              placeholder="Enter your email address"
+              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#C5A059]"
             />
           </div>
 
@@ -83,7 +83,7 @@ export const RegisterPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 6 characters"
-              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#C5A059]"
             />
           </div>
 
@@ -94,7 +94,7 @@ export const RegisterPage = () => {
               onChange={(e) => setRole(e.target.value)}
               className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6]"
             >
-              <option value="customer">Client Patron (Standard)</option>
+              <option value="customer">Customer</option>
               <option value="admin">Store Administrator</option>
             </select>
           </div>
@@ -102,14 +102,14 @@ export const RegisterPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-[#29251F] hover:bg-[#A68B66] text-white uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 shadow-sm"
+            className="w-full py-3.5 bg-[#29251F] hover:bg-[#C5A059] text-white uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 shadow-sm disabled:opacity-60"
           >
-            <span>{loading ? 'Creating...' : 'Create Patron Account'}</span>
+            <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
             <ArrowRight size={14} />
           </button>
         </form>
 
-        <div className="text-center text-xs text-gray-500 pt-2">
+        <div className="text-center text-xs text-gray-500 pt-2 border-t border-[#FAF9F6]">
           Already have an account?{' '}
           <Link to="/login" className="text-[#A68B66] font-semibold hover:underline">
             Sign In Here

@@ -51,6 +51,10 @@ export const login = async (req, res) => {
       return errorResponse(res, 'Invalid email or password', 401);
     }
 
+    user.lastLoginAt = new Date();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save({ validateBeforeSave: false });
+
     return successResponse(res, 'Login successful', {
       _id: user._id,
       name: user.name,
@@ -58,6 +62,8 @@ export const login = async (req, res) => {
       role: user.role,
       avatar: user.avatar,
       addresses: user.addresses,
+      lastLoginAt: user.lastLoginAt,
+      loginCount: user.loginCount,
       token: generateToken(user._id),
     });
   } catch (error) {

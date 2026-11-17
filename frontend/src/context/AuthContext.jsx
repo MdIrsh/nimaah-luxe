@@ -9,31 +9,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const savedUser = authService.getCurrentUser();
-    if (savedUser) {
+    const token = localStorage.getItem('stylehub_token');
+
+    // Only restore real authenticated sessions (ignore old dummy demo_user_1)
+    if (savedUser && token && !token.startsWith('demo-token-') && savedUser._id !== 'demo_user_1') {
       setUser(savedUser);
     } else {
-      // Provide initial demo customer session
-      const demoUser = {
-        _id: 'demo_user_1',
-        name: 'Aisha Al-Mansoor',
-        email: 'customer@nimaahluxe.com',
-        role: 'customer',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-        addresses: [
-          {
-            fullName: 'Aisha Al-Mansoor',
-            phone: '+91 8618621612',
-            street: '14 Royal Crescent, Boat Club Road',
-            city: 'Chennai',
-            state: 'Tamil Nadu',
-            postalCode: '600028',
-            country: 'India',
-            isDefault: true,
-          },
-        ],
-      };
-      setUser(demoUser);
-      localStorage.setItem('stylehub_user', JSON.stringify(demoUser));
+      authService.logout();
+      setUser(null);
     }
     setLoading(false);
   }, []);
@@ -45,19 +28,10 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data);
       return response;
     } catch (error) {
-      // Demo fallback login
-      const role = email.includes('admin') ? 'admin' : 'customer';
-      const fallback = {
-        _id: 'user_' + Date.now(),
-        name: role === 'admin' ? 'Store Administrator' : 'Fashion Customer',
-        email,
-        role,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-      };
-      setUser(fallback);
-      localStorage.setItem('stylehub_user', JSON.stringify(fallback));
-      localStorage.setItem('stylehub_token', 'demo-token-' + Date.now());
-      return { success: true, data: fallback };
+      const message =
+        error.response?.data?.message ||
+        'Cannot connect to backend server. Make sure backend is running on port 5000 and connected to MongoDB.';
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
@@ -70,17 +44,10 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data);
       return response;
     } catch (error) {
-      const fallback = {
-        _id: 'user_' + Date.now(),
-        name,
-        email,
-        role,
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-      };
-      setUser(fallback);
-      localStorage.setItem('stylehub_user', JSON.stringify(fallback));
-      localStorage.setItem('stylehub_token', 'demo-token-' + Date.now());
-      return { success: true, data: fallback };
+      const message =
+        error.response?.data?.message ||
+        'Cannot connect to backend server. Make sure backend is running on port 5000 and connected to MongoDB.';
+      throw new Error(message);
     } finally {
       setLoading(false);
     }

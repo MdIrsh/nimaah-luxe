@@ -23,64 +23,10 @@ export const AdminOrders = () => {
   const fetchOrders = async () => {
     try {
       const data = await orderService.getAllOrders();
-      if (!data || data.length === 0) {
-        // Sample orders matching flowchart
-        const defaultOrders = [
-          {
-            _id: 'ORD-89421',
-            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-            totalPrice: 28498,
-            orderStatus: 'Shipped',
-            trackingNumber: 'BD-LUXE-90218491',
-            courierPartner: 'BlueDart Luxury Express',
-            shippingAddress: {
-              fullName: 'Aisha Al-Mansoor',
-              street: '14 Royal Crescent, Boat Club Road',
-              city: 'Chennai',
-              state: 'Tamil Nadu',
-              postalCode: '600028',
-            },
-            orderItems: [
-              {
-                title: 'Aura Velvet Midnight Evening Gown',
-                price: 14999,
-                size: 'M',
-                color: 'Midnight Navy',
-                quantity: 1,
-              },
-            ],
-          },
-          {
-            _id: 'ORD-91042',
-            createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-            totalPrice: 26500,
-            orderStatus: 'Admin Received',
-            trackingNumber: '',
-            courierPartner: 'BlueDart Luxury Express',
-            shippingAddress: {
-              fullName: 'Zoya Mirza',
-              street: '52 Park Avenue, Civil Lines',
-              city: 'Delhi',
-              state: 'Delhi',
-              postalCode: '110054',
-            },
-            orderItems: [
-              {
-                title: 'Varanasi Zari Heritage Silk Saree',
-                price: 26500,
-                size: 'Free Size',
-                color: 'Royal Crimson',
-                quantity: 1,
-              },
-            ],
-          },
-        ];
-        setOrders(defaultOrders);
-      } else {
-        setOrders(data);
-      }
+      setOrders(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching orders from MongoDB:', err);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
