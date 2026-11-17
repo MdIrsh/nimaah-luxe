@@ -73,6 +73,16 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  const updateItemSize = (cartItemId, newSize) => {
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.cartItemId !== cartItemId) return item;
+        const newCartItemId = `${item.product._id}-${newSize}-${item.color}`;
+        return { ...item, size: newSize, cartItemId: newCartItemId };
+      })
+    );
+  };
+
   const clearCart = () => {
     setCart([]);
     setCoupon(null);
@@ -144,6 +154,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateItemSize,
         clearCart,
         addToWishlist,
         removeFromWishlist,

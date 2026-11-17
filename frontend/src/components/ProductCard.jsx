@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Star } from 'lucide-react';
+import { Heart, ShoppingBag, Star, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export const ProductCard = ({ product }) => {
   const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
+
+  const availableSizes =
+    product.sizes && product.sizes.length > 0 ? product.sizes : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+  const [selectedSize, setSelectedSize] = useState(
+    availableSizes.includes('M') ? 'M' : availableSizes[0]
+  );
+  const [justAdded, setJustAdded] = useState(false);
 
   const isFavorited = isWishlisted(product._id);
 
@@ -18,12 +26,20 @@ export const ProductCard = ({ product }) => {
     }
   };
 
+  const handleSizeSelect = (e, sz) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedSize(sz);
+  };
+
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'M';
-    const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0].name : 'Royal Gold';
-    addToCart(product, defaultSize, defaultColor, 1);
+    const defaultColor =
+      product.colors && product.colors.length > 0 ? product.colors[0].name : 'Royal Gold';
+    addToCart(product, selectedSize, defaultColor, 1);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1800);
   };
 
   const discountPercent =
@@ -31,21 +47,24 @@ export const ProductCard = ({ product }) => {
       ? Math.round(((product.price - product.discountedPrice) / product.price) * 100)
       : null;
 
-  const mainImage = product.images?.[0] || 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=800&q=80';
+  const mainImage =
+    product.images?.[0] ||
+    'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=800&q=80';
   const secondaryImage = product.images?.[1] || mainImage;
 
   return (
     <div className="group relative bg-white border border-[#E9E1D6]/80 flex flex-col luxury-card-hover overflow-hidden shadow-xs">
       {/* Product Image Frame */}
-      <Link to={`/product/${product._id}`} className="relative block aspect-[3/4] overflow-hidden bg-[#FAF9F6]">
-        {/* Main Editorial Image */}
+      <Link
+        to={`/product/${product._id}`}
+        className="relative block aspect-[3/4] overflow-hidden bg-[#FAF9F6]"
+      >
         <img
           src={mainImage}
           alt={product.title}
           className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        {/* Alternate Image on Hover */}
         {product.images?.length > 1 && (
           <img
             src={secondaryImage}
@@ -54,7 +73,7 @@ export const ProductCard = ({ product }) => {
           />
         )}
 
-        {/* Luxury Badges with Exact Padding */}
+        {/* Badges */}
         <div className="absolute top-3.5 left-3.5 flex flex-col gap-1.5 z-10">
           {discountPercent && (
             <span className="bg-[#29251F] text-[#FAF9F6] text-[9.5px] tracking-[0.2em] uppercase font-bold px-2.5 py-1 shadow-sm">
@@ -73,7 +92,7 @@ export const ProductCard = ({ product }) => {
           )}
         </div>
 
-        {/* Wishlist Button with Symmetrical Padding */}
+        {/* Wishlist Button */}
         <button
           onClick={handleWishlistClick}
           className={`absolute top-3.5 right-3.5 p-2 rounded-full transition-all duration-300 z-10 shadow-sm ${
@@ -88,20 +107,29 @@ export const ProductCard = ({ product }) => {
         </button>
 
         {/* Quick Add Overlay on Hover */}
-        <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/65 via-black/30 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center">
+        <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/75 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center">
           <button
             onClick={handleQuickAdd}
-            className="w-full py-3 bg-[#FAF9F6] text-[#29251F] hover:bg-[#29251F] hover:text-white text-xs font-semibold uppercase tracking-[0.2em] transition flex items-center justify-center space-x-2 shadow-lg"
+            className="w-full py-3 bg-[#FAF9F6] text-[#29251F] hover:bg-[#29251F] hover:text-white text-[11px] font-semibold uppercase tracking-[0.18em] transition flex items-center justify-center space-x-2 shadow-lg"
           >
-            <ShoppingBag size={14} />
-            <span>Quick Add To Bag</span>
+            {justAdded ? (
+              <>
+                <Check size={14} className="text-emerald-600" />
+                <span>Added Size {selectedSize}</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={14} />
+                <span>Add Size {selectedSize} To Bag</span>
+              </>
+            )}
           </button>
         </div>
       </Link>
 
-      {/* Meta Information with Balanced Padding */}
-      <div className="p-5 flex flex-col flex-1 bg-white justify-between space-y-4">
-        <div className="space-y-1.5">
+      {/* Meta Information */}
+      <div className="p-5 flex flex-col flex-1 bg-white justify-between space-y-3.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-between text-[10.5px] uppercase tracking-[0.2em] text-[#A68B66]">
             <span>{product.brand || "Ni'maah Luxe"}</span>
             <span className="text-gray-400 font-sans">{product.category}</span>
@@ -113,31 +141,46 @@ export const ProductCard = ({ product }) => {
             </h3>
           </Link>
 
-          {/* Color & Size indicator */}
-          <div className="flex items-center space-x-2 pt-1">
-            {product.colors && product.colors.length > 0 && (
-              <div className="flex items-center space-x-1">
-                {product.colors.slice(0, 3).map((col, idx) => (
-                  <span
-                    key={idx}
-                    className="w-2.5 h-2.5 rounded-full border border-gray-300"
-                    style={{ backgroundColor: col.hexCode }}
-                    title={col.name}
-                  />
-                ))}
-                {product.colors.length > 3 && (
-                  <span className="text-[9px] text-gray-400">+{product.colors.length - 3}</span>
-                )}
-              </div>
-            )}
-            <span className="text-gray-300">|</span>
-            <div className="text-[10px] text-gray-500 uppercase tracking-wider">
-              {product.sizes?.slice(0, 4).join(', ')}
+          {/* Interactive Size Selector Options */}
+          <div className="pt-1 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-widest text-gray-400 font-medium">
+                Select Size:
+              </span>
+              {product.colors && product.colors.length > 0 && (
+                <div className="flex items-center space-x-1">
+                  {product.colors.slice(0, 3).map((col, idx) => (
+                    <span
+                      key={idx}
+                      className="w-2.5 h-2.5 rounded-full border border-gray-300"
+                      style={{ backgroundColor: col.hexCode }}
+                      title={col.name}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {availableSizes.map((sz) => (
+                <button
+                  key={sz}
+                  type="button"
+                  onClick={(e) => handleSizeSelect(e, sz)}
+                  className={`px-2 py-0.5 text-[10px] uppercase font-semibold border transition cursor-pointer ${
+                    selectedSize === sz
+                      ? 'bg-[#29251F] text-[#FAF9F6] border-[#29251F]'
+                      : 'bg-[#FAF9F6] text-[#29251F]/80 border-[#E9E1D6] hover:border-[#C5A059]'
+                  }`}
+                >
+                  {sz}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Pricing with Perfect Bottom Margin */}
+        {/* Pricing & Rating */}
         <div className="flex items-center justify-between pt-3 border-t border-[#FAF9F6]">
           <div className="flex items-baseline space-x-2.5">
             <span className="text-base font-semibold text-[#29251F] font-serif-luxury">
@@ -150,7 +193,6 @@ export const ProductCard = ({ product }) => {
             )}
           </div>
 
-          {/* Rating */}
           <div className="flex items-center space-x-1 text-xs text-[#C5A059]">
             <Star size={12} fill="#C5A059" />
             <span className="font-semibold text-[#29251F] text-[11px]">{product.ratings || 4.9}</span>

@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Trash2 } from 'lucide-react';
 import { useWishlist } from '../hooks/useWishlist';
 
 export const WishlistPage = () => {
   const { wishlist, removeFromWishlist, moveToCart } = useWishlist();
+  const [selectedSizes, setSelectedSizes] = useState({});
+
+  const getSizeForProduct = (product) => {
+    if (selectedSizes[product._id]) return selectedSizes[product._id];
+    const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    return sizes.includes('M') ? 'M' : sizes[0];
+  };
 
   if (wishlist.length === 0) {
     return (
@@ -44,6 +51,9 @@ export const WishlistPage = () => {
           const image =
             product.images?.[0] ||
             'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=400&q=80';
+          const sizes =
+            product.sizes && product.sizes.length > 0 ? product.sizes : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+          const chosenSize = getSizeForProduct(product);
 
           return (
             <div key={product._id} className="bg-white border border-[#E9E1D6] flex flex-col justify-between group">
@@ -74,6 +84,27 @@ export const WishlistPage = () => {
                   </Link>
                 </div>
 
+                {/* Size Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-widest text-gray-400">Choose Size:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {sizes.map((sz) => (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => setSelectedSizes({ ...selectedSizes, [product._id]: sz })}
+                        className={`px-2 py-0.5 text-[10px] uppercase font-semibold border transition ${
+                          chosenSize === sz
+                            ? 'bg-[#29251F] text-white border-[#29251F]'
+                            : 'bg-[#FAF9F6] text-gray-700 border-[#E9E1D6] hover:border-[#C5A059]'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex items-baseline space-x-2">
                   <span className="font-serif-luxury text-base font-semibold text-[#29251F]">
                     ₹{(product.discountedPrice || product.price).toLocaleString('en-IN')}
@@ -86,11 +117,11 @@ export const WishlistPage = () => {
                 </div>
 
                 <button
-                  onClick={() => moveToCart(product, product.sizes?.[0] || 'M')}
-                  className="w-full py-2.5 bg-[#29251F] hover:bg-[#A68B66] text-white text-xs uppercase tracking-widest font-semibold transition flex items-center justify-center space-x-2"
+                  onClick={() => moveToCart(product, chosenSize)}
+                  className="w-full py-2.5 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-widest font-semibold transition flex items-center justify-center space-x-2"
                 >
                   <ShoppingBag size={14} />
-                  <span>Move to Bag</span>
+                  <span>Move Size {chosenSize} to Bag</span>
                 </button>
               </div>
             </div>

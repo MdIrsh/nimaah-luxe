@@ -10,6 +10,8 @@ import {
   Check,
   ChevronRight,
   Crown,
+  Ruler,
+  X,
 } from 'lucide-react';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
 import { useCart } from '../context/CartContext';
@@ -30,6 +32,7 @@ export const ProductDetailPage = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [addedSuccess, setAddedSuccess] = useState(false);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   // Review submission state
   const [newRating, setNewRating] = useState(5);
@@ -244,11 +247,16 @@ export const ProductDetailPage = () => {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between text-xs">
               <span className="uppercase tracking-[0.18em] font-semibold text-[#29251F]">
-                Size: <span className="font-normal text-[#A68B66]">{selectedSize}</span>
+                Dress Size: <span className="font-normal text-[#A68B66]">{selectedSize}</span>
               </span>
-              <a href="#size-guide" className="text-[11px] text-[#A68B66] underline uppercase tracking-wider">
-                Bespoke Sizing Chart
-              </a>
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(true)}
+                className="text-[11px] text-[#A68B66] hover:text-[#29251F] underline uppercase tracking-wider inline-flex items-center space-x-1 cursor-pointer"
+              >
+                <Ruler size={12} />
+                <span>Size Guide Chart</span>
+              </button>
             </div>
             <div className="flex flex-wrap gap-2.5">
               {(product.sizes || ['XS', 'S', 'M', 'L', 'XL', 'XXL']).map((sz) => (
@@ -467,6 +475,86 @@ export const ProductDetailPage = () => {
             {relatedProducts.map((p) => (
               <ProductCard key={p._id} product={p} />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Dress Size Guide Modal */}
+      {isSizeGuideOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setIsSizeGuideOpen(false)}
+        >
+          <div
+            className="bg-white border border-[#E9E1D6] max-w-xl w-full p-7 sm:p-8 space-y-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#E9E1D6] pb-4">
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.3em] text-[#C5A059] font-cinzel font-semibold">
+                  Ni'maah Luxe Tailoring
+                </span>
+                <h3 className="font-serif-luxury text-2xl text-[#29251F]">
+                  Women's Dress Size Chart (Inches)
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSizeGuideOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-black transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#FAF9F6] border-b border-[#E9E1D6] text-[#29251F] uppercase tracking-wider font-cinzel">
+                    <th className="py-3 px-4">Size</th>
+                    <th className="py-3 px-4">Bust</th>
+                    <th className="py-3 px-4">Waist</th>
+                    <th className="py-3 px-4">Hips</th>
+                    <th className="py-3 px-4">Length</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#FAF9F6]">
+                  {[
+                    { size: 'XS', bust: '32"', waist: '25"', hips: '35"', length: '54"' },
+                    { size: 'S', bust: '34"', waist: '27"', hips: '37"', length: '55"' },
+                    { size: 'M', bust: '36"', waist: '29"', hips: '39"', length: '56"' },
+                    { size: 'L', bust: '38"', waist: '31"', hips: '41"', length: '57"' },
+                    { size: 'XL', bust: '40"', waist: '33"', hips: '43"', length: '58"' },
+                    { size: 'XXL', bust: '42"', waist: '36"', hips: '46"', length: '59"' },
+                  ].map((row) => (
+                    <tr
+                      key={row.size}
+                      onClick={() => {
+                        if ((product.sizes || []).includes(row.size)) {
+                          setSelectedSize(row.size);
+                          setIsSizeGuideOpen(false);
+                        }
+                      }}
+                      className={`cursor-pointer transition ${
+                        selectedSize === row.size
+                          ? 'bg-[#E9E1D6]/60 font-semibold text-[#29251F]'
+                          : 'hover:bg-[#FAF9F6] text-gray-600'
+                      }`}
+                    >
+                      <td className="py-3 px-4 font-bold text-[#29251F]">{row.size}</td>
+                      <td className="py-3 px-4">{row.bust}</td>
+                      <td className="py-3 px-4">{row.waist}</td>
+                      <td className="py-3 px-4">{row.hips}</td>
+                      <td className="py-3 px-4">{row.length}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="text-[11px] text-gray-500 font-light">
+              Tip: Click any row above to immediately select that dress size. For bespoke custom tailoring, contact our Chennai Atelier at <strong>+91 8618621612</strong>.
+            </p>
           </div>
         </div>
       )}

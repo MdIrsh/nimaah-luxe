@@ -254,17 +254,32 @@ const seedData = async () => {
     await connectDB();
 
     let addedCount = 0;
+    let updatedCount = 0;
+    const fullApparelSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
     for (const item of ALL_NIMAAH_DRESSES) {
+      const targetSizes =
+        item.category === 'Sarees' || item.category === 'Accessories'
+          ? ['Free Size']
+          : fullApparelSizes;
+      const itemWithSizes = { ...item, sizes: targetSizes };
+
       const exists = await Product.findOne({ title: item.title });
       if (!exists) {
-        await Product.create(item);
+        await Product.create(itemWithSizes);
         addedCount++;
         console.log(`+ Added: ${item.title} (${item.category})`);
+      } else {
+        exists.sizes = targetSizes;
+        await exists.save();
+        updatedCount++;
       }
     }
 
     const total = await Product.countDocuments();
-    console.log(`✓ Added ${addedCount} missing dress(es). Total in MongoDB Atlas (nimaah_luxe.products): ${total}`);
+    console.log(
+      `✓ Added ${addedCount} & synced sizes (XS–XXL) on ${updatedCount} dress(es). Total in MongoDB Atlas: ${total}`
+    );
     process.exit(0);
   } catch (error) {
     console.error(`Seeding Error: ${error.message}`);

@@ -15,6 +15,7 @@ export const CartPage = () => {
     coupon,
     couponError,
     updateQuantity,
+    updateItemSize,
     removeFromCart,
     applyCoupon,
     removeCoupon,
@@ -99,8 +100,24 @@ export const CartPage = () => {
                         </h3>
                       </Link>
 
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 pt-1 font-light">
-                        <span>Size: <strong className="text-[#29251F] font-semibold">{item.size}</strong></span>
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-1 font-light">
+                        <label className="flex items-center space-x-1.5">
+                          <span>Size:</span>
+                          <select
+                            value={item.size}
+                            onChange={(e) => updateItemSize(item.cartItemId, e.target.value)}
+                            className="bg-[#FAF9F6] border border-[#E9E1D6] px-2 py-0.5 text-xs font-semibold text-[#29251F] focus:outline-none focus:border-[#C5A059]"
+                          >
+                            {(item.product?.sizes && item.product.sizes.length > 0
+                              ? item.product.sizes
+                              : ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+                            ).map((sz) => (
+                              <option key={sz} value={sz}>
+                                {sz}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                         <span>Color: <strong className="text-[#29251F] font-semibold">{item.color}</strong></span>
                       </div>
 
