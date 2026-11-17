@@ -52,7 +52,7 @@ export const App = () => {
   return (
     <AuthProvider>
       <CartProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <ScrollToTop />
           <Routes>
             {/* Customer Website Routes wrapped in MainLayout */}
