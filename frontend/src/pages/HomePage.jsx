@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Crown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  ArrowRight,
+  Crown,
+  Search,
+  Sparkles,
+  Shirt,
+  Gem,
+  ShoppingBag,
+  Layers,
+  Tag,
+} from 'lucide-react';
 import InstagramIcon from '../components/InstagramIcon';
 import ProductCard from '../components/ProductCard';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
@@ -9,6 +19,8 @@ import instaProfileImg from '../assets/nimaahluxe-profile.png';
 
 export const HomePage = () => {
   const [products, setProducts] = useState(DEMO_PRODUCTS);
+  const [mobileSearch, setMobileSearch] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -24,241 +36,253 @@ export const HomePage = () => {
     fetchCatalog();
   }, []);
 
-  const featuredCollections = [
-    {
-      title: 'Haute Evening Gowns',
-      subtitle: 'Silk Velvets & Hand-beaded Crystals',
-      image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=1200&q=85',
-      category: 'Dresses',
-      span: 'col-span-1 md:col-span-2',
-    },
-    {
-      title: 'Banarasi Heritage Sarees',
-      subtitle: 'Woven with Pure Antique Gold Zari',
-      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=85',
-      category: 'Sarees',
-      span: 'col-span-1',
-    },
-    {
-      title: 'Power Tailoring',
-      subtitle: 'Virgin Italian Wool Silhouettes',
-      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=85',
-      category: 'Western Wear',
-      span: 'col-span-1',
-    },
-    {
-      title: 'Kashmiri Artisanal Kurtis',
-      subtitle: 'Royal Tilla & Santoon Flairs',
-      image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1200&q=85',
-      category: 'Kurtis',
-      span: 'col-span-1 md:col-span-2',
-    },
+  const handleMobileSearch = (e) => {
+    e.preventDefault();
+    if (mobileSearch.trim()) {
+      navigate(`/shop?search=${encodeURIComponent(mobileSearch.trim())}`);
+    }
+  };
+
+  const quickCategories = [
+    { name: 'For You', path: '/shop', icon: Sparkles, active: true },
+    { name: 'Dresses', path: '/shop?category=Dresses', icon: Crown },
+    { name: 'Ethnic', path: '/shop?category=Ethnic%20Wear', icon: Gem },
+    { name: 'Sarees', path: '/shop?category=Sarees', icon: Layers },
+    { name: 'Kurtis', path: '/shop?category=Kurtis', icon: Shirt },
+    { name: 'Tops', path: '/shop?category=Tops', icon: Tag },
+    { name: 'Western', path: '/shop?category=Western%20Wear', icon: ShoppingBag },
   ];
 
+  const spotlightRow = products.slice(0, 3);
+  const weddingSpecials = products.slice(2, 5);
   const newArrivals = products.slice(0, 4);
   const bestSellers = products.filter((p) => p.isBestSeller || p.ratings >= 4.9).slice(0, 4);
 
   return (
-    <div className="space-y-14 sm:space-y-24 lg:space-y-32 pb-16 sm:pb-24">
-      {/* 1. Grand Fashion Hero Banner */}
-      <section className="relative min-h-[72vh] sm:min-h-[84vh] lg:min-h-[90vh] flex items-center bg-[#24201A] overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=85"
-            alt="Ni'maah Luxe Winter Haute Couture Editorial"
-            className="w-full h-full object-cover object-top opacity-45"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-[#24201A] via-[#24201A]/80 to-[#24201A]/30 sm:to-transparent"></div>
+    <div className="space-y-8 sm:space-y-16 lg:space-y-24 pb-12 sm:pb-24">
+      {/* MOBILE APP-STYLE TOP SEARCH + CATEGORY ICON BAR */}
+      <div className="lg:hidden bg-gradient-to-b from-[#F5EFE6] to-[#FAF9F6] pt-3 pb-2 border-b border-[#E9E1D6]/70">
+        {/* Rounded Search Bar */}
+        <div className="px-3.5 pb-3">
+          <form onSubmit={handleMobileSearch} className="relative">
+            <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A68B66]" />
+            <input
+              type="text"
+              value={mobileSearch}
+              onChange={(e) => setMobileSearch(e.target.value)}
+              placeholder="Search for Dresses, Sarees, Kurtis..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#C5A059]/60 rounded-xl text-xs text-[#29251F] placeholder-gray-400 shadow-xs focus:outline-none focus:border-[#29251F]"
+            />
+          </form>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-24 lg:py-32 text-[#FAF9F6] w-full">
-          <div className="max-w-2xl space-y-5 sm:space-y-7">
-            <div className="inline-flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-1.5 bg-[#C5A059]/15 backdrop-blur-md border border-[#C5A059]/40 text-[#E8D3A2] text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] font-semibold rounded-xs">
-              <Crown size={14} className="text-[#C5A059] flex-shrink-0" />
-              <span>Autumn / Winter Couture 2026</span>
-            </div>
-
-            <h1 className="font-serif-luxury text-4xl sm:text-6xl lg:text-8xl font-normal leading-[1.06] tracking-tight">
-              Divinely <br />
-              <span className="italic font-light text-[#E8D3A2]">Inspired Fashion.</span>
-            </h1>
-
-            <p className="text-xs sm:text-base text-gray-300 font-light leading-relaxed max-w-lg">
-              Explore Ni'maah Luxe's opulent evening gowns, handwoven Banarasi sarees, and sculpted silhouettes handcrafted to honor sovereign grace.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2 sm:pt-3">
+        {/* Horizontal Category Icon Tabs */}
+        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar px-4 pt-1">
+          {quickCategories.map((cat) => {
+            const Icon = cat.icon;
+            return (
               <Link
-                to="/shop"
-                className="w-full sm:w-auto text-center px-7 sm:px-10 py-3.5 sm:py-4 bg-[#FAF9F6] text-[#29251F] hover:bg-[#C5A059] hover:text-white text-xs font-semibold uppercase tracking-[0.2em] transition duration-300 shadow-xl"
+                key={cat.name}
+                to={cat.path}
+                className={`flex flex-col items-center gap-1 pb-2 flex-shrink-0 border-b-2 transition ${
+                  cat.active
+                    ? 'border-[#29251F] text-[#29251F] font-semibold'
+                    : 'border-transparent text-[#29251F]/70'
+                }`}
               >
-                Explore Collection
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center border ${
+                    cat.active
+                      ? 'bg-[#29251F] text-[#E8D3A2] border-[#29251F]'
+                      : 'bg-white text-[#A68B66] border-[#E9E1D6]'
+                  }`}
+                >
+                  <Icon size={16} strokeWidth={1.7} />
+                </div>
+                <span className="text-[10.5px] whitespace-nowrap">{cat.name}</span>
               </Link>
-              <Link
-                to="/shop?category=Dresses"
-                className="w-full sm:w-auto text-center px-7 sm:px-10 py-3.5 sm:py-4 bg-transparent border border-[#C5A059]/60 hover:border-white text-white text-xs font-semibold uppercase tracking-[0.2em] transition duration-300 backdrop-blur-sm"
-              >
-                Evening Gowns
-              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 1. Hero Banner — Sleek Rounded App Card on Mobile, Grand Full-Bleed on Desktop */}
+      <section className="px-3.5 lg:px-0">
+        <div className="relative min-h-[240px] sm:min-h-[420px] lg:min-h-[82vh] flex items-center bg-[#24201A] overflow-hidden rounded-2xl lg:rounded-none shadow-md lg:shadow-none">
+          <div className="absolute inset-0">
+            <img
+              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=85"
+              alt="Ni'maah Luxe Haute Couture Editorial"
+              className="w-full h-full object-cover object-top opacity-45"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#24201A] via-[#24201A]/80 to-[#24201A]/20"></div>
+          </div>
+
+          <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-8 sm:py-16 lg:py-28 text-[#FAF9F6] w-full">
+            <div className="max-w-xl space-y-3 sm:space-y-6">
+              <div className="inline-flex items-center space-x-2 px-2.5 sm:px-4 py-1 sm:py-1.5 bg-[#C5A059]/20 backdrop-blur-md border border-[#C5A059]/40 text-[#E8D3A2] text-[9px] sm:text-xs uppercase tracking-[0.18em] sm:tracking-[0.3em] font-semibold rounded-full sm:rounded-xs">
+                <Crown size={12} className="text-[#C5A059] flex-shrink-0" />
+                <span>Couture Collection 2026</span>
+              </div>
+
+              <h1 className="font-serif-luxury text-3xl sm:text-5xl lg:text-7xl font-normal leading-[1.08] tracking-tight">
+                Divinely <span className="italic font-light text-[#E8D3A2]">Inspired Fashion.</span>
+              </h1>
+
+              <p className="text-[11px] sm:text-sm lg:text-base text-gray-300 font-light leading-relaxed max-w-md line-clamp-2 sm:line-clamp-none">
+                Opulent evening gowns, handwoven Banarasi sarees, and sculpted silhouettes tailored to honor sovereign grace.
+              </p>
+
+              <div className="flex items-center gap-2.5 sm:gap-4 pt-1 sm:pt-2">
+                <Link
+                  to="/shop"
+                  className="px-5 sm:px-9 py-2.5 sm:py-4 bg-[#FAF9F6] text-[#29251F] hover:bg-[#C5A059] hover:text-white text-[10px] sm:text-xs font-semibold uppercase tracking-[0.16em] sm:tracking-[0.2em] rounded-lg sm:rounded-none transition shadow-lg"
+                >
+                  Shop Now
+                </Link>
+                <Link
+                  to="/shop?category=Dresses"
+                  className="px-4 sm:px-9 py-2.5 sm:py-4 bg-transparent border border-[#C5A059]/70 hover:border-white text-white text-[10px] sm:text-xs font-semibold uppercase tracking-[0.16em] sm:tracking-[0.2em] rounded-lg sm:rounded-none transition"
+                >
+                  Evening Gowns
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. Brand Philosophy */}
-      <section className="max-w-4xl mx-auto px-5 sm:px-6 text-center space-y-4 sm:space-y-6">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-full overflow-hidden border border-[#C5A059]/50 p-1 shadow-sm bg-white">
-          <img src={logoImg} alt="Ni'maah Emblem" className="w-full h-full object-cover rounded-full" />
-        </div>
-        <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] sm:tracking-[0.35em] text-[#C5A059] font-cinzel font-semibold block">
-          The Ni'maah Philosophy
-        </span>
-        <h2 className="font-serif-luxury text-2xl sm:text-4xl lg:text-5xl text-[#29251F] font-normal leading-snug max-w-3xl mx-auto">
-          "Beauty is not crafted to conform; it is divinely inspired to crown the spirit with sovereignty."
-        </h2>
-        <div className="w-16 sm:w-20 h-[1.5px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mx-auto"></div>
-      </section>
-
-      {/* 3. Curated Wardrobe Collections */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-7 sm:mb-12 gap-3">
-          <div className="space-y-1">
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-semibold">
-              Curated Wardrobe
-            </span>
-            <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#29251F]">Bespoke Collections</h2>
-          </div>
-          <Link
-            to="/shop"
-            className="inline-flex items-center space-x-2 text-xs uppercase tracking-[0.18em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
-          >
-            <span>View All Categories</span>
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {featuredCollections.map((col, idx) => (
+      {/* 2. 3-Column Quick Spotlight Strip (Existing MongoDB Dresses) */}
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-6">
+          {spotlightRow.map((prod) => (
             <Link
-              key={idx}
-              to={`/shop?category=${encodeURIComponent(col.category)}`}
-              className={`group relative h-[280px] sm:h-[360px] lg:h-[420px] overflow-hidden bg-[#29251F] ${col.span} shadow-sm border border-[#E9E1D6]/60`}
+              key={prod._id}
+              to={`/product/${prod._id}`}
+              className="group bg-white rounded-xl sm:rounded-sm border border-[#E9E1D6] overflow-hidden shadow-xs flex flex-col"
             >
-              <img
-                src={col.image}
-                alt={col.title}
-                loading="lazy"
-                className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-95 group-hover:scale-105 transition duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
-              <div className="absolute bottom-5 left-5 right-5 sm:bottom-8 sm:left-8 sm:right-8 text-white space-y-1">
-                <span className="text-[9.5px] sm:text-[10px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-medium block">
-                  {col.subtitle}
-                </span>
-                <h3 className="font-serif-luxury text-2xl sm:text-3xl group-hover:text-[#E8D3A2] transition">
-                  {col.title}
-                </h3>
-                <span className="inline-flex items-center space-x-2 text-[11px] sm:text-xs uppercase tracking-[0.18em] text-white/90 pt-1.5 group-hover:translate-x-2 transition-transform">
-                  <span>Explore Edit</span>
-                  <ArrowRight size={13} />
-                </span>
+              <div className="aspect-[3/4] sm:aspect-[4/4] overflow-hidden bg-[#FAF9F6]">
+                <img
+                  src={prod.images?.[0]}
+                  alt={prod.title}
+                  loading="lazy"
+                  className="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500"
+                />
+              </div>
+              <div className="p-2 sm:p-4 text-center space-y-0.5 bg-white">
+                <p className="text-[10px] sm:text-xs font-bold text-[#29251F]">
+                  From ₹{(prod.discountedPrice || prod.price).toLocaleString('en-IN')}
+                </p>
+                <p className="text-[9.5px] sm:text-xs text-gray-500 truncate">{prod.category}</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* 4. New Arrivals */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-7 sm:mb-12 border-b border-[#E9E1D6] pb-4 sm:pb-5">
-          <div className="space-y-1">
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-semibold">
+      {/* 3. Royal Wedding & Festive Highlight Box (3-Column Compact App Card using Existing Dresses) */}
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+        <div className="rounded-2xl bg-gradient-to-br from-[#F4ECE1] via-[#EFE5D7] to-[#E6D8C5] p-3.5 sm:p-7 lg:p-10 border border-[#C5A059]/35 shadow-xs space-y-3.5 sm:space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-[9.5px] sm:text-[11px] uppercase tracking-[0.22em] text-[#A68B66] font-cinzel font-bold block">
+                Ni'maah Luxe
+              </span>
+              <h2 className="font-serif-luxury text-xl sm:text-3xl text-[#29251F] font-semibold leading-tight">
+                Royal Couture Edit
+              </h2>
+            </div>
+            <span className="px-3 py-1 bg-[#29251F] text-[#E8D3A2] text-[9.5px] sm:text-xs font-cinzel uppercase tracking-widest rounded-full border border-[#C5A059]/50 shadow-xs">
+              Wedding Specials
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-5">
+            {weddingSpecials.map((prod) => (
+              <Link
+                key={prod._id}
+                to={`/product/${prod._id}`}
+                className="group bg-white/90 rounded-xl overflow-hidden shadow-xs border border-white flex flex-col"
+              >
+                <div className="aspect-[3/4] overflow-hidden bg-[#FAF9F6]">
+                  <img
+                    src={prod.images?.[0]}
+                    alt={prod.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500"
+                  />
+                </div>
+                <div className="p-2 sm:p-3.5 text-center space-y-0.5">
+                  <p className="text-[10px] sm:text-xs text-[#29251F] truncate font-medium">
+                    {prod.title}
+                  </p>
+                  <p className="text-[10px] sm:text-sm font-bold text-[#A68B66]">
+                    ₹{(prod.discountedPrice || prod.price).toLocaleString('en-IN')}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. New Arrivals — 2-Column App Grid on Mobile, 4-Column on Desktop */}
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between mb-4 sm:mb-8 border-b border-[#E9E1D6] pb-3 sm:pb-4">
+          <div>
+            <span className="text-[9.5px] sm:text-[11px] uppercase tracking-[0.24em] text-[#C5A059] font-cinzel font-semibold">
               Fresh Off The Runway
             </span>
-            <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#29251F]">New Arrivals</h2>
+            <h2 className="font-serif-luxury text-2xl sm:text-4xl text-[#29251F]">New Arrivals</h2>
           </div>
           <Link
             to="/shop?sort=newest"
-            className="inline-flex items-center space-x-1.5 text-[11px] sm:text-xs uppercase tracking-[0.16em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
+            className="inline-flex items-center space-x-1 text-[10.5px] sm:text-xs uppercase tracking-[0.14em] text-[#29251F] hover:text-[#C5A059] font-semibold transition"
           >
             <span>View All</span>
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={13} />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-7">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
           {newArrivals.map((prod) => (
             <ProductCard key={prod._id} product={prod} />
           ))}
         </div>
       </section>
 
-      {/* 5. Editorial Privilege Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-[#E9E1D6] p-6 sm:p-12 lg:p-16 border border-[#C5A059]/40 flex flex-col md:flex-row items-center justify-between gap-7 sm:gap-10 shadow-sm">
-          <div className="max-w-xl space-y-4 sm:space-y-5 text-[#29251F] text-center md:text-left">
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-[#A68B66] font-cinzel font-bold">
-              Exclusive Privilege
-            </span>
-            <h2 className="font-serif-luxury text-2xl sm:text-4xl lg:text-5xl leading-tight">
-              Complimentary Gift & 20% Off Your Curated Order
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-light">
-              Enter private code <strong className="text-[#29251F] font-bold tracking-wider">NIMAAH20</strong> at checkout to unlock savings on our couture gowns and handwoven Banarasi sarees.
-            </p>
-            <div className="pt-1 sm:pt-2">
-              <Link
-                to="/shop"
-                className="inline-block w-full sm:w-auto text-center px-8 py-3.5 sm:py-4 bg-[#29251F] text-white hover:bg-[#C5A059] text-xs uppercase tracking-[0.2em] font-semibold transition shadow-md"
-              >
-                Redeem Privilege
-              </Link>
-            </div>
-          </div>
-
-          <div className="w-full md:w-5/12 aspect-[4/3] overflow-hidden shadow-xl border-2 border-white/80">
-            <img
-              src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1000&q=85"
-              alt="Ni'maah Luxe Atelier Model"
-              loading="lazy"
-              className="w-full h-full object-cover object-top hover:scale-105 transition duration-700"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Best Sellers Collection */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-7 sm:mb-12 border-b border-[#E9E1D6] pb-4 sm:pb-5">
-          <div className="space-y-1">
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-semibold">
+      {/* 5. Best Sellers — 2-Column App Grid on Mobile, 4-Column on Desktop */}
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between mb-4 sm:mb-8 border-b border-[#E9E1D6] pb-3 sm:pb-4">
+          <div>
+            <span className="text-[9.5px] sm:text-[11px] uppercase tracking-[0.24em] text-[#C5A059] font-cinzel font-semibold">
               Most Coveted Silhouettes
             </span>
-            <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#29251F]">Best Sellers</h2>
+            <h2 className="font-serif-luxury text-2xl sm:text-4xl text-[#29251F]">Best Sellers</h2>
           </div>
           <Link
             to="/shop?sort=popular"
-            className="inline-flex items-center space-x-1.5 text-[11px] sm:text-xs uppercase tracking-[0.16em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
+            className="inline-flex items-center space-x-1 text-[10.5px] sm:text-xs uppercase tracking-[0.14em] text-[#29251F] hover:text-[#C5A059] font-semibold transition"
           >
             <span>View All</span>
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={13} />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-7">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
           {bestSellers.map((prod) => (
             <ProductCard key={prod._id} product={prod} />
           ))}
         </div>
       </section>
 
-      {/* 7. Official Instagram Showcase: @nimaahluxe */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white border border-[#E9E1D6] p-5 sm:p-10 lg:p-14 shadow-xs space-y-7 sm:space-y-10">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6 border-b border-[#E9E1D6] pb-6 sm:pb-8">
-            <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
-              <div className="relative p-1 rounded-full bg-gradient-to-tr from-[#C5A059] via-[#F4E3B2] to-[#8C7355] shadow-md flex-shrink-0">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-[#24201A] p-0.5 border border-white">
+      {/* 6. Official Instagram Showcase: @nimaahluxe */}
+      <section className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl sm:rounded-sm border border-[#E9E1D6] p-4 sm:p-10 lg:p-14 shadow-xs space-y-5 sm:space-y-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#E9E1D6] pb-5 sm:pb-7">
+            <div className="flex items-center space-x-3.5 sm:space-x-5">
+              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-[#C5A059] via-[#F4E3B2] to-[#8C7355] shadow-md flex-shrink-0">
+                <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-[#24201A] p-0.5 border border-white">
                   <img
                     src={instaProfileImg}
                     alt="@nimaahluxe Instagram Profile"
@@ -267,20 +291,17 @@ export const HomePage = () => {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-center sm:justify-start space-x-2">
-                  <h3 className="font-cinzel text-xl sm:text-2xl font-bold text-[#29251F] tracking-wider">
+              <div className="space-y-0.5">
+                <div className="flex items-center space-x-1.5">
+                  <h3 className="font-cinzel text-lg sm:text-2xl font-bold text-[#29251F] tracking-wider">
                     @nimaahluxe
                   </h3>
-                  <span className="p-1 bg-[#C5A059] text-white rounded-full flex items-center justify-center shadow-xs">
-                    <Crown size={11} />
+                  <span className="p-0.5 bg-[#C5A059] text-white rounded-full">
+                    <Crown size={10} />
                   </span>
                 </div>
-                <p className="text-[10px] sm:text-xs text-[#A68B66] font-medium tracking-[0.2em] uppercase font-cinzel">
-                  Divinely Inspired Fashion • Official Instagram
-                </p>
-                <p className="text-xs text-gray-500 font-light">
-                  Tag <span className="font-semibold text-[#29251F]">@nimaahluxe</span> to be featured on our runway
+                <p className="text-[9.5px] sm:text-xs text-[#A68B66] font-medium tracking-[0.16em] uppercase font-cinzel">
+                  Divinely Inspired Fashion
                 </p>
               </div>
             </div>
@@ -289,63 +310,31 @@ export const HomePage = () => {
               href="https://www.instagram.com/nimaahluxe"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto justify-center px-7 py-3.5 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.18em] font-semibold transition flex items-center space-x-2.5 shadow-md flex-shrink-0"
+              className="w-full sm:w-auto justify-center px-6 py-2.5 sm:py-3.5 bg-[#29251F] hover:bg-[#C5A059] text-white text-[11px] sm:text-xs uppercase tracking-[0.18em] font-semibold rounded-lg sm:rounded-none transition flex items-center space-x-2 shadow-sm flex-shrink-0"
             >
-              <InstagramIcon size={16} />
+              <InstagramIcon size={15} />
               <span>Follow @nimaahluxe</span>
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
-            {[
-              {
-                img: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=600&q=80',
-                likes: '1.4k',
-                caption: 'Haute Velvet Gown Atelier',
-              },
-              {
-                img: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
-                likes: '2.1k',
-                caption: 'Handwoven Banarasi Zari Silk',
-              },
-              {
-                img: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=600&q=80',
-                likes: '980',
-                caption: 'Celestial Pleated Silhouette',
-              },
-              {
-                img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80',
-                likes: '1.8k',
-                caption: 'Kashmiri Royal Tilla Embroidery',
-              },
-              {
-                img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=600&q=80',
-                likes: '1.2k',
-                caption: 'Power Tailoring in Italian Wool',
-              },
-              {
-                img: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80',
-                likes: '850',
-                caption: 'Artisanal Nappa Leather Clasp',
-              },
-            ].map((post, idx) => (
+          <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+            {products.slice(0, 6).map((prod) => (
               <a
-                key={idx}
+                key={prod._id}
                 href="https://www.instagram.com/nimaahluxe"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative aspect-square overflow-hidden bg-[#FAF9F6] border border-[#E9E1D6]"
+                className="group relative aspect-square overflow-hidden rounded-lg sm:rounded-none bg-[#FAF9F6] border border-[#E9E1D6]"
               >
                 <img
-                  src={post.img}
-                  alt={post.caption}
+                  src={prod.images?.[0]}
+                  alt={prod.title}
                   loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out"
+                  className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500 ease-out"
                 />
-                <div className="absolute inset-0 bg-[#29251F]/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-2 text-center space-y-1">
-                  <InstagramIcon size={18} className="text-[#E8D3A2]" />
-                  <span className="text-[10px] font-semibold tracking-wider font-cinzel">♥ {post.likes}</span>
-                  <p className="text-[9px] line-clamp-2 text-gray-300 font-light">{post.caption}</p>
+                <div className="absolute inset-0 bg-[#29251F]/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-2 text-center space-y-1">
+                  <InstagramIcon size={16} className="text-[#E8D3A2]" />
+                  <p className="text-[9px] line-clamp-2 text-gray-200">{prod.category}</p>
                 </div>
               </a>
             ))}

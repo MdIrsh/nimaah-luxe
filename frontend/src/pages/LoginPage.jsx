@@ -31,8 +31,8 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16">
-      <div className="bg-white border border-[#E9E1D6] p-8 shadow-sm space-y-6">
+    <div className="max-w-md mx-auto px-4 py-8 sm:py-16">
+      <div className="bg-white border border-[#E9E1D6] p-6 sm:p-8 shadow-sm space-y-6">
         <div className="text-center space-y-1">
           <span className="text-[10px] uppercase tracking-[0.3em] text-[#C5A059] font-cinzel font-semibold">
             Ni'maah Luxe Sanctuary

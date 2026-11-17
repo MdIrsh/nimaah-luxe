@@ -51,7 +51,7 @@ export const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-[#FFFFFF]/98 backdrop-blur-md border-b border-[#E9E1D6]/80 transition-all shadow-xs">
-      {/* 1. Top Announcement Bar — Responsive for Mobile & Desktop */}
+      {/* 1. Top Announcement Bar */}
       <div className="bg-[#29251F] text-[#FAF9F6] py-2 px-3 sm:px-6 lg:px-8 uppercase font-medium flex items-center justify-between border-b border-[#3A352D]">
         <div className="hidden lg:flex items-center space-x-2 text-[#C5A059] text-[10.5px] tracking-[0.2em]">
           <Sparkles size={12} />
@@ -71,31 +71,28 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* 2. Main Navigation Bar */}
+      {/* 2. Main Navigation Bar — Zero Overlap on All Mobile Widths */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 lg:h-24 gap-2">
-          {/* Left: Mobile Menu Button */}
-          <div className="flex items-center lg:hidden">
+          {/* Left Group: Mobile Hamburger + Brand Logo (flex-1 min-w-0 prevents any overlap) */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-1 lg:flex-none min-w-0">
             <button
               onClick={() => {
                 setIsMenuOpen(!isMenuOpen);
                 setIsSearchOpen(false);
               }}
-              className="p-2 -ml-1.5 text-[#29251F] hover:text-[#C5A059] focus:outline-none transition"
+              className="lg:hidden p-1.5 -ml-1 text-[#29251F] hover:text-[#C5A059] focus:outline-none transition flex-shrink-0"
               aria-label="Toggle navigation menu"
             >
-              {isMenuOpen ? <X size={24} strokeWidth={1.6} /> : <Menu size={24} strokeWidth={1.6} />}
+              {isMenuOpen ? <X size={22} strokeWidth={1.6} /> : <Menu size={22} strokeWidth={1.6} />}
             </button>
-          </div>
 
-          {/* Brand Emblem & Logo */}
-          <div className="flex items-center min-w-0">
             <Link
               to="/"
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center space-x-2.5 sm:space-x-3.5 group py-1"
+              className="flex items-center gap-2 sm:gap-3 group py-1 min-w-0 overflow-hidden"
             >
-              <div className="relative w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full overflow-hidden border border-[#C5A059]/60 shadow-sm flex-shrink-0 bg-[#29251F] p-0.5">
+              <div className="relative w-8 h-8 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-full overflow-hidden border border-[#C5A059]/60 shadow-sm flex-shrink-0 bg-[#29251F] p-0.5">
                 <img
                   src={logoImg}
                   alt="Ni'maah Luxe Emblem"
@@ -103,17 +100,17 @@ export const Navbar = () => {
                 />
               </div>
               <div className="flex flex-col text-left min-w-0">
-                <span className="font-cinzel text-base sm:text-xl lg:text-2xl font-semibold tracking-[0.12em] sm:tracking-[0.18em] text-[#29251F] group-hover:text-[#A68B66] transition-colors leading-tight truncate">
+                <span className="font-cinzel text-[13px] sm:text-xl lg:text-2xl font-semibold tracking-[0.08em] sm:tracking-[0.16em] text-[#29251F] group-hover:text-[#A68B66] transition-colors leading-tight truncate">
                   NI'MAAH LUXE
                 </span>
-                <span className="font-sans text-[7.5px] sm:text-[9px] tracking-[0.22em] sm:tracking-[0.35em] text-[#A68B66] uppercase font-medium mt-0.5 truncate">
+                <span className="font-sans text-[6.5px] sm:text-[8.5px] tracking-[0.14em] sm:tracking-[0.3em] text-[#A68B66] uppercase font-medium mt-0.5 truncate">
                   Divinely Inspired Fashion
                 </span>
               </div>
             </Link>
           </div>
 
-          {/* Desktop Navigation Links */}
+          {/* Center: Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-6 xl:space-x-7">
             {navLinks.map((link) => {
               const isActive = location.pathname + location.search === link.path;
@@ -138,8 +135,8 @@ export const Navbar = () => {
             })}
           </nav>
 
-          {/* Right Action Icons — Clean & Uncrowded on Phones */}
-          <div className="flex items-center space-x-1 sm:space-x-3.5 lg:space-x-4 flex-shrink-0">
+          {/* Right Group: Action Icons (flex-shrink-0 guarantees crisp spacing) */}
+          <div className="flex items-center gap-1 sm:gap-3 lg:gap-4 flex-shrink-0">
             {/* Instagram (sm and up; also inside Mobile Drawer) */}
             <a
               href="https://www.instagram.com/nimaahluxe"
@@ -161,14 +158,18 @@ export const Navbar = () => {
                 setIsSearchOpen(!isSearchOpen);
                 setIsMenuOpen(false);
               }}
-              className="p-2 text-[#29251F] hover:text-[#A68B66] transition-colors"
+              className={`p-1.5 sm:p-2 transition-colors rounded-full ${
+                isSearchOpen
+                  ? 'text-[#C5A059] bg-[#FAF9F6]'
+                  : 'text-[#29251F] hover:text-[#A68B66]'
+              }`}
               title="Search creations"
               aria-label="Search"
             >
-              <Search size={19} strokeWidth={1.6} />
+              <Search size={18} strokeWidth={1.6} />
             </button>
 
-            {/* Wishlist Icon (visible on sm+, also in mobile drawer) */}
+            {/* Wishlist Icon (sm and up; also in mobile drawer) */}
             <Link
               to="/wishlist"
               className="hidden sm:flex p-2 text-[#29251F] hover:text-[#A68B66] transition-colors relative"
@@ -187,25 +188,25 @@ export const Navbar = () => {
             <Link
               to="/cart"
               onClick={() => setIsMenuOpen(false)}
-              className="p-2 text-[#29251F] hover:text-[#A68B66] transition-colors relative"
+              className="p-1.5 sm:p-2 text-[#29251F] hover:text-[#A68B66] transition-colors relative"
               title="Shopping Bag"
               aria-label="Shopping Bag"
             >
-              <ShoppingBag size={19} strokeWidth={1.6} />
+              <ShoppingBag size={18} strokeWidth={1.6} />
               {itemsCount > 0 && (
-                <span className="absolute top-1 right-0.5 bg-[#29251F] text-[#FAF9F6] text-[9.5px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-xs">
+                <span className="absolute top-0.5 right-0 bg-[#29251F] text-[#FAF9F6] text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-xs">
                   {itemsCount}
                 </span>
               )}
             </Link>
 
             {/* Profile / Sign In */}
-            <div className="relative pl-0.5 sm:pl-1">
+            <div className="relative pl-0.5">
               {user ? (
                 <>
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-1 p-1 text-[#29251F] hover:text-[#A68B66] transition-colors focus:outline-none"
+                    className="flex items-center space-x-1 p-0.5 text-[#29251F] hover:text-[#A68B66] transition-colors focus:outline-none"
                     aria-expanded={isUserMenuOpen}
                   >
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#C5A059]/60 overflow-hidden bg-[#FAF9F6] flex items-center justify-center shadow-xs">
@@ -281,7 +282,7 @@ export const Navbar = () => {
                 <Link
                   to="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#29251F] hover:bg-[#C5A059] text-white text-[10px] sm:text-[11px] uppercase tracking-[0.14em] sm:tracking-[0.2em] font-semibold transition shadow-xs whitespace-nowrap"
+                  className="inline-block px-2.5 py-1.5 sm:px-4 sm:py-2 bg-[#29251F] hover:bg-[#C5A059] text-white text-[9.5px] sm:text-[11px] uppercase tracking-[0.08em] sm:tracking-[0.2em] font-semibold transition shadow-xs whitespace-nowrap"
                 >
                   Sign In
                 </Link>
@@ -290,22 +291,24 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Search Bar Overlay */}
+        {/* Search Bar Overlay — Clean, Non-Clipped Flex Input */}
         {isSearchOpen && (
           <div className="py-3 sm:py-4 border-t border-[#E9E1D6]">
-            <form onSubmit={handleSearchSubmit} className="relative max-w-2xl mx-auto flex items-center">
-              <Search size={16} className="absolute left-3.5 text-[#A68B66]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search dresses, sarees, kurtis, blazers..."
-                className="w-full pl-10 pr-24 py-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66] text-sm text-[#29251F] placeholder-gray-400"
-                autoFocus
-              />
+            <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex items-stretch gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A68B66]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search dresses, sarees, kurtis..."
+                  className="w-full pl-9 pr-3 py-2.5 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66] text-xs sm:text-sm text-[#29251F] placeholder-gray-400"
+                  autoFocus
+                />
+              </div>
               <button
                 type="submit"
-                className="absolute right-1.5 px-4 py-2 bg-[#29251F] text-white text-[11px] uppercase tracking-widest font-semibold hover:bg-[#A68B66] transition"
+                className="px-4 sm:px-5 bg-[#29251F] text-white text-[10.5px] sm:text-xs uppercase tracking-widest font-semibold hover:bg-[#A68B66] transition flex-shrink-0"
               >
                 Search
               </button>
@@ -314,7 +317,7 @@ export const Navbar = () => {
         )}
       </div>
 
-      {/* Smooth Touch-Friendly Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu */}
       {isMenuOpen && (
         <div className="lg:hidden bg-white border-t border-[#E9E1D6] px-5 pt-3 pb-7 space-y-1 shadow-xl max-h-[82vh] overflow-y-auto">
           {navLinks.map((link) => (
