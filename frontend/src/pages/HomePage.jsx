@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, ShieldCheck, Heart, Star, Crown } from 'lucide-react';
+import { ArrowRight, Crown } from 'lucide-react';
 import InstagramIcon from '../components/InstagramIcon';
 import ProductCard from '../components/ProductCard';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
@@ -9,7 +9,6 @@ import instaProfileImg from '../assets/nimaahluxe-profile.png';
 
 export const HomePage = () => {
   const [products, setProducts] = useState(DEMO_PRODUCTS);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -20,8 +19,6 @@ export const HomePage = () => {
         }
       } catch (err) {
         console.error('Error fetching home catalog:', err);
-      } finally {
-        setLoading(false);
       }
     };
     fetchCatalog();
@@ -62,47 +59,44 @@ export const HomePage = () => {
   const bestSellers = products.filter((p) => p.isBestSeller || p.ratings >= 4.9).slice(0, 4);
 
   return (
-    <div className="space-y-24 sm:space-y-32 pb-28">
-      {/* 1. Grand Fashion Hero Banner with Editorial Framing & Balanced Padding */}
-      <section className="relative min-h-[90vh] flex items-center bg-[#24201A] overflow-hidden">
-        {/* Background Editorial High-Res Image */}
+    <div className="space-y-14 sm:space-y-24 lg:space-y-32 pb-16 sm:pb-24">
+      {/* 1. Grand Fashion Hero Banner */}
+      <section className="relative min-h-[72vh] sm:min-h-[84vh] lg:min-h-[90vh] flex items-center bg-[#24201A] overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=88"
+            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=85"
             alt="Ni'maah Luxe Winter Haute Couture Editorial"
-            className="w-full h-full object-cover object-top opacity-45 scale-100 transition-transform duration-1000 ease-out"
+            className="w-full h-full object-cover object-top opacity-45"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#24201A] via-[#24201A]/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-[#24201A] via-[#24201A]/80 to-[#24201A]/30 sm:to-transparent"></div>
         </div>
 
-        {/* Hero Content with Perfect Padding & Margins */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 text-[#FAF9F6] w-full">
-          <div className="max-w-2xl space-y-7">
-            {/* Crown Emblem Badge */}
-            <div className="inline-flex items-center space-x-3 px-4 py-1.5 bg-[#C5A059]/15 backdrop-blur-md border border-[#C5A059]/40 text-[#E8D3A2] text-xs uppercase tracking-[0.3em] font-semibold rounded-xs">
-              <Crown size={15} className="text-[#C5A059]" />
-              <span>Autumn / Winter Haute Couture 2026</span>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-24 lg:py-32 text-[#FAF9F6] w-full">
+          <div className="max-w-2xl space-y-5 sm:space-y-7">
+            <div className="inline-flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-1.5 bg-[#C5A059]/15 backdrop-blur-md border border-[#C5A059]/40 text-[#E8D3A2] text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] font-semibold rounded-xs">
+              <Crown size={14} className="text-[#C5A059] flex-shrink-0" />
+              <span>Autumn / Winter Couture 2026</span>
             </div>
 
-            <h1 className="font-serif-luxury text-5xl sm:text-7xl lg:text-8xl font-normal leading-[1.04] tracking-tight">
+            <h1 className="font-serif-luxury text-4xl sm:text-6xl lg:text-8xl font-normal leading-[1.06] tracking-tight">
               Divinely <br />
               <span className="italic font-light text-[#E8D3A2]">Inspired Fashion.</span>
             </h1>
 
-            <p className="text-sm sm:text-base text-gray-300 font-light leading-relaxed max-w-lg">
+            <p className="text-xs sm:text-base text-gray-300 font-light leading-relaxed max-w-lg">
               Explore Ni'maah Luxe's opulent evening gowns, handwoven Banarasi sarees, and sculpted silhouettes handcrafted to honor sovereign grace.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2 sm:pt-3">
               <Link
                 to="/shop"
-                className="px-8 sm:px-10 py-4 bg-[#FAF9F6] text-[#29251F] hover:bg-[#C5A059] hover:text-white text-xs font-semibold uppercase tracking-[0.22em] transition duration-300 shadow-xl"
+                className="w-full sm:w-auto text-center px-7 sm:px-10 py-3.5 sm:py-4 bg-[#FAF9F6] text-[#29251F] hover:bg-[#C5A059] hover:text-white text-xs font-semibold uppercase tracking-[0.2em] transition duration-300 shadow-xl"
               >
                 Explore Collection
               </Link>
               <Link
                 to="/shop?category=Dresses"
-                className="px-8 sm:px-10 py-4 bg-transparent border border-[#C5A059]/60 hover:border-white text-white text-xs font-semibold uppercase tracking-[0.22em] transition duration-300 backdrop-blur-sm"
+                className="w-full sm:w-auto text-center px-7 sm:px-10 py-3.5 sm:py-4 bg-transparent border border-[#C5A059]/60 hover:border-white text-white text-xs font-semibold uppercase tracking-[0.2em] transition duration-300 backdrop-blur-sm"
               >
                 Evening Gowns
               </Link>
@@ -111,59 +105,60 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 2. Ni'maah Creed Ethos with Generous Breathing Room */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
-        <div className="w-16 h-16 mx-auto rounded-full overflow-hidden border border-[#C5A059]/50 p-1 shadow-sm bg-white">
+      {/* 2. Brand Philosophy */}
+      <section className="max-w-4xl mx-auto px-5 sm:px-6 text-center space-y-4 sm:space-y-6">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-full overflow-hidden border border-[#C5A059]/50 p-1 shadow-sm bg-white">
           <img src={logoImg} alt="Ni'maah Emblem" className="w-full h-full object-cover rounded-full" />
         </div>
-        <span className="text-[11px] uppercase tracking-[0.35em] text-[#C5A059] font-cinzel font-semibold block">
+        <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] sm:tracking-[0.35em] text-[#C5A059] font-cinzel font-semibold block">
           The Ni'maah Philosophy
         </span>
-        <h2 className="font-serif-luxury text-3xl sm:text-5xl text-[#29251F] font-normal leading-tight max-w-3xl mx-auto">
+        <h2 className="font-serif-luxury text-2xl sm:text-4xl lg:text-5xl text-[#29251F] font-normal leading-snug max-w-3xl mx-auto">
           "Beauty is not crafted to conform; it is divinely inspired to crown the spirit with sovereignty."
         </h2>
-        <div className="w-20 h-[1.5px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mx-auto mt-6"></div>
+        <div className="w-16 sm:w-20 h-[1.5px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mx-auto"></div>
       </section>
 
-      {/* 3. Curated Wardrobe Collections with Balanced Gaps */}
+      {/* 3. Curated Wardrobe Collections */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-7 sm:mb-12 gap-3">
           <div className="space-y-1">
-            <span className="text-[11px] uppercase tracking-[0.28em] text-[#C5A059] font-cinzel font-semibold">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-semibold">
               Curated Wardrobe
             </span>
             <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#29251F]">Bespoke Collections</h2>
           </div>
           <Link
             to="/shop"
-            className="inline-flex items-center space-x-2 text-xs uppercase tracking-[0.2em] text-[#29251F] hover:text-[#C5A059] font-semibold mt-4 md:mt-0 transition group"
+            className="inline-flex items-center space-x-2 text-xs uppercase tracking-[0.18em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
           >
             <span>View All Categories</span>
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {featuredCollections.map((col, idx) => (
             <Link
               key={idx}
               to={`/shop?category=${encodeURIComponent(col.category)}`}
-              className={`group relative h-[420px] overflow-hidden bg-[#29251F] ${col.span} shadow-sm border border-[#E9E1D6]/60`}
+              className={`group relative h-[280px] sm:h-[360px] lg:h-[420px] overflow-hidden bg-[#29251F] ${col.span} shadow-sm border border-[#E9E1D6]/60`}
             >
               <img
                 src={col.image}
                 alt={col.title}
+                loading="lazy"
                 className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-95 group-hover:scale-105 transition duration-700 ease-out"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
-              <div className="absolute bottom-8 left-8 right-8 text-white space-y-1.5">
-                <span className="text-[10px] uppercase tracking-[0.3em] text-[#C5A059] font-cinzel font-medium block">
+              <div className="absolute bottom-5 left-5 right-5 sm:bottom-8 sm:left-8 sm:right-8 text-white space-y-1">
+                <span className="text-[9.5px] sm:text-[10px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-medium block">
                   {col.subtitle}
                 </span>
                 <h3 className="font-serif-luxury text-2xl sm:text-3xl group-hover:text-[#E8D3A2] transition">
                   {col.title}
                 </h3>
-                <span className="inline-flex items-center space-x-2 text-xs uppercase tracking-[0.2em] text-white/90 pt-2 group-hover:translate-x-2 transition-transform">
+                <span className="inline-flex items-center space-x-2 text-[11px] sm:text-xs uppercase tracking-[0.18em] text-white/90 pt-1.5 group-hover:translate-x-2 transition-transform">
                   <span>Explore Edit</span>
                   <ArrowRight size={13} />
                 </span>
@@ -173,48 +168,48 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 4. Fresh Off The Runway / New Arrivals */}
+      {/* 4. New Arrivals */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-12 border-b border-[#E9E1D6] pb-5">
+        <div className="flex items-end justify-between mb-7 sm:mb-12 border-b border-[#E9E1D6] pb-4 sm:pb-5">
           <div className="space-y-1">
-            <span className="text-[11px] uppercase tracking-[0.28em] text-[#C5A059] font-cinzel font-semibold">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-semibold">
               Fresh Off The Runway
             </span>
             <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#29251F]">New Arrivals</h2>
           </div>
           <Link
             to="/shop?sort=newest"
-            className="hidden sm:inline-flex items-center space-x-2 text-xs uppercase tracking-[0.2em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
+            className="inline-flex items-center space-x-1.5 text-[11px] sm:text-xs uppercase tracking-[0.16em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
           >
-            <span>View All New</span>
+            <span>View All</span>
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-7">
           {newArrivals.map((prod) => (
             <ProductCard key={prod._id} product={prod} />
           ))}
         </div>
       </section>
 
-      {/* 5. Editorial Privilege Banner with Perfect Inset Padding */}
+      {/* 5. Editorial Privilege Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-[#E9E1D6] p-8 sm:p-14 lg:p-16 border border-[#C5A059]/40 flex flex-col md:flex-row items-center justify-between gap-10 shadow-sm">
-          <div className="max-w-xl space-y-5 text-[#29251F]">
-            <span className="text-[11px] uppercase tracking-[0.35em] text-[#A68B66] font-cinzel font-bold">
+        <div className="relative bg-[#E9E1D6] p-6 sm:p-12 lg:p-16 border border-[#C5A059]/40 flex flex-col md:flex-row items-center justify-between gap-7 sm:gap-10 shadow-sm">
+          <div className="max-w-xl space-y-4 sm:space-y-5 text-[#29251F] text-center md:text-left">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-[#A68B66] font-cinzel font-bold">
               Exclusive Privilege
             </span>
-            <h2 className="font-serif-luxury text-3xl sm:text-4xl lg:text-5xl leading-tight">
-              Complimentary White-Glove Gift & 20% Off Your Curated Order
+            <h2 className="font-serif-luxury text-2xl sm:text-4xl lg:text-5xl leading-tight">
+              Complimentary Gift & 20% Off Your Curated Order
             </h2>
             <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-light">
-              Enter private invitation code <strong className="text-[#29251F] font-bold tracking-wider">NIMAAH20</strong> at checkout to unlock savings on our couture gowns and handwoven Banarasi sarees.
+              Enter private code <strong className="text-[#29251F] font-bold tracking-wider">NIMAAH20</strong> at checkout to unlock savings on our couture gowns and handwoven Banarasi sarees.
             </p>
-            <div className="pt-2">
+            <div className="pt-1 sm:pt-2">
               <Link
                 to="/shop"
-                className="inline-block px-8 py-4 bg-[#29251F] text-white hover:bg-[#C5A059] text-xs uppercase tracking-[0.2em] font-semibold transition shadow-md"
+                className="inline-block w-full sm:w-auto text-center px-8 py-3.5 sm:py-4 bg-[#29251F] text-white hover:bg-[#C5A059] text-xs uppercase tracking-[0.2em] font-semibold transition shadow-md"
               >
                 Redeem Privilege
               </Link>
@@ -225,6 +220,7 @@ export const HomePage = () => {
             <img
               src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1000&q=85"
               alt="Ni'maah Luxe Atelier Model"
+              loading="lazy"
               className="w-full h-full object-cover object-top hover:scale-105 transition duration-700"
             />
           </div>
@@ -233,23 +229,23 @@ export const HomePage = () => {
 
       {/* 6. Best Sellers Collection */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-12 border-b border-[#E9E1D6] pb-5">
+        <div className="flex items-end justify-between mb-7 sm:mb-12 border-b border-[#E9E1D6] pb-4 sm:pb-5">
           <div className="space-y-1">
-            <span className="text-[11px] uppercase tracking-[0.28em] text-[#C5A059] font-cinzel font-semibold">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-semibold">
               Most Coveted Silhouettes
             </span>
             <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#29251F]">Best Sellers</h2>
           </div>
           <Link
             to="/shop?sort=popular"
-            className="hidden sm:inline-flex items-center space-x-2 text-xs uppercase tracking-[0.2em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
+            className="inline-flex items-center space-x-1.5 text-[11px] sm:text-xs uppercase tracking-[0.16em] text-[#29251F] hover:text-[#C5A059] font-semibold transition group"
           >
-            <span>View All Bestsellers</span>
+            <span>View All</span>
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-7">
           {bestSellers.map((prod) => (
             <ProductCard key={prod._id} product={prod} />
           ))}
@@ -258,12 +254,11 @@ export const HomePage = () => {
 
       {/* 7. Official Instagram Showcase: @nimaahluxe */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white border border-[#E9E1D6] p-8 sm:p-12 lg:p-14 shadow-xs space-y-10">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 border-b border-[#E9E1D6] pb-8">
-            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
-              {/* Instagram Profile Picture with Royal Story Ring */}
+        <div className="bg-white border border-[#E9E1D6] p-5 sm:p-10 lg:p-14 shadow-xs space-y-7 sm:space-y-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6 border-b border-[#E9E1D6] pb-6 sm:pb-8">
+            <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
               <div className="relative p-1 rounded-full bg-gradient-to-tr from-[#C5A059] via-[#F4E3B2] to-[#8C7355] shadow-md flex-shrink-0">
-                <div className="w-20 h-20 rounded-full overflow-hidden bg-[#24201A] p-0.5 border border-white">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-[#24201A] p-0.5 border border-white">
                   <img
                     src={instaProfileImg}
                     alt="@nimaahluxe Instagram Profile"
@@ -274,18 +269,18 @@ export const HomePage = () => {
 
               <div className="space-y-1">
                 <div className="flex items-center justify-center sm:justify-start space-x-2">
-                  <h3 className="font-cinzel text-2xl font-bold text-[#29251F] tracking-wider">
+                  <h3 className="font-cinzel text-xl sm:text-2xl font-bold text-[#29251F] tracking-wider">
                     @nimaahluxe
                   </h3>
                   <span className="p-1 bg-[#C5A059] text-white rounded-full flex items-center justify-center shadow-xs">
                     <Crown size={11} />
                   </span>
                 </div>
-                <p className="text-xs text-[#A68B66] font-medium tracking-[0.25em] uppercase font-cinzel">
+                <p className="text-[10px] sm:text-xs text-[#A68B66] font-medium tracking-[0.2em] uppercase font-cinzel">
                   Divinely Inspired Fashion • Official Instagram
                 </p>
                 <p className="text-xs text-gray-500 font-light">
-                  Follow our atelier journey & tag <span className="font-semibold text-[#29251F]">@nimaahluxe</span> to be featured
+                  Tag <span className="font-semibold text-[#29251F]">@nimaahluxe</span> to be featured on our runway
                 </p>
               </div>
             </div>
@@ -294,15 +289,14 @@ export const HomePage = () => {
               href="https://www.instagram.com/nimaahluxe"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-3.5 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center space-x-2.5 shadow-md flex-shrink-0"
+              className="w-full sm:w-auto justify-center px-7 py-3.5 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.18em] font-semibold transition flex items-center space-x-2.5 shadow-md flex-shrink-0"
             >
               <InstagramIcon size={16} />
               <span>Follow @nimaahluxe</span>
             </a>
           </div>
 
-          {/* 6-Photo Runway Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
             {[
               {
                 img: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=600&q=80',
@@ -345,10 +339,11 @@ export const HomePage = () => {
                 <img
                   src={post.img}
                   alt={post.caption}
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-500 ease-out"
                 />
                 <div className="absolute inset-0 bg-[#29251F]/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-2 text-center space-y-1">
-                  <InstagramIcon size={20} className="text-[#E8D3A2]" />
+                  <InstagramIcon size={18} className="text-[#E8D3A2]" />
                   <span className="text-[10px] font-semibold tracking-wider font-cinzel">♥ {post.likes}</span>
                   <p className="text-[9px] line-clamp-2 text-gray-300 font-light">{post.caption}</p>
                 </div>

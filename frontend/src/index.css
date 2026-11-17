@@ -13,6 +13,8 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -23,7 +25,8 @@
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
+    overflow-x: clip;
+    touch-action: manipulation;
   }
 
   h1, h2, h3, h4, .font-serif-luxury {
@@ -33,7 +36,11 @@
 
   .font-cinzel {
     font-family: 'Cinzel', serif;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.14em;
+  }
+
+  button, a {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -57,12 +64,23 @@
 }
 
 .luxury-card-hover {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.luxury-card-hover:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 48px -12px rgba(41, 37, 31, 0.12);
+@media (hover: hover) {
+  .luxury-card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 24px 48px -12px rgba(41, 37, 31, 0.12);
+  }
+}
+
+/* Hide scrollbar for clean mobile horizontal tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Subtle luxury scrollbar */

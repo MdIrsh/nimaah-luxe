@@ -126,20 +126,20 @@ export const ProductDetailPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-20">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 lg:py-16 space-y-12 sm:space-y-20">
       {/* Breadcrumb with Crisp Margins */}
-      <nav className="flex items-center space-x-2 text-xs text-gray-400 uppercase tracking-[0.2em]">
+      <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-gray-400 uppercase tracking-[0.16em] sm:tracking-[0.2em]">
         <Link to="/" className="hover:text-black">Home</Link>
         <ChevronRight size={12} />
         <Link to={`/shop?category=${encodeURIComponent(product.category)}`} className="hover:text-black">
           {product.category}
         </Link>
         <ChevronRight size={12} />
-        <span className="text-[#29251F] font-semibold truncate max-w-xs">{product.title}</span>
+        <span className="text-[#29251F] font-semibold truncate max-w-[200px] sm:max-w-xs">{product.title}</span>
       </nav>
 
       {/* Main Product Showcase Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 lg:gap-16">
         {/* Gallery Thumbnails + Main View */}
         <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-5">
           {product.images?.length > 1 && (
@@ -276,7 +276,7 @@ export const ProductDetailPage = () => {
           </div>
 
           {/* Quantity & Stock Indicator */}
-          <div className="flex items-center space-x-7 pt-1">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-7 pt-1">
             <div className="flex items-center border border-[#E9E1D6] bg-white shadow-xs">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -296,8 +296,8 @@ export const ProductDetailPage = () => {
             <div className="text-xs">
               {product.stockCount > 0 ? (
                 <span className="text-emerald-700 font-semibold flex items-center space-x-1.5">
-                  <Check size={14} />
-                  <span>Atelier In Stock ({product.stockCount} pieces available)</span>
+                  <Check size={14} className="flex-shrink-0" />
+                  <span>Atelier In Stock ({product.stockCount} available)</span>
                 </span>
               ) : (
                 <span className="text-amber-700 font-semibold">Bespoke Tailoring on Pre-order</span>
@@ -305,20 +305,20 @@ export const ProductDetailPage = () => {
             </div>
           </div>
 
-          {/* CTAs with Generous Heights & Padding */}
-          <div className="space-y-3.5 pt-3">
-            <div className="grid grid-cols-2 gap-4">
+          {/* CTAs with Generous Heights & Mobile Touch Ergonomics */}
+          <div className="space-y-3 pt-2 sm:pt-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <button
                 onClick={handleAddToCart}
-                className="w-full py-4.5 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2.5 shadow-md"
+                className="w-full py-3.5 sm:py-4 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2.5 shadow-md"
               >
                 <ShoppingBag size={16} />
-                <span>{addedSuccess ? 'Added to Bag ✓' : 'Add To Bag'}</span>
+                <span>{addedSuccess ? 'Added to Bag ✓' : `Add Size ${selectedSize} To Bag`}</span>
               </button>
 
               <button
                 onClick={handleBuyNow}
-                className="w-full py-4.5 bg-[#E9E1D6] hover:bg-[#d8cebf] text-[#29251F] text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 shadow-xs"
+                className="w-full py-3.5 sm:py-4 bg-[#E9E1D6] hover:bg-[#d8cebf] text-[#29251F] text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 shadow-xs"
               >
                 <span>Acquire Now</span>
               </button>
@@ -334,31 +334,31 @@ export const ProductDetailPage = () => {
           </div>
 
           {/* Value Badges */}
-          <div className="border-t border-[#E9E1D6] pt-7 space-y-3.5 text-xs text-gray-600 font-light">
+          <div className="border-t border-[#E9E1D6] pt-6 sm:pt-7 space-y-3 text-xs text-gray-600 font-light">
             <div className="flex items-center space-x-3.5">
-              <Truck size={17} className="text-[#C5A059]" />
+              <Truck size={17} className="text-[#C5A059] flex-shrink-0" />
               <span>White-Glove Expedited Delivery in 2–4 Business Days</span>
             </div>
             <div className="flex items-center space-x-3.5">
-              <RefreshCw size={17} className="text-[#C5A059]" />
+              <RefreshCw size={17} className="text-[#C5A059] flex-shrink-0" />
               <span>Complimentary 14-Day Alterations & Exchanges</span>
             </div>
             <div className="flex items-center space-x-3.5">
-              <ShieldCheck size={17} className="text-[#C5A059]" />
+              <ShieldCheck size={17} className="text-[#C5A059] flex-shrink-0" />
               <span>100% Authentic Handloom Silk & Real Zari Guarantee</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs & Details with Clear Spacing */}
-      <div className="border-t border-[#E9E1D6] pt-14">
-        <div className="flex space-x-10 border-b border-[#E9E1D6] pb-4">
+      {/* Tabs & Details with Horizontal Scroll on Mobile */}
+      <div className="border-t border-[#E9E1D6] pt-10 sm:pt-14">
+        <div className="flex space-x-6 sm:space-x-10 border-b border-[#E9E1D6] pb-3.5 overflow-x-auto no-scrollbar whitespace-nowrap">
           {['description', 'fabric', 'reviews'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`text-xs uppercase tracking-[0.22em] font-semibold transition pb-3 relative font-cinzel ${
+              className={`text-[11px] sm:text-xs uppercase tracking-[0.18em] sm:tracking-[0.22em] font-semibold transition pb-3 relative font-cinzel flex-shrink-0 ${
                 activeTab === tab ? 'text-[#29251F]' : 'text-gray-400 hover:text-black'
               }`}
             >
