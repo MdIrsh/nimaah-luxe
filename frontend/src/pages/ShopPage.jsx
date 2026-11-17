@@ -30,6 +30,7 @@ export const ShopPage = () => {
     'Sarees',
     'Kurtis',
     'Western Wear',
+    'Ethnic Wear',
     'Accessories',
   ];
 

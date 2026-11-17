@@ -29,6 +29,7 @@ export const AdminProducts = () => {
     'Sarees',
     'Kurtis',
     'Western Wear',
+    'Ethnic Wear',
     'Accessories',
   ];
 
