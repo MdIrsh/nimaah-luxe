@@ -1,0 +1,123 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+export const RegisterPage = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('customer');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await register(name, email, password, role);
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    } catch (err) {
+      setError('Registration error. Please check your details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto px-4 py-16">
+      <div className="bg-white border border-[#E9E1D6] p-8 shadow-sm space-y-6">
+        <div className="text-center space-y-1">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-[#A68B66] font-semibold">
+            Become a Patron
+          </span>
+          <h1 className="font-serif-luxury text-3xl text-[#29251F]">Join StyleHub</h1>
+          <p className="text-xs text-gray-500">Enjoy bespoke fashion consultations, priority runway releases, and private wishlists</p>
+        </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 text-xs text-red-700">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block uppercase tracking-wider text-gray-500 mb-1">Full Legal Name</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Princess Aisha"
+              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+            />
+          </div>
+
+          <div>
+            <label className="block uppercase tracking-wider text-gray-500 mb-1">Email Address</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. patron@stylehub.com"
+              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+            />
+          </div>
+
+          <div>
+            <label className="block uppercase tracking-wider text-gray-500 mb-1">Password</label>
+            <input
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+            />
+          </div>
+
+          <div>
+            <label className="block uppercase tracking-wider text-gray-500 mb-1">Account Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6]"
+            >
+              <option value="customer">Client Patron (Standard)</option>
+              <option value="admin">Store Administrator</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 bg-[#29251F] hover:bg-[#A68B66] text-white uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 shadow-sm"
+          >
+            <span>{loading ? 'Creating...' : 'Create Patron Account'}</span>
+            <ArrowRight size={14} />
+          </button>
+        </form>
+
+        <div className="text-center text-xs text-gray-500 pt-2">
+          Already have an account?{' '}
+          <Link to="/login" className="text-[#A68B66] font-semibold hover:underline">
+            Sign In Here
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RegisterPage;

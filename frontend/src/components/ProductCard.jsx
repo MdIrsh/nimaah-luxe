@@ -1,0 +1,164 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Heart, ShoppingBag, Star } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+
+export const ProductCard = ({ product }) => {
+  const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
+
+  const isFavorited = isWishlisted(product._id);
+
+  const handleWishlistClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isFavorited) {
+      removeFromWishlist(product._id);
+    } else {
+      addToWishlist(product);
+    }
+  };
+
+  const handleQuickAdd = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'M';
+    const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0].name : 'Royal Gold';
+    addToCart(product, defaultSize, defaultColor, 1);
+  };
+
+  const discountPercent =
+    product.discountedPrice && product.price
+      ? Math.round(((product.price - product.discountedPrice) / product.price) * 100)
+      : null;
+
+  const mainImage = product.images?.[0] || 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=800&q=80';
+  const secondaryImage = product.images?.[1] || mainImage;
+
+  return (
+    <div className="group relative bg-white border border-[#E9E1D6]/80 flex flex-col luxury-card-hover overflow-hidden shadow-xs">
+      {/* Product Image Frame */}
+      <Link to={`/product/${product._id}`} className="relative block aspect-[3/4] overflow-hidden bg-[#FAF9F6]">
+        {/* Main Editorial Image */}
+        <img
+          src={mainImage}
+          alt={product.title}
+          className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+
+        {/* Alternate Image on Hover */}
+        {product.images?.length > 1 && (
+          <img
+            src={secondaryImage}
+            alt={`${product.title} alternate view`}
+            className="w-full h-full object-cover object-top absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out"
+          />
+        )}
+
+        {/* Luxury Badges with Exact Padding */}
+        <div className="absolute top-3.5 left-3.5 flex flex-col gap-1.5 z-10">
+          {discountPercent && (
+            <span className="bg-[#29251F] text-[#FAF9F6] text-[9.5px] tracking-[0.2em] uppercase font-bold px-2.5 py-1 shadow-sm">
+              -{discountPercent}% Privilege
+            </span>
+          )}
+          {product.isBestSeller && (
+            <span className="bg-[#C5A059] text-[#29251F] text-[9px] tracking-[0.2em] uppercase font-bold px-2.5 py-0.5 shadow-sm">
+              Bestseller
+            </span>
+          )}
+          {product.isNewArrival && (
+            <span className="bg-[#E9E1D6] text-[#29251F] text-[9px] tracking-[0.2em] uppercase font-semibold px-2.5 py-0.5 shadow-sm">
+              New Runway
+            </span>
+          )}
+        </div>
+
+        {/* Wishlist Button with Symmetrical Padding */}
+        <button
+          onClick={handleWishlistClick}
+          className={`absolute top-3.5 right-3.5 p-2 rounded-full transition-all duration-300 z-10 shadow-sm ${
+            isFavorited
+              ? 'bg-[#29251F] text-[#C5A059]'
+              : 'bg-white/85 backdrop-blur-sm text-[#29251F] hover:bg-[#29251F] hover:text-[#FAF9F6]'
+          }`}
+          title={isFavorited ? 'Remove from wishlist' : 'Save to wishlist'}
+          aria-label="Wishlist toggle"
+        >
+          <Heart size={15} fill={isFavorited ? '#C5A059' : 'none'} strokeWidth={1.8} />
+        </button>
+
+        {/* Quick Add Overlay on Hover */}
+        <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/65 via-black/30 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center">
+          <button
+            onClick={handleQuickAdd}
+            className="w-full py-3 bg-[#FAF9F6] text-[#29251F] hover:bg-[#29251F] hover:text-white text-xs font-semibold uppercase tracking-[0.2em] transition flex items-center justify-center space-x-2 shadow-lg"
+          >
+            <ShoppingBag size={14} />
+            <span>Quick Add To Bag</span>
+          </button>
+        </div>
+      </Link>
+
+      {/* Meta Information with Balanced Padding */}
+      <div className="p-5 flex flex-col flex-1 bg-white justify-between space-y-4">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[10.5px] uppercase tracking-[0.2em] text-[#A68B66]">
+            <span>{product.brand || "Ni'maah Luxe"}</span>
+            <span className="text-gray-400 font-sans">{product.category}</span>
+          </div>
+
+          <Link to={`/product/${product._id}`} className="block group-hover:text-[#A68B66] transition">
+            <h3 className="font-serif-luxury text-lg font-normal text-[#29251F] line-clamp-1 leading-snug">
+              {product.title}
+            </h3>
+          </Link>
+
+          {/* Color & Size indicator */}
+          <div className="flex items-center space-x-2 pt-1">
+            {product.colors && product.colors.length > 0 && (
+              <div className="flex items-center space-x-1">
+                {product.colors.slice(0, 3).map((col, idx) => (
+                  <span
+                    key={idx}
+                    className="w-2.5 h-2.5 rounded-full border border-gray-300"
+                    style={{ backgroundColor: col.hexCode }}
+                    title={col.name}
+                  />
+                ))}
+                {product.colors.length > 3 && (
+                  <span className="text-[9px] text-gray-400">+{product.colors.length - 3}</span>
+                )}
+              </div>
+            )}
+            <span className="text-gray-300">|</span>
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+              {product.sizes?.slice(0, 4).join(', ')}
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing with Perfect Bottom Margin */}
+        <div className="flex items-center justify-between pt-3 border-t border-[#FAF9F6]">
+          <div className="flex items-baseline space-x-2.5">
+            <span className="text-base font-semibold text-[#29251F] font-serif-luxury">
+              ₹{(product.discountedPrice || product.price).toLocaleString('en-IN')}
+            </span>
+            {product.discountedPrice && product.discountedPrice < product.price && (
+              <span className="text-xs text-gray-400 line-through">
+                ₹{product.price.toLocaleString('en-IN')}
+              </span>
+            )}
+          </div>
+
+          {/* Rating */}
+          <div className="flex items-center space-x-1 text-xs text-[#C5A059]">
+            <Star size={12} fill="#C5A059" />
+            <span className="font-semibold text-[#29251F] text-[11px]">{product.ratings || 4.9}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductCard;
