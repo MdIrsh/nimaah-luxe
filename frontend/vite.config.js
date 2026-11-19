@@ -10,5 +10,9 @@ const repoName = process.env.GITHUB_REPOSITORY
 // https://vite.dev/config/
 export default defineConfig({
   base: repoName,
+  server: {
+    host: true,
+    port: 5173,
+  },
   plugins: [react(), tailwindcss()],
 });
