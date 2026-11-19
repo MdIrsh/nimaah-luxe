@@ -19,7 +19,7 @@ export const cleanImageUrl = (url) => {
       const parsed = new URL(trimmed);
       const imgurl = parsed.searchParams.get('imgurl');
       if (imgurl) return decodeURIComponent(imgurl);
-    } catch {}
+    } catch { }
   }
 
   // Handle Google redirect URLs: https://www.google.com/url?url=https%3A%2F%2F...
@@ -28,7 +28,7 @@ export const cleanImageUrl = (url) => {
       const parsed = new URL(trimmed);
       const targetUrl = parsed.searchParams.get('url') || parsed.searchParams.get('q');
       if (targetUrl) return decodeURIComponent(targetUrl);
-    } catch {}
+    } catch { }
   }
 
   return trimmed;
@@ -352,11 +352,10 @@ export const AdminProducts = () => {
 
                   <td className="py-3 px-4">
                     <span
-                      className={`px-2 py-0.5 text-[10px] font-bold ${
-                        p.stockCount > 5
-                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                          : 'bg-amber-50 text-amber-800 border border-amber-200'
-                      }`}
+                      className={`px-2 py-0.5 text-[10px] font-bold ${p.stockCount > 5
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        : 'bg-amber-50 text-amber-800 border border-amber-200'
+                        }`}
                     >
                       {p.stockCount} units
                     </span>
@@ -526,9 +525,8 @@ export const AdminProducts = () => {
                     />
                     <label
                       htmlFor="admin-product-file-upload"
-                      className={`px-3 py-1.5 bg-white border border-[#E9E1D6] hover:border-[#C5A059] text-[#14110C] text-[11px] font-semibold rounded cursor-pointer inline-flex items-center space-x-1.5 transition ${
-                        isUploading ? 'opacity-50 pointer-events-none' : ''
-                      }`}
+                      className={`px-3 py-1.5 bg-white border border-[#E9E1D6] hover:border-[#C5A059] text-[#14110C] text-[11px] font-semibold rounded cursor-pointer inline-flex items-center space-x-1.5 transition ${isUploading ? 'opacity-50 pointer-events-none' : ''
+                        }`}
                     >
                       <Upload size={13} className="text-[#C5A059]" />
                       <span>{isUploading ? 'Uploading...' : 'Upload Image File (50 MB)'}</span>
@@ -599,11 +597,10 @@ export const AdminProducts = () => {
                           key={sz}
                           type="button"
                           onClick={() => handleToggleSize(sz)}
-                          className={`px-3 py-1.5 border text-xs uppercase font-semibold transition ${
-                            selected
-                              ? 'bg-[#29251F] text-white border-[#29251F]'
-                              : 'bg-white border-[#E9E1D6] text-gray-700'
-                          }`}
+                          className={`px-3 py-1.5 border text-xs uppercase font-semibold transition ${selected
+                            ? 'bg-[#29251F] text-white border-[#29251F]'
+                            : 'bg-white border-[#E9E1D6] text-gray-700'
+                            }`}
                         >
                           {sz}
                         </button>
@@ -642,9 +639,8 @@ export const AdminProducts = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`px-6 py-2 bg-[#29251F] text-white hover:bg-[#A68B66] uppercase tracking-widest text-xs font-semibold transition flex items-center space-x-2 ${
-                    isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-                  }`}
+                  className={`px-6 py-2 bg-[#29251F] text-white hover:bg-[#A68B66] uppercase tracking-widest text-xs font-semibold transition flex items-center space-x-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
                 >
                   <span>{isSubmitting ? 'Saving Piece...' : 'Save Piece'}</span>
                 </button>

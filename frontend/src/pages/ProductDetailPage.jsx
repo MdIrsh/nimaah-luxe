@@ -423,9 +423,8 @@ export const ProductDetailPage = () => {
                   key={idx}
                   type="button"
                   onClick={() => setSelectedImage(img)}
-                  className={`w-20 aspect-[3/4] flex-shrink-0 border-2 overflow-hidden bg-[#FAF9F6] transition shadow-xs ${
-                    displayImage === img ? 'border-[#C5A059]' : 'border-transparent hover:border-gray-300'
-                  }`}
+                  className={`w-20 aspect-[3/4] flex-shrink-0 border-2 overflow-hidden bg-[#FAF9F6] transition shadow-xs ${displayImage === img ? 'border-[#C5A059]' : 'border-transparent hover:border-gray-300'
+                    }`}
                 >
                   <img
                     src={img}
@@ -513,9 +512,8 @@ export const ProductDetailPage = () => {
                       key={idx}
                       type="button"
                       onClick={() => setSelectedColor(colName)}
-                      className={`p-1 rounded-full border-2 transition ${
-                        selectedColor === colName ? 'border-[#29251F]' : 'border-transparent hover:border-gray-300'
-                      }`}
+                      className={`p-1 rounded-full border-2 transition ${selectedColor === colName ? 'border-[#29251F]' : 'border-transparent hover:border-gray-300'
+                        }`}
                       title={colName}
                     >
                       <span

@@ -1,12 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, LayoutGrid, Heart, User, ShoppingBag } from 'lucide-react';
+import { Home, LayoutGrid, Heart, User, ShoppingBag, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 export const MobileBottomNav = () => {
   const { itemsCount, wishlist } = useCart();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   const safeWishlistCount = Array.isArray(wishlist) ? wishlist.length : 0;
   const safeCartCount = Number(itemsCount || 0);
@@ -15,7 +15,11 @@ export const MobileBottomNav = () => {
     { name: 'Home', path: '/', icon: Home, end: true },
     { name: 'Categories', path: '/shop', icon: LayoutGrid },
     { name: 'Wishlist', path: '/wishlist', icon: Heart, badge: safeWishlistCount },
-    { name: 'Account', path: user ? '/account/profile' : '/login', icon: User },
+    {
+      name: isAdmin ? 'Admin' : 'Account',
+      path: isAdmin ? '/admin/dashboard' : (user ? '/account/profile' : '/login'),
+      icon: isAdmin ? ShieldCheck : User,
+    },
     { name: 'Cart', path: '/cart', icon: ShoppingBag, badge: safeCartCount },
   ];
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -90,7 +91,18 @@ export const CustomerProfile = () => {
 
           <div>
             <label className="block uppercase tracking-wider text-gray-400 mb-1">Account Role</label>
-            <p className="text-sm text-[#C5A059] font-semibold uppercase tracking-wider">{profile.role}</p>
+            <div className="flex items-center space-x-2">
+              <p className="text-sm text-[#C5A059] font-bold uppercase tracking-wider">{profile.role}</p>
+              {(profile.role === 'admin' || user?.role === 'admin') && (
+                <Link
+                  to="/admin/dashboard"
+                  className="px-2.5 py-1 bg-[#14110C] text-[#C5A059] hover:text-white border border-[#C5A059]/40 rounded-xs text-[10px] font-bold uppercase tracking-wider transition inline-flex items-center space-x-1"
+                >
+                  <ShieldCheck size={12} />
+                  <span>Admin Panel &rarr;</span>
+                </Link>
+              )}
+            </div>
           </div>
 
           <div>

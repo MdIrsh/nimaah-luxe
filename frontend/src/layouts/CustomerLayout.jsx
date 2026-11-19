@@ -1,18 +1,28 @@
 import React from 'react';
-import { NavLink, Outlet, Navigate } from 'react-router-dom';
-import { Package, User, Heart, LogOut, Crown } from 'lucide-react';
+import { NavLink, Link, Outlet, Navigate } from 'react-router-dom';
+import { Package, User, Heart, LogOut, Crown, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import MainLayout from './MainLayout';
 import logoImg from '../assets/nimaah-luxe-logo.png';
 
 export const CustomerLayout = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, isAdmin } = useAuth();
 
   if (!loading && !user) {
     return <Navigate to="/login" replace />;
   }
 
   const links = [
+    ...(isAdmin
+      ? [
+          {
+            name: 'Admin Dashboard',
+            path: '/admin/dashboard',
+            icon: ShieldCheck,
+            isAdminLink: true,
+          },
+        ]
+      : []),
     { name: 'Orders & Tracking', path: '/account/orders', icon: Package },
     { name: 'Profile & Address', path: '/account/profile', icon: User },
     { name: 'Wishlist', path: '/wishlist', icon: Heart },
@@ -21,6 +31,37 @@ export const CustomerLayout = () => {
   return (
     <MainLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14">
+        {/* Admin Quick Entry Card (Strictly visible ONLY to verified Admin) */}
+        {isAdmin && (
+          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-[#1E1912] via-[#2A231A] to-[#14110C] border-2 border-[#C5A059] rounded-sm text-[#FAF9F6] shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center space-x-3.5">
+              <div className="p-2.5 bg-[#C5A059]/20 rounded-full border border-[#C5A059]/50 text-[#E8D3A2] shrink-0">
+                <ShieldCheck size={24} />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-cinzel text-sm sm:text-base font-bold text-[#E8D3A2]">
+                    Store Administrator Portal
+                  </h3>
+                  <span className="px-2 py-0.5 bg-[#C5A059] text-[#14110C] text-[9px] font-bold uppercase rounded-xs">
+                    Admin Verified
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300 mt-0.5">
+                  Manage products, orders, inventory, customers & reviews
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/admin/dashboard"
+              className="w-full sm:w-auto px-5 py-2.5 bg-[#C5A059] hover:bg-[#E8D3A2] text-[#14110C] text-xs font-bold uppercase tracking-wider rounded-xs transition text-center shadow-sm flex items-center justify-center space-x-2 shrink-0"
+            >
+              <span>Open Admin Panel</span>
+              <span>&rarr;</span>
+            </Link>
+          </div>
+        )}
+
         {/* Customer Header */}
         <div className="bg-white border border-[#E9E1D6] p-5 sm:p-8 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center space-x-4">
@@ -64,13 +105,15 @@ export const CustomerLayout = () => {
                     to={link.path}
                     className={({ isActive }) =>
                       `flex items-center space-x-2.5 px-4 py-3 text-xs uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition ${
-                        isActive
+                        link.isAdminLink
+                          ? 'bg-[#14110C] text-[#C5A059] border border-[#C5A059]/50 font-bold hover:bg-[#201B14]'
+                          : isActive
                           ? 'bg-[#29251F] text-[#FAF9F6] font-semibold shadow-xs'
                           : 'text-[#29251F]/80 hover:bg-[#FAF9F6] hover:text-[#C5A059]'
                       }`
                     }
                   >
-                    <Icon size={15} />
+                    <Icon size={15} className={link.isAdminLink ? 'text-[#C5A059]' : ''} />
                     <span>{link.name}</span>
                   </NavLink>
                 );

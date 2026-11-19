@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage = () => {
@@ -88,6 +88,16 @@ export const LoginPage = () => {
           New to Ni'maah Luxe?{' '}
           <Link to="/register" className="text-[#A68B66] font-semibold hover:underline">
             Create an Account
+          </Link>
+        </div>
+
+        <div className="pt-2 text-center">
+          <Link
+            to="/admin/login"
+            className="text-[10.5px] uppercase tracking-widest text-gray-400 hover:text-[#C5A059] transition inline-flex items-center space-x-1.5"
+          >
+            <ShieldCheck size={12} className="text-[#C5A059]" />
+            <span>Staff & Admin Sign In Portal &rarr;</span>
           </Link>
         </div>
       </div>
