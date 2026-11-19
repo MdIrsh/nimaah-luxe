@@ -5,21 +5,34 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  addProductReview,
   seedSampleProducts,
 } from '../controllers/productController.js';
+import {
+  createReview,
+  getProductReviews,
+  getProductRatingSummary,
+  checkReviewEligibility,
+} from '../controllers/reviewController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.route('/').get(getProducts).post(protect, adminOnly, createProduct);
 router.post('/seed', seedSampleProducts);
+
 router
   .route('/:id')
   .get(getProductById)
   .put(protect, adminOnly, updateProduct)
   .delete(protect, adminOnly, deleteProduct);
 
-router.post('/:id/reviews', protect, addProductReview);
+// Reviews & Ratings for products
+router
+  .route('/:productId/reviews')
+  .post(protect, createReview)
+  .get(getProductReviews);
+
+router.get('/:productId/rating', getProductRatingSummary);
+router.get('/:productId/eligibility', protect, checkReviewEligibility);
 
 export default router;

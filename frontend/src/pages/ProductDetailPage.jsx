@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Heart,
@@ -12,8 +12,15 @@ import {
   Crown,
   Ruler,
   X,
+  MessageSquare,
 } from 'lucide-react';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
+import reviewService from '../services/reviewService';
+import { getSocket, joinProductRoom, leaveProductRoom } from '../services/socket';
+import RatingStars from '../components/reviews/RatingStars';
+import RatingSummaryCard from '../components/reviews/RatingSummaryCard';
+import ReviewCard from '../components/reviews/ReviewCard';
+import ReviewModal from '../components/reviews/ReviewModal';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import ProductCard from '../components/ProductCard';
@@ -34,10 +41,18 @@ export const ProductDetailPage = () => {
   const [addedSuccess, setAddedSuccess] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
-  // Review submission state
-  const [newRating, setNewRating] = useState(5);
-  const [newComment, setNewComment] = useState('');
-  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  // Reviews & Ratings state
+  const [reviews, setReviews] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState(null);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [eligibility, setEligibility] = useState({
+    hasReviewed: false,
+    existingReview: null,
+    isVerifiedBuyer: false,
+  });
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -93,36 +108,192 @@ export const ProductDetailPage = () => {
     navigate('/checkout');
   };
 
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-
+  // Fetch reviews & rating summary
+  const fetchReviews = useCallback(async (starFilter = selectedRatingFilter) => {
+    if (!id) return;
+    setReviewsLoading(true);
     try {
-      await productService.addReview(product._id, {
-        rating: newRating,
-        comment: newComment,
-      });
-    } catch {}
+      const params = {};
+      if (starFilter) params.rating = starFilter;
+      const data = await reviewService.getProductReviews(id, params);
+      if (data) {
+        setReviews(data.reviews || []);
+        if (data.summary) {
+          setRatingSummary(data.summary);
+          setProduct((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  ratings: data.summary.averageRating,
+                  numReviews: data.summary.totalReviews,
+                }
+              : prev
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id, selectedRatingFilter]);
 
-    const updatedReviews = [
-      ...(product.reviews || []),
-      {
-        _id: 'rev_' + Date.now(),
-        name: user?.name || 'Patron of Ni\'maah Luxe',
-        rating: newRating,
-        comment: newComment,
-        createdAt: new Date().toISOString(),
-      },
-    ];
+  // Check buyer eligibility
+  useEffect(() => {
+    const checkUserEligibility = async () => {
+      if (user && id) {
+        try {
+          const res = await reviewService.checkEligibility(id);
+          if (res) {
+            setEligibility({
+              hasReviewed: Boolean(res.hasReviewed),
+              existingReview: res.existingReview || null,
+              isVerifiedBuyer: Boolean(res.isVerifiedBuyer),
+            });
+          }
+        } catch {}
+      }
+    };
+    checkUserEligibility();
+  }, [user, id]);
 
-    setProduct({
-      ...product,
-      reviews: updatedReviews,
-      numReviews: updatedReviews.length,
-    });
+  // Load reviews on initial load & rating filter change
+  useEffect(() => {
+    fetchReviews(selectedRatingFilter);
+  }, [fetchReviews, selectedRatingFilter]);
 
-    setReviewSubmitted(true);
-    setNewComment('');
+  // Socket.IO real-time subscriptions for instant live updates
+  useEffect(() => {
+    if (!id) return;
+
+    joinProductRoom(id);
+    const socket = getSocket();
+
+    if (socket) {
+      const onReviewCreated = (data) => {
+        if (data?.review && (data.review.product === id || data.review.product?._id === id)) {
+          setReviews((prev) => [data.review, ...prev.filter((r) => r._id !== data.review._id)]);
+          if (data.productRating) {
+            setRatingSummary(data.productRating);
+            setProduct((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    ratings: data.productRating.averageRating,
+                    numReviews: data.productRating.totalReviews,
+                  }
+                : prev
+            );
+          }
+        }
+      };
+
+      const onReviewUpdated = (data) => {
+        if (data?.review && (data.review.product === id || data.review.product?._id === id)) {
+          setReviews((prev) =>
+            prev.map((r) => (r._id === data.review._id ? data.review : r))
+          );
+          if (data.productRating) {
+            setRatingSummary(data.productRating);
+            setProduct((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    ratings: data.productRating.averageRating,
+                    numReviews: data.productRating.totalReviews,
+                  }
+                : prev
+            );
+          }
+        }
+      };
+
+      const onReviewDeleted = (data) => {
+        if (data?.productId === id) {
+          setReviews((prev) => prev.filter((r) => r._id !== data.reviewId));
+          if (data.productRating) {
+            setRatingSummary(data.productRating);
+            setProduct((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    ratings: data.productRating.averageRating,
+                    numReviews: data.productRating.totalReviews,
+                  }
+                : prev
+            );
+          }
+        }
+      };
+
+      const onRatingUpdated = (data) => {
+        if (data?.productId === id) {
+          setRatingSummary(data);
+          setProduct((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  ratings: data.averageRating,
+                  numReviews: data.totalReviews,
+                }
+              : prev
+          );
+        }
+      };
+
+      socket.on('review:created', onReviewCreated);
+      socket.on('review:updated', onReviewUpdated);
+      socket.on('review:deleted', onReviewDeleted);
+      socket.on('product:ratingUpdated', onRatingUpdated);
+
+      return () => {
+        leaveProductRoom(id);
+        socket.off('review:created', onReviewCreated);
+        socket.off('review:updated', onReviewUpdated);
+        socket.off('review:deleted', onReviewDeleted);
+        socket.off('product:ratingUpdated', onRatingUpdated);
+      };
+    }
+  }, [id]);
+
+  const handleOpenWriteReview = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setEditingReview(eligibility.existingReview || null);
+    setIsReviewModalOpen(true);
+  };
+
+  const handleModalSubmit = async (formData) => {
+    if (editingReview) {
+      await reviewService.updateReview(editingReview._id, formData);
+    } else {
+      await reviewService.createReview(id, formData);
+    }
+    fetchReviews();
+    if (user && id) {
+      const res = await reviewService.checkEligibility(id);
+      if (res) {
+        setEligibility({
+          hasReviewed: Boolean(res.hasReviewed),
+          existingReview: res.existingReview || null,
+          isVerifiedBuyer: Boolean(res.isVerifiedBuyer),
+        });
+      }
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (window.confirm('Are you sure you wish to withdraw your impression?')) {
+      try {
+        await reviewService.deleteReview(reviewId);
+        setReviews((prev) => prev.filter((r) => r._id !== reviewId));
+        setEligibility((prev) => ({ ...prev, hasReviewed: false, existingReview: null }));
+      } catch (err) {
+        alert(err.response?.data?.message || 'Failed to delete review');
+      }
+    }
   };
 
   return (
@@ -199,20 +370,18 @@ export const ProductDetailPage = () => {
               {product.title}
             </h1>
 
-            {/* Rating breakdown */}
+            {/* Rating breakdown with Reusable RatingStars */}
             <div className="flex items-center space-x-2.5 pt-1">
-              <div className="flex items-center text-[#C5A059]">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    fill={i < Math.floor(product.ratings || 4.9) ? '#C5A059' : 'none'}
-                    strokeWidth={1.5}
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-semibold text-[#29251F]">{product.ratings || 4.9}</span>
-              <span className="text-xs text-gray-400 font-light">({product.numReviews || 28} patron reviews)</span>
+              <RatingStars
+                rating={ratingSummary?.averageRating ?? product.ratings ?? 5}
+                size="sm"
+              />
+              <span className="text-xs font-semibold text-[#29251F]">
+                {((ratingSummary?.averageRating ?? product.ratings) || 5.0).toFixed(1)}
+              </span>
+              <span className="text-xs text-gray-400 font-light">
+                ({ratingSummary?.totalReviews ?? product.numReviews ?? reviews.length} patron reviews)
+              </span>
             </div>
           </div>
 
@@ -380,7 +549,7 @@ export const ProductDetailPage = () => {
             >
               {tab === 'description' && 'Creation Story'}
               {tab === 'fabric' && 'Fabric & Preservation'}
-              {tab === 'reviews' && `Patron Reviews (${product.reviews?.length || product.numReviews || 0})`}
+              {tab === 'reviews' && `Patron Reviews (${ratingSummary?.totalReviews ?? product.numReviews ?? reviews.length})`}
               {activeTab === tab && (
                 <span className="absolute bottom-0 inset-x-0 h-0.5 bg-[#C5A059]"></span>
               )}
@@ -407,70 +576,86 @@ export const ProductDetailPage = () => {
           )}
 
           {activeTab === 'reviews' && (
-            <div className="space-y-10 max-w-3xl">
-              <div className="space-y-4">
-                {(product.reviews && product.reviews.length > 0) ? (
-                  product.reviews.map((rev, idx) => (
-                    <div key={idx} className="bg-white p-6 border border-[#E9E1D6] shadow-xs space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-[#29251F]">{rev.name}</span>
-                        <div className="flex text-[#C5A059]">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} size={12} fill={i < rev.rating ? '#C5A059' : 'none'} />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed font-light">{rev.comment}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-500 font-light">Be the first patron to share an impression of this piece.</p>
-                )}
-              </div>
+            <div className="space-y-10 max-w-4xl">
+              {/* Summary Breakdown Card */}
+              <RatingSummaryCard
+                summary={
+                  ratingSummary || {
+                    averageRating: product.ratings || 5.0,
+                    totalReviews: product.numReviews || reviews.length,
+                    ratingDistribution: product.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                    ratingPercentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                  }
+                }
+                selectedRatingFilter={selectedRatingFilter}
+                onSelectRatingFilter={(star) => setSelectedRatingFilter(star)}
+                onOpenWriteReview={handleOpenWriteReview}
+                canReview={true}
+                hasReviewed={eligibility.hasReviewed}
+                isVerifiedBuyer={eligibility.isVerifiedBuyer}
+              />
 
-              {/* Add Review Box */}
-              <div className="bg-white p-8 border border-[#E9E1D6] space-y-5 shadow-xs">
-                <h4 className="text-xs uppercase tracking-[0.2em] font-semibold text-[#29251F] font-cinzel">
-                  Write a Patron Review
-                </h4>
-                {reviewSubmitted ? (
-                  <p className="text-xs text-emerald-700 font-medium">Thank you. Your review has been recorded.</p>
-                ) : (
-                  <form onSubmit={handleReviewSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider text-gray-500 mb-1 font-medium">
-                        Your Rating
-                      </label>
-                      <select
-                        value={newRating}
-                        onChange={(e) => setNewRating(Number(e.target.value))}
-                        className="text-xs bg-[#FAF9F6] border border-[#E9E1D6] p-2.5 font-medium"
-                      >
-                        <option value={5}>5 Stars - Pure Sovereign Perfection</option>
-                        <option value={4}>4 Stars - Exceptional Quality</option>
-                        <option value={3}>3 Stars - Good Fit</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider text-gray-500 mb-1 font-medium">
-                        Your Impression
-                      </label>
-                      <textarea
-                        required
-                        rows={3}
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Detail your experience with the drape, stitching, and royal presence..."
-                        className="w-full text-xs bg-[#FAF9F6] border border-[#E9E1D6] p-3.5 focus:outline-none focus:border-[#C5A059]"
-                      ></textarea>
-                    </div>
+              {/* Reviews List */}
+              <div className="space-y-5">
+                <div className="flex items-center justify-between border-b border-[#F2ECE1] pb-3">
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare size={16} className="text-[#C5A059]" />
+                    <h3 className="font-serif-luxury text-base font-bold text-[#14110C]">
+                      Patron Impressions {selectedRatingFilter ? `(${selectedRatingFilter} Stars)` : ''}
+                    </h3>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    Showing {reviews.length} {reviews.length === 1 ? 'impression' : 'impressions'}
+                  </span>
+                </div>
+
+                {reviewsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="bg-white p-6 border border-[#E9E1D6] rounded-xl animate-pulse space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+                          <div className="space-y-1.5">
+                            <div className="w-28 h-3.5 bg-gray-200 rounded"></div>
+                            <div className="w-16 h-2.5 bg-gray-100 rounded"></div>
+                          </div>
+                        </div>
+                        <div className="w-full h-12 bg-gray-100 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="bg-white border border-[#E9E1D6] rounded-xl p-12 text-center space-y-3 shadow-2xs">
+                    <Star size={32} className="mx-auto text-gray-300" strokeWidth={1.5} />
+                    <p className="font-serif-luxury text-lg text-[#14110C] font-semibold">
+                      {selectedRatingFilter
+                        ? `No ${selectedRatingFilter}-star impressions yet.`
+                        : 'Be the first patron to share an impression of this piece.'}
+                    </p>
+                    <p className="text-xs text-gray-400 font-light max-w-md mx-auto">
+                      Your refined critique helps fellow fashion connoisseurs discover sovereign tailoring.
+                    </p>
                     <button
-                      type="submit"
-                      className="px-7 py-3 bg-[#29251F] text-white text-xs uppercase tracking-[0.2em] font-semibold hover:bg-[#C5A059] transition shadow-xs"
+                      onClick={handleOpenWriteReview}
+                      className="px-6 py-2.5 bg-[#14110C] hover:bg-[#C5A059] text-white text-xs uppercase tracking-widest font-semibold transition rounded-xs mt-2"
                     >
-                      Submit Review
+                      Write First Review
                     </button>
-                  </form>
+                  </div>
+                ) : (
+                  reviews.map((rev) => (
+                    <ReviewCard
+                      key={rev._id}
+                      review={rev}
+                      currentUserId={user?._id}
+                      isAdmin={user?.role === 'admin'}
+                      onEdit={() => {
+                        setEditingReview(rev);
+                        setIsReviewModalOpen(true);
+                      }}
+                      onDelete={handleDeleteReview}
+                    />
+                  ))
                 )}
               </div>
             </div>
@@ -574,6 +759,16 @@ export const ProductDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* Real-time Review Creation & Edit Modal */}
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        existingReview={editingReview}
+        productTitle={product.title}
+        isVerifiedBuyer={eligibility.isVerifiedBuyer}
+      />
     </div>
   );
 };

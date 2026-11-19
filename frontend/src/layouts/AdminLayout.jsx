@@ -127,7 +127,7 @@ export const AdminLayout = () => {
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Inventory', path: '/admin/products', icon: Archive },
     { name: 'Coupons', path: '/admin', icon: Tag },
-    { name: 'Reviews', path: '/admin', icon: Star },
+    { name: 'Reviews', path: '/admin/reviews', icon: Star },
     { name: 'Analytics', path: '/admin', icon: BarChart3 },
     { name: 'Settings', path: '/admin', icon: Settings, hasChevron: true },
     { name: 'Profile', path: '/account/profile', icon: User },

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Search, X, Check, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Trash2, Edit2, Search, X, Check, Image as ImageIcon, Upload, Star, AlertCircle } from 'lucide-react';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
+import uploadService, { formatFileSize } from '../services/uploadService';
 
 export const FALLBACK_PRODUCT_IMAGE =
   'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
@@ -40,6 +41,60 @@ export const AdminProducts = () => {
   const [editingId, setEditingId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError('');
+
+    // Pre-validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+
+    if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(ext)) {
+      setUploadError('Only JPG, JPEG, PNG, and WEBP formats are supported.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // 50 MB check
+    if (file.size > 50 * 1024 * 1024) {
+      setUploadError('Image size must not exceed 50 MB.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setSelectedFile(file);
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const res = await uploadService.uploadImage(file, (pct) => {
+        setUploadProgress(pct);
+      });
+
+      if (res && res.url) {
+        setForm((prev) => ({ ...prev, images: [res.url] }));
+        setSelectedFile(null);
+        setUploadProgress(100);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      // Preserve existing image if upload fails!
+      setUploadError(err.message || 'Image upload failed. Existing image preserved.');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const [form, setForm] = useState({
     title: '',
@@ -243,6 +298,7 @@ export const AdminProducts = () => {
                 <th className="py-3.5 px-4">Price / Offer</th>
                 <th className="py-3.5 px-4">Available Sizes</th>
                 <th className="py-3.5 px-4">Stock</th>
+                <th className="py-3.5 px-4">Rating</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -303,6 +359,18 @@ export const AdminProducts = () => {
                     >
                       {p.stockCount} units
                     </span>
+                  </td>
+
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-1.5">
+                      <Star size={13} fill="#C5A059" stroke="#C5A059" />
+                      <span className="font-bold text-[#14110C] text-xs">
+                        {((p.ratings || p.averageRating) || 5.0).toFixed(1)}
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        ({p.numReviews || p.totalReviews || 0})
+                      </span>
+                    </div>
                   </td>
 
                   <td className="py-3 px-4 text-right space-x-2">
@@ -423,9 +491,15 @@ export const AdminProducts = () => {
                 </div>
 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block uppercase tracking-wider text-gray-500 mb-1">
-                    Primary Image URL
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block uppercase tracking-wider text-gray-500">
+                      Product Photo
+                    </label>
+                    <span className="text-[9.5px] text-gray-400">
+                      Max 50 MB • JPG, PNG, WEBP
+                    </span>
+                  </div>
+
                   <input
                     type="text"
                     required
@@ -434,9 +508,64 @@ export const AdminProducts = () => {
                       const cleaned = cleanImageUrl(e.target.value);
                       setForm({ ...form, images: [cleaned] });
                     }}
-                    className="w-full p-2 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+                    className="w-full p-2 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66] text-xs"
                     placeholder="https://... (Direct image or Google image URL)"
                   />
+
+                  {/* File Upload Trigger */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      id="admin-product-file-upload"
+                      accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                      onChange={handleFileUpload}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="admin-product-file-upload"
+                      className={`px-3 py-1.5 bg-white border border-[#E9E1D6] hover:border-[#C5A059] text-[#14110C] text-[11px] font-semibold rounded cursor-pointer inline-flex items-center space-x-1.5 transition ${
+                        isUploading ? 'opacity-50 pointer-events-none' : ''
+                      }`}
+                    >
+                      <Upload size={13} className="text-[#C5A059]" />
+                      <span>{isUploading ? 'Uploading...' : 'Upload Image File (50 MB)'}</span>
+                    </label>
+                  </div>
+
+                  {/* Live Progress Bar */}
+                  {isUploading && selectedFile && (
+                    <div className="mt-2 p-2.5 bg-white border border-[#E9E1D6] rounded space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-medium text-[#14110C] truncate max-w-[180px]">
+                          {selectedFile.name}
+                        </span>
+                        <span className="text-gray-400 font-mono text-[10px]">
+                          {formatFileSize(selectedFile.size)}
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#C5A059] transition-all duration-200 rounded-full"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-500 block text-right font-bold">
+                        {uploadProgress}%
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Upload Error Banner */}
+                  {uploadError && (
+                    <div className="mt-2 p-2 bg-rose-50 border border-rose-200 text-rose-700 text-[11px] rounded flex items-center space-x-1.5">
+                      <AlertCircle size={13} className="shrink-0" />
+                      <span>{uploadError}</span>
+                    </div>
+                  )}
+
+                  {/* Preview Thumbnail */}
                   {form.images[0] && (
                     <div className="flex items-center gap-2.5 mt-2 p-2 bg-[#FAF9F6] border border-[#E9E1D6] rounded">
                       <img

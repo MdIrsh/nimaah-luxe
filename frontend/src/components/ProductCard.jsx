@@ -1,10 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Star, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { getSocket } from '../services/socket';
 
 export const ProductCard = ({ product }) => {
   const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
+
+  const [liveRating, setLiveRating] = useState(
+    product.averageRating || product.ratings || 4.9
+  );
+  const [liveReviewsCount, setLiveReviewsCount] = useState(
+    product.totalReviews || product.numReviews || 0
+  );
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (socket && product?._id) {
+      const handleRatingUpdated = (data) => {
+        if (data?.productId === product._id) {
+          setLiveRating(data.averageRating);
+          setLiveReviewsCount(data.totalReviews);
+        }
+      };
+      socket.on('product:ratingUpdated', handleRatingUpdated);
+      return () => {
+        socket.off('product:ratingUpdated', handleRatingUpdated);
+      };
+    }
+  }, [product?._id]);
 
   const availableSizes =
     product.sizes && product.sizes.length > 0 ? product.sizes : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -118,7 +142,7 @@ export const ProductCard = ({ product }) => {
         {/* Rating Pill on Mobile Image Corner */}
         <div className="sm:hidden absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs px-1.5 py-0.5 rounded text-[9px] font-semibold text-[#29251F] flex items-center gap-0.5 shadow-xs">
           <Star size={9} fill="#C5A059" color="#C5A059" />
-          <span>{product.ratings || 4.9}</span>
+          <span>{(liveRating || 4.9).toFixed(1)}</span>
         </div>
 
         {/* Desktop Hover Overlay */}
@@ -191,7 +215,12 @@ export const ProductCard = ({ product }) => {
 
             <div className="hidden sm:flex items-center space-x-1 text-xs text-[#C5A059]">
               <Star size={12} fill="#C5A059" />
-              <span className="font-semibold text-[#29251F] text-[11px]">{product.ratings || 4.9}</span>
+              <span className="font-semibold text-[#29251F] text-[11px]">
+                {(liveRating || 4.9).toFixed(1)}
+              </span>
+              {liveReviewsCount > 0 && (
+                <span className="text-[10px] text-gray-400 font-normal">({liveReviewsCount})</span>
+              )}
             </div>
           </div>
 

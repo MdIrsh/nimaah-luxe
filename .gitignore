@@ -27,3 +27,7 @@ logs/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
