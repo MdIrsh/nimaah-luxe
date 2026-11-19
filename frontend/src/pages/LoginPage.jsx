@@ -82,11 +82,18 @@ export const LoginPage = () => {
           </button>
         </form>
 
-        <div className="text-center text-xs text-gray-500 pt-2 border-t border-[#FAF9F6]">
-          New to Ni'maah Luxe?{' '}
-          <Link to="/register" className="text-[#A68B66] font-semibold hover:underline">
-            Create an Account
-          </Link>
+        <div className="text-center text-xs text-gray-500 pt-2 border-t border-[#FAF9F6] space-y-2">
+          <div>
+            New to Ni'maah Luxe?{' '}
+            <Link to="/register" className="text-[#A68B66] font-semibold hover:underline">
+              Create an Account
+            </Link>
+          </div>
+          <div className="pt-1">
+            <Link to="/admin" className="text-[#C5A059] font-medium hover:underline text-[11px] uppercase tracking-wider">
+              Staff / Admin Command Portal &rarr;
+            </Link>
+          </div>
         </div>
       </div>
     </div>

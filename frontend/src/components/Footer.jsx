@@ -198,7 +198,10 @@ export const Footer = () => {
         {/* 3. Bottom Bar */}
         <div className="border-t border-white/10 mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 font-light gap-4">
           <p>© {new Date().getFullYear()} NI'MAAH LUXE Atelier. All Rights Reserved. Divinely Inspired Fashion.</p>
-          <div className="flex items-center space-x-6 text-[11px] tracking-wider uppercase">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] tracking-wider uppercase">
+            <Link to="/admin" className="text-[#C5A059] hover:text-white transition font-medium">
+              Admin Portal
+            </Link>
             <span className="hover:text-white cursor-pointer transition">Privacy Code</span>
             <span className="hover:text-white cursor-pointer transition">Terms of Atelier</span>
             <span className="hover:text-white cursor-pointer transition">Authenticity Seal</span>
