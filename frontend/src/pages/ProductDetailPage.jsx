@@ -24,6 +24,7 @@ import ReviewModal from '../components/reviews/ReviewModal';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import ProductCard from '../components/ProductCard';
+import { getProductImageUrl, handleImageError, FALLBACK_PRODUCT_IMAGE } from '../utils/imageUtils';
 
 export const ProductDetailPage = () => {
   const { id } = useParams();
@@ -385,9 +386,9 @@ export const ProductDetailPage = () => {
 
   const productImages =
     Array.isArray(product.images) && product.images.length > 0
-      ? product.images.filter(Boolean)
-      : ['https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80'];
-  const displayImage = selectedImage || productImages[0];
+      ? product.images.filter(Boolean).map(getProductImageUrl)
+      : [FALLBACK_PRODUCT_IMAGE];
+  const displayImage = getProductImageUrl(selectedImage) || productImages[0];
 
   const productColors = Array.isArray(product.colors) ? product.colors : [];
   const availableSizes =
@@ -430,11 +431,7 @@ export const ProductDetailPage = () => {
                     src={img}
                     alt=""
                     referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src =
-                        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
-                    }}
+                    onError={handleImageError}
                     className="w-full h-full object-cover object-top"
                   />
                 </button>
@@ -447,11 +444,7 @@ export const ProductDetailPage = () => {
               src={displayImage}
               alt={product.title || 'Haute Couture Silhouette'}
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src =
-                  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
-              }}
+              onError={handleImageError}
               className="w-full h-full object-cover object-top transition duration-700 hover:scale-105 cursor-crosshair"
             />
             {discountPercent && (

@@ -34,6 +34,9 @@ initSocket(server);
 // Database Connection
 connectDB();
 
+// Trust reverse proxy (e.g. Render / Heroku / Nginx) for HTTPS headers
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(
   cors({

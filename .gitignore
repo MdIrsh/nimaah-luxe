@@ -31,3 +31,4 @@ Thumbs.db
 # Uploads
 backend/uploads/*
 !backend/uploads/.gitkeep
+!backend/uploads/IMG-20250627-WA0000-1795091594198.jpg

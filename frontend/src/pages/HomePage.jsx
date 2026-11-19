@@ -14,6 +14,7 @@ import {
 import InstagramIcon from '../components/InstagramIcon';
 import ProductCard from '../components/ProductCard';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
+import { getProductImageUrl, handleImageError } from '../utils/imageUtils';
 import logoImg from '../assets/nimaah-luxe-logo.png';
 import instaProfileImg from '../assets/nimaahluxe-profile.png';
 
@@ -163,9 +164,10 @@ export const HomePage = () => {
             >
               <div className="aspect-[3/4] sm:aspect-[4/4] overflow-hidden bg-[#FAF9F6]">
                 <img
-                  src={prod.images?.[0]}
+                  src={getProductImageUrl(prod.images?.[0])}
                   alt={prod.title}
                   loading="lazy"
+                  onError={handleImageError}
                   className="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500"
                 />
               </div>
@@ -206,9 +208,10 @@ export const HomePage = () => {
               >
                 <div className="aspect-[3/4] overflow-hidden bg-[#FAF9F6]">
                   <img
-                    src={prod.images?.[0]}
+                    src={getProductImageUrl(prod.images?.[0])}
                     alt={prod.title}
                     loading="lazy"
+                    onError={handleImageError}
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500"
                   />
                 </div>
@@ -327,9 +330,10 @@ export const HomePage = () => {
                 className="group relative aspect-square overflow-hidden rounded-lg sm:rounded-none bg-[#FAF9F6] border border-[#E9E1D6]"
               >
                 <img
-                  src={prod.images?.[0]}
+                  src={getProductImageUrl(prod.images?.[0])}
                   alt={prod.title}
                   loading="lazy"
+                  onError={handleImageError}
                   className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500 ease-out"
                 />
                 <div className="absolute inset-0 bg-[#29251F]/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-2 text-center space-y-1">

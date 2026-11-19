@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Edit2, Search, X, Check, Image as ImageIcon, Upload, Star, AlertCircle } from 'lucide-react';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
 import uploadService, { formatFileSize } from '../services/uploadService';
+import { getProductImageUrl } from '../utils/imageUtils';
 
 export const FALLBACK_PRODUCT_IMAGE =
   'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
@@ -307,7 +308,7 @@ export const AdminProducts = () => {
                 <tr key={p._id} className="hover:bg-[#FAF9F6]/60 transition">
                   <td className="py-3 px-4 flex items-center space-x-3">
                     <img
-                      src={p.images?.[0] || FALLBACK_PRODUCT_IMAGE}
+                      src={getProductImageUrl(p.images?.[0])}
                       alt={p.title}
                       referrerPolicy="no-referrer"
                       onError={(e) => {
@@ -569,7 +570,7 @@ export const AdminProducts = () => {
                   {form.images[0] && (
                     <div className="flex items-center gap-2.5 mt-2 p-2 bg-[#FAF9F6] border border-[#E9E1D6] rounded">
                       <img
-                        src={form.images[0]}
+                        src={getProductImageUrl(form.images[0])}
                         alt="Preview"
                         referrerPolicy="no-referrer"
                         onError={(e) => {

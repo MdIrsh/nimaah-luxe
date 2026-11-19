@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Star, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { getSocket } from '../services/socket';
+import { getProductImageUrl, handleImageError } from '../utils/imageUtils';
 
 export const ProductCard = ({ product }) => {
   if (!product) return null;
@@ -83,11 +84,12 @@ export const ProductCard = ({ product }) => {
   const rawRating = Number(liveRating || product.averageRating || product.ratings || 4.9);
   const displayRating = (!isNaN(rawRating) && rawRating > 0 ? rawRating : 4.9).toFixed(1);
 
-  const mainImage =
-    (Array.isArray(product.images) && product.images[0]) ||
-    'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=800&q=80';
-  const secondaryImage =
-    (Array.isArray(product.images) && product.images[1]) || mainImage;
+  const mainImage = getProductImageUrl(
+    (Array.isArray(product.images) && product.images[0]) || product.image
+  );
+  const secondaryImage = getProductImageUrl(
+    (Array.isArray(product.images) && product.images[1]) || mainImage
+  );
 
   return (
     <div className="group relative bg-white border border-[#E9E1D6]/80 rounded-xl sm:rounded-sm flex flex-col luxury-card-hover overflow-hidden shadow-xs">
@@ -100,11 +102,7 @@ export const ProductCard = ({ product }) => {
           src={mainImage}
           alt={product.title}
           referrerPolicy="no-referrer"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src =
-              'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
-          }}
+          onError={handleImageError}
           loading="lazy"
           className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
         />
@@ -114,11 +112,7 @@ export const ProductCard = ({ product }) => {
             src={secondaryImage}
             alt={`${product.title} alternate view`}
             referrerPolicy="no-referrer"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src =
-                'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
-            }}
+            onError={handleImageError}
             loading="lazy"
             className="hidden lg:block w-full h-full object-cover object-top absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out"
           />

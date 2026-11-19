@@ -58,10 +58,18 @@ export const uploadImage = async (req, res) => {
       }
     }
 
-    // Server-hosted fallback URL
-    const protocol = req.protocol || 'http';
+    // Server-hosted fallback URL (smart protocol & reverse-proxy detection)
+    const isHttps =
+      req.protocol === 'https' ||
+      req.headers['x-forwarded-proto'] === 'https' ||
+      process.env.NODE_ENV === 'production';
+    const protocol = isHttps ? 'https' : (req.protocol || 'http');
     const host = req.get('host') || 'localhost:5000';
-    const serverUrl = `${protocol}://${host}/uploads/${file.filename}`;
+    const baseUrl =
+      process.env.RENDER_EXTERNAL_URL ||
+      process.env.BACKEND_URL ||
+      `${protocol}://${host}`;
+    const serverUrl = `${baseUrl.replace(/\/$/, '')}/uploads/${file.filename}`;
 
     return successResponse(res, 'Image uploaded successfully to server', {
       url: serverUrl,
