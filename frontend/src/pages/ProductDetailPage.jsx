@@ -152,7 +152,17 @@ export const ProductDetailPage = () => {
                     selectedImage === img ? 'border-[#C5A059]' : 'border-transparent hover:border-gray-300'
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover object-top" />
+                  <img
+                    src={img}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src =
+                        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+                    }}
+                    className="w-full h-full object-cover object-top"
+                  />
                 </button>
               ))}
             </div>
@@ -162,6 +172,12 @@ export const ProductDetailPage = () => {
             <img
               src={selectedImage || product.images?.[0]}
               alt={product.title}
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src =
+                  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+              }}
               className="w-full h-full object-cover object-top transition duration-700 hover:scale-105 cursor-crosshair"
             />
             {discountPercent && (

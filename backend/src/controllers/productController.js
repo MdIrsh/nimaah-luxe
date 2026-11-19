@@ -75,11 +75,41 @@ export const getProductById = async (req, res) => {
   }
 };
 
+// Helper to extract clean direct image URL from Google Images or raw URLs
+export const sanitizeImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  const trimmed = url.trim();
+
+  // If user pasted a Google Images search result link:
+  // e.g. https://www.google.com/imgres?q=...&imgurl=https%3A%2F%2F...
+  if (trimmed.includes('google.') && (trimmed.includes('/imgres') || trimmed.includes('imgurl='))) {
+    try {
+      const parsed = new URL(trimmed);
+      const imgurl = parsed.searchParams.get('imgurl');
+      if (imgurl) return decodeURIComponent(imgurl);
+    } catch {}
+  }
+
+  // Handle Google redirect URLs: https://www.google.com/url?url=https%3A%2F%2F...
+  if (trimmed.includes('google.') && trimmed.includes('/url?')) {
+    try {
+      const parsed = new URL(trimmed);
+      const targetUrl = parsed.searchParams.get('url') || parsed.searchParams.get('q');
+      if (targetUrl) return decodeURIComponent(targetUrl);
+    } catch {}
+  }
+
+  return trimmed;
+};
+
 // @desc    Create new product
 // @route   POST /api/products
 // @access  Private/Admin
 export const createProduct = async (req, res) => {
   try {
+    if (req.body.images && Array.isArray(req.body.images)) {
+      req.body.images = req.body.images.map(sanitizeImageUrl);
+    }
     const product = new Product(req.body);
     const createdProduct = await product.save();
     return successResponse(res, 'Product created successfully', createdProduct, 201);
@@ -93,6 +123,10 @@ export const createProduct = async (req, res) => {
 // @access  Private/Admin
 export const updateProduct = async (req, res) => {
   try {
+    if (req.body.images && Array.isArray(req.body.images)) {
+      req.body.images = req.body.images.map(sanitizeImageUrl);
+    }
+
     let product = null;
 
     if (mongoose.Types.ObjectId.isValid(req.params.id)) {

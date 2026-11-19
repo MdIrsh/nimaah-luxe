@@ -2,6 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Search, X, Check, Image as ImageIcon } from 'lucide-react';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
 
+export const FALLBACK_PRODUCT_IMAGE =
+  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+
+// Helper to extract clean direct image URL from Google Images search or redirect links
+export const cleanImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  const trimmed = url.trim();
+
+  // If user pasted a Google Images search result link:
+  // e.g. https://www.google.com/imgres?q=...&imgurl=https%3A%2F%2F...
+  if (trimmed.includes('google.') && (trimmed.includes('/imgres') || trimmed.includes('imgurl='))) {
+    try {
+      const parsed = new URL(trimmed);
+      const imgurl = parsed.searchParams.get('imgurl');
+      if (imgurl) return decodeURIComponent(imgurl);
+    } catch {}
+  }
+
+  // Handle Google redirect URLs: https://www.google.com/url?url=https%3A%2F%2F...
+  if (trimmed.includes('google.') && (trimmed.includes('/url?') || trimmed.includes('url='))) {
+    try {
+      const parsed = new URL(trimmed);
+      const targetUrl = parsed.searchParams.get('url') || parsed.searchParams.get('q');
+      if (targetUrl) return decodeURIComponent(targetUrl);
+    } catch {}
+  }
+
+  return trimmed;
+};
+
 export const AdminProducts = () => {
   const [products, setProducts] = useState(DEMO_PRODUCTS);
   const [loading, setLoading] = useState(true);
@@ -114,8 +144,8 @@ export const AdminProducts = () => {
         stockCount: Number(form.stockCount || 0),
         images:
           form.images && form.images.length > 0 && form.images[0]?.trim()
-            ? form.images
-            : ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80'],
+            ? form.images.map(cleanImageUrl)
+            : [FALLBACK_PRODUCT_IMAGE],
       };
 
       if (editingId) {
@@ -221,9 +251,14 @@ export const AdminProducts = () => {
                 <tr key={p._id} className="hover:bg-[#FAF9F6]/60 transition">
                   <td className="py-3 px-4 flex items-center space-x-3">
                     <img
-                      src={p.images?.[0]}
-                      alt=""
-                      className="w-10 h-14 object-cover object-top border border-[#E9E1D6]"
+                      src={p.images?.[0] || FALLBACK_PRODUCT_IMAGE}
+                      alt={p.title}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                      }}
+                      className="w-10 h-14 object-cover object-top border border-[#E9E1D6] rounded-xs bg-[#FAF9F6]"
                     />
                     <div>
                       <p className="font-serif-luxury text-sm font-semibold text-[#29251F]">{p.title}</p>
@@ -387,16 +422,41 @@ export const AdminProducts = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block uppercase tracking-wider text-gray-500 mb-1">Primary Image URL</label>
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block uppercase tracking-wider text-gray-500 mb-1">
+                    Primary Image URL
+                  </label>
                   <input
                     type="text"
                     required
                     value={form.images[0] || ''}
-                    onChange={(e) => setForm({ ...form, images: [e.target.value] })}
-                    className="w-full p-2 bg-[#FAF9F6] border border-[#E9E1D6]"
-                    placeholder="https://..."
+                    onChange={(e) => {
+                      const cleaned = cleanImageUrl(e.target.value);
+                      setForm({ ...form, images: [cleaned] });
+                    }}
+                    className="w-full p-2 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66]"
+                    placeholder="https://... (Direct image or Google image URL)"
                   />
+                  {form.images[0] && (
+                    <div className="flex items-center gap-2.5 mt-2 p-2 bg-[#FAF9F6] border border-[#E9E1D6] rounded">
+                      <img
+                        src={form.images[0]}
+                        alt="Preview"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                        }}
+                        className="w-10 h-12 object-cover object-top border border-[#E9E1D6] rounded-xs bg-white shrink-0"
+                      />
+                      <div className="overflow-hidden">
+                        <span className="text-[10px] font-semibold text-[#29251F] block">Live Image Preview</span>
+                        <span className="text-[9.5px] text-[#A68B66] block truncate">
+                          {form.images[0]}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="col-span-2">

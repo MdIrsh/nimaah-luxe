@@ -34,6 +34,12 @@ export const ProductInfoCard = ({ order }) => {
                   <img
                     src={itemImg}
                     alt={item.title}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src =
+                        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+                    }}
                     className="w-full h-full object-cover object-top hover:scale-105 transition duration-300"
                   />
                 </div>

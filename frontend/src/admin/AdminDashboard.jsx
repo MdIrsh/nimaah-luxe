@@ -764,7 +764,13 @@ export const AdminDashboard = () => {
                       <img
                         src={imageSrc}
                         alt={p.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src =
+                            'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300 bg-white"
                       />
                       <span
                         className={`absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold shadow-xs ${rankClass}`}
