@@ -392,48 +392,10 @@ export const TrackOrderPage = () => {
         </div>
 
         {/* =========================================================================
-            EXPANDED EXTRA PARCEL ACTIONS & COURIER AWB DETAILS
+            EXPANDED EXTRA PARCEL ACTIONS & INVOICE OPTIONS
             ========================================================================= */}
         {showMoreDetails && (
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-4 animate-in fade-in duration-200">
-            <div className="p-3.5 bg-[#FAF9F6] border border-gray-200 rounded-2xl flex items-center justify-between text-xs">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
-                  Courier AWB Waybill
-                </span>
-                <code className="font-mono text-xs font-bold text-gray-900">
-                  {trackingData?.trackingNumber || 'BD-LUXE-89241024'}
-                </code>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() =>
-                    copyAwb(trackingData?.trackingNumber || 'BD-LUXE-89241024')
-                  }
-                  className="px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 text-gray-700 flex items-center space-x-1"
-                >
-                  {copied ? (
-                    <span className="text-emerald-700 font-semibold">Copied!</span>
-                  ) : (
-                    <>
-                      <Copy size={11} />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-                <a
-                  href={trackingData?.trackingUrl || 'https://www.bluedart.com'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2.5 py-1 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-black flex items-center space-x-1"
-                >
-                  <span>BlueDart</span>
-                  <ExternalLink size={11} />
-                </a>
-              </div>
-            </div>
-
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 onClick={() => setIsInvoiceOpen(true)}
