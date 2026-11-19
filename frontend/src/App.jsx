@@ -18,6 +18,7 @@ import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import TrackOrderPage from './pages/TrackOrderPage';
 
 // Customer Section
 import CustomerOrders from './customer/CustomerOrders';
@@ -115,11 +116,29 @@ export const App = () => {
                 </MainLayout>
               }
             />
+            <Route
+              path="/track-order"
+              element={
+                <MainLayout>
+                  <TrackOrderPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/track-order/:orderId"
+              element={
+                <MainLayout>
+                  <TrackOrderPage />
+                </MainLayout>
+              }
+            />
 
             {/* Customer Account Portal */}
             <Route path="/account" element={<CustomerLayout />}>
               <Route index element={<Navigate to="/account/orders" replace />} />
               <Route path="orders" element={<CustomerOrders />} />
+              <Route path="orders/:orderId/track" element={<TrackOrderPage />} />
+              <Route path="track" element={<TrackOrderPage />} />
               <Route path="profile" element={<CustomerProfile />} />
             </Route>
 

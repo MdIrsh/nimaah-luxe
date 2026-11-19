@@ -96,11 +96,21 @@ export const CustomerOrders = () => {
                   </p>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase tracking-wider text-gray-400">Fulfillment Status</span>
-                  <span className="inline-block px-2.5 py-1 bg-[#29251F] text-[#FAF9F6] text-xs font-semibold uppercase tracking-wider">
-                    {order.orderStatus || 'Admin Received'}
-                  </span>
+                <div className="flex items-center space-x-3">
+                  <div className="space-y-1">
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400 block">Fulfillment Status</span>
+                    <span className="inline-block px-2.5 py-1 bg-[#29251F] text-[#FAF9F6] text-xs font-semibold uppercase tracking-wider">
+                      {order.orderStatus || 'Admin Received'}
+                    </span>
+                  </div>
+
+                  <Link
+                    to={`/track-order/${order._id}`}
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#14110C] hover:bg-[#C5A059] text-white text-xs font-semibold rounded-lg transition shadow-2xs ml-2"
+                  >
+                    <span>Track Order</span>
+                    <ExternalLink size={12} />
+                  </Link>
                 </div>
               </div>
 

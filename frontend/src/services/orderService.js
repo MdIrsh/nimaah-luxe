@@ -25,4 +25,14 @@ export const orderService = {
     const response = await api.put(`/orders/${id}/status`, statusData);
     return response.data.data;
   },
+
+  async getOrderTracking(id) {
+    const response = await api.get(`/orders/${id}/tracking`);
+    return response.data.data;
+  },
+
+  async cancelOrder(id) {
+    const response = await api.put(`/orders/${id}/cancel`);
+    return response.data.data;
+  },
 };

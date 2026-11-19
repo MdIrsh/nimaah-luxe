@@ -12,6 +12,7 @@ import {
   LogOut,
   Package,
   Sparkles,
+  Truck,
 } from 'lucide-react';
 import InstagramIcon from './InstagramIcon';
 import { useAuth } from '../context/AuthContext';
@@ -254,7 +255,16 @@ export const Navbar = () => {
                         className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
                       >
                         <Package size={16} className="mr-3 text-[#A68B66]" />
-                        Orders & Live Tracker
+                        Orders & History
+                      </Link>
+
+                      <Link
+                        to="/track-order"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center px-5 py-3 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
+                      >
+                        <Truck size={16} className="mr-3 text-[#A68B66]" />
+                        Track Order / Parcel
                       </Link>
 
                       <Link
