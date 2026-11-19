@@ -62,7 +62,17 @@ export const Navbar = () => {
       {/* 1. Ultra-Thin Top Luxury Announcement Bar */}
       <div className="bg-[#14110C] text-[#E8DCC9] text-[9.5px] sm:text-[10px] tracking-[0.25em] uppercase py-1.5 px-4 text-center border-b border-[#2A231A]">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <span className="hidden md:inline font-cinzel text-[#C5A059]">Bespoke Haute Couture</span>
+          {isAdmin ? (
+            <Link
+              to="/admin/dashboard"
+              className="font-cinzel text-[#C5A059] hover:underline flex items-center space-x-1 font-bold"
+            >
+              <ShieldCheck size={12} />
+              <span>Admin Panel &rarr;</span>
+            </Link>
+          ) : (
+            <span className="hidden md:inline font-cinzel text-[#C5A059]">Bespoke Haute Couture</span>
+          )}
           <p className="flex-1 text-center font-medium">
             Complimentary Concierge Shipping on All Luxury Orders • Handcrafted in Atelier
           </p>
@@ -110,6 +120,17 @@ export const Navbar = () => {
                 </Link>
               );
             })}
+
+            {/* Admin Panel Link (Strictly visible ONLY to verified Admin) */}
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                className="px-2.5 py-1 bg-[#14110C] text-[#C5A059] hover:text-white border border-[#C5A059]/50 rounded-xs text-[10px] font-bold uppercase tracking-wider transition flex items-center space-x-1 shadow-xs"
+              >
+                <ShieldCheck size={12} className="text-[#C5A059]" />
+                <span>Admin Panel</span>
+              </Link>
+            )}
           </nav>
 
           {/* Center Brand Identity */}
@@ -165,6 +186,18 @@ export const Navbar = () => {
                 </span>
               )}
             </Link>
+
+            {/* Direct Admin Control Center Button for Admin */}
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#C5A059] hover:bg-[#E8D3A2] text-[#14110C] text-[10.5px] font-bold uppercase tracking-wider rounded-xs transition shadow-xs"
+                title="Open Admin Control Center"
+              >
+                <ShieldCheck size={13} />
+                <span>Admin Panel</span>
+              </Link>
+            )}
 
             {/* Customer Profile & Account Dropdown (Flipkart style: Clean Customer Menu Only) */}
             <div className="relative">

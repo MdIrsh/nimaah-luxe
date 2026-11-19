@@ -10,18 +10,15 @@ import {
   ShoppingBag,
   Layers,
   Tag,
-  ShieldCheck,
 } from 'lucide-react';
 import InstagramIcon from '../components/InstagramIcon';
 import ProductCard from '../components/ProductCard';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
 import { getProductImageUrl, handleImageError } from '../utils/imageUtils';
-import { useAuth } from '../context/AuthContext';
 import logoImg from '../assets/nimaah-luxe-logo.png';
 import instaProfileImg from '../assets/nimaahluxe-profile.png';
 
 export const HomePage = () => {
-  const { user, isAdmin } = useAuth();
   const [products, setProducts] = useState(DEMO_PRODUCTS);
   const [mobileSearch, setMobileSearch] = useState('');
   const navigate = useNavigate();
@@ -64,55 +61,6 @@ export const HomePage = () => {
 
   return (
     <div className="space-y-8 sm:space-y-16 lg:space-y-24 pb-12 sm:pb-24">
-      {/* EXCLUSIVE ADMIN CONTROL BAR (Strictly visible ONLY when logged in as Admin) */}
-      {isAdmin && (
-        <aside className="bg-gradient-to-r from-[#1A1610] via-[#241E15] to-[#14110C] text-[#FAF9F6] border-b-2 border-[#C5A059] py-2.5 px-3.5 sm:px-6 shadow-md">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-            <div className="flex items-center space-x-2.5">
-              <div className="p-1.5 bg-[#C5A059]/20 rounded-full text-[#C5A059] border border-[#C5A059]/50 shrink-0">
-                <ShieldCheck size={18} />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center space-x-2">
-                  <span className="font-cinzel text-xs sm:text-sm font-bold text-[#E8D3A2] tracking-wider truncate">
-                    Admin Control Center
-                  </span>
-                  <span className="px-1.5 py-0.5 bg-[#C5A059] text-[#14110C] text-[8.5px] font-bold uppercase rounded-xs shrink-0">
-                    Active
-                  </span>
-                </div>
-                <p className="text-[10px] text-gray-400 truncate hidden sm:block">
-                  Logged in as {user?.name || 'Administrator'} ({user?.email})
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 shrink-0">
-              <Link
-                to="/admin/products"
-                className="hidden md:inline-flex items-center px-3 py-1.5 bg-white/10 hover:bg-white/20 text-[#FAF9F6] text-[11px] font-semibold rounded-xs border border-white/20 transition"
-              >
-                + Manage Products
-              </Link>
-              <Link
-                to="/admin/orders"
-                className="hidden md:inline-flex items-center px-3 py-1.5 bg-white/10 hover:bg-white/20 text-[#FAF9F6] text-[11px] font-semibold rounded-xs border border-white/20 transition"
-              >
-                Orders
-              </Link>
-              <Link
-                to="/admin/dashboard"
-                className="px-3.5 py-1.5 bg-[#C5A059] hover:bg-[#E8D3A2] text-[#14110C] text-xs font-bold uppercase tracking-wider rounded-xs transition shadow-sm flex items-center space-x-1.5"
-              >
-                <ShieldCheck size={13} />
-                <span>Admin Panel</span>
-                <span>&rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </aside>
-      )}
-
       {/* MOBILE APP-STYLE TOP SEARCH + CATEGORY ICON BAR */}
       <div className="lg:hidden bg-gradient-to-b from-[#F5EFE6] to-[#FAF9F6] pt-3 pb-2 border-b border-[#E9E1D6]/70">
         {/* Rounded Search Bar */}
@@ -186,7 +134,7 @@ export const HomePage = () => {
                 Opulent evening gowns, handwoven Banarasi sarees, and sculpted silhouettes tailored to honor sovereign grace.
               </p>
 
-              <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 pt-1 sm:pt-2">
+              <div className="flex items-center gap-2.5 sm:gap-4 pt-1 sm:pt-2">
                 <Link
                   to="/shop"
                   className="px-5 sm:px-9 py-2.5 sm:py-4 bg-[#FAF9F6] text-[#29251F] hover:bg-[#C5A059] hover:text-white text-[10px] sm:text-xs font-semibold uppercase tracking-[0.16em] sm:tracking-[0.2em] rounded-lg sm:rounded-none transition shadow-lg"
@@ -199,15 +147,6 @@ export const HomePage = () => {
                 >
                   Evening Gowns
                 </Link>
-                {isAdmin && (
-                  <Link
-                    to="/admin/dashboard"
-                    className="px-4 sm:px-8 py-2.5 sm:py-4 bg-[#C5A059] hover:bg-[#E8D3A2] text-[#14110C] text-[10px] sm:text-xs font-bold uppercase tracking-[0.16em] sm:tracking-[0.2em] rounded-lg sm:rounded-none transition shadow-lg flex items-center space-x-1.5"
-                  >
-                    <ShieldCheck size={14} />
-                    <span>Admin Panel</span>
-                  </Link>
-                )}
               </div>
             </div>
           </div>
