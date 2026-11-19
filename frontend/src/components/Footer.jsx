@@ -203,7 +203,13 @@ export const Footer = () => {
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] tracking-wider uppercase">
             <span className="hover:text-white cursor-pointer transition">Privacy Code</span>
             <span className="hover:text-white cursor-pointer transition">Terms of Atelier</span>
-            <span className="hover:text-white cursor-pointer transition">Authenticity Seal</span>
+            <Link
+              to="/admin/login"
+              className="hover:text-white cursor-pointer transition text-gray-400"
+              title="Authenticity Verification & Staff Gateway"
+            >
+              Authenticity Seal
+            </Link>
 
             {/* Staff Access: Strictly visible ONLY to verified Admin accounts */}
             {isAdmin && (
