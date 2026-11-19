@@ -1,9 +1,5 @@
 import api from './api';
 
-// 100% Reliable Luxury SVG Fallback Image (Never fails, zero network dependency)
-export const FALLBACK_PRODUCT_IMAGE =
-  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500"><rect width="400" height="500" fill="%23FAF9F6"/><g transform="translate(160, 200)" fill="none" stroke="%23A68B66" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></g><text x="50%" y="270" dominant-baseline="middle" text-anchor="middle" fill="%23A68B66" font-family="serif" font-size="13" font-weight="600" letter-spacing="3">NI%27MAAH LUXE</text></svg>';
-
 // Fallback luxury catalog in case API is connecting/offline
 export const DEMO_PRODUCTS = [
   {

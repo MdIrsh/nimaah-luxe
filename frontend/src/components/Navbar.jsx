@@ -233,11 +233,11 @@ export const Navbar = () => {
                         <p className="text-sm font-semibold text-[#29251F] truncate">{user.name}</p>
                         <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
                         <span className="inline-block mt-1 text-[9.5px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-xs bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6]">
-                          {user.role === 'admin' ? 'Store Administrator' : "Ni'maah Privé Client"}
+                          {(user.role === 'admin' || user.role === 'super_admin') ? (user.role === 'super_admin' ? 'Super Administrator' : 'Store Administrator') : "Ni'maah Privé Client"}
                         </span>
                       </div>
 
-                      {user.role === 'admin' && (
+                      {(user.role === 'admin' || user.role === 'super_admin') && (
                         <Link
                           to="/admin"
                           onClick={() => setIsUserMenuOpen(false)}

@@ -137,7 +137,7 @@ export const adminLogin = async (req, res) => {
       return errorResponse(res, 'Invalid email or password', 401);
     }
 
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
       return errorResponse(res, 'Access denied: Administrative privileges required', 403);
     }
 

@@ -15,7 +15,6 @@ import {
   Plus,
 } from 'lucide-react';
 import api from '../services/api';
-import { FALLBACK_PRODUCT_IMAGE } from '../services/productService';
 
 export const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -768,7 +767,8 @@ export const AdminDashboard = () => {
                         referrerPolicy="no-referrer"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                          e.currentTarget.src =
+                            'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
                         }}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300 bg-white"
                       />

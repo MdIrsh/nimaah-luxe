@@ -21,14 +21,14 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Intercept 401 unauthorized
+// Intercept 401 unauthorized & expired tokens
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear token if expired
-      // localStorage.removeItem('stylehub_token');
-      // localStorage.removeItem('stylehub_user');
+      // Clear invalid/expired session data
+      localStorage.removeItem('stylehub_token');
+      localStorage.removeItem('stylehub_user');
     }
     return Promise.reject(error);
   }

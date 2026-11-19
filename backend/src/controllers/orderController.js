@@ -98,8 +98,9 @@ export const getOrderById = async (req, res) => {
       return errorResponse(res, 'Order not found', 404);
     }
 
-    // Allow owner or admin to access
-    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Allow owner or authorized admin to access
+    const isStaff = req.user.role === 'admin' || req.user.role === 'super_admin';
+    if (order.user._id.toString() !== req.user._id.toString() && !isStaff) {
       return errorResponse(res, 'Not authorized to view this order', 403);
     }
 
@@ -193,8 +194,9 @@ export const getOrderTracking = async (req, res) => {
       return errorResponse(res, 'Order or parcel not found with this reference', 404);
     }
 
-    // Access authorization: only order owner or admin can view
-    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Access authorization: only order owner or authorized admin can view
+    const isStaff = req.user.role === 'admin' || req.user.role === 'super_admin';
+    if (order.user._id.toString() !== req.user._id.toString() && !isStaff) {
       return errorResponse(res, 'Unauthorized to view tracking for this order', 403);
     }
 
@@ -335,7 +337,8 @@ export const cancelOrder = async (req, res) => {
       return errorResponse(res, 'Order not found', 404);
     }
 
-    if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    const isStaff = req.user.role === 'admin' || req.user.role === 'super_admin';
+    if (order.user.toString() !== req.user._id.toString() && !isStaff) {
       return errorResponse(res, 'Unauthorized to cancel this order', 403);
     }
 

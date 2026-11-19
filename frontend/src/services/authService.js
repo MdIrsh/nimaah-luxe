@@ -2,7 +2,11 @@ import api from './api';
 
 export const authService = {
   async register(userData) {
-    const response = await api.post('/auth/register', userData);
+    const response = await api.post('/auth/register', {
+      name: userData.name,
+      email: userData.email,
+      password: userData.password,
+    });
     if (response.data.data.token) {
       localStorage.setItem('stylehub_token', response.data.data.token);
       localStorage.setItem('stylehub_user', JSON.stringify(response.data.data));

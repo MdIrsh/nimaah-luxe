@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Edit2, Search, X, Check, Image as ImageIcon, Upload, Star, AlertCircle } from 'lucide-react';
-import { productService, DEMO_PRODUCTS, FALLBACK_PRODUCT_IMAGE } from '../services/productService';
+import { productService, DEMO_PRODUCTS } from '../services/productService';
 import uploadService, { formatFileSize } from '../services/uploadService';
-export { FALLBACK_PRODUCT_IMAGE };
+
+export const FALLBACK_PRODUCT_IMAGE =
+  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
 
 // Helper to extract clean direct image URL from Google Images search or redirect links
 export const cleanImageUrl = (url) => {

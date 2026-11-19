@@ -219,7 +219,7 @@ export const updateReview = async (req, res) => {
 
     // Check ownership
     const isOwner = review.user.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
     if (!isOwner && !isAdmin) {
       return errorResponse(res, 'Unauthorized to modify this review', 403);
     }
@@ -276,7 +276,7 @@ export const deleteReview = async (req, res) => {
     }
 
     const isOwner = review.user.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
     if (!isOwner && !isAdmin) {
       return errorResponse(res, 'Unauthorized to delete this review', 403);
     }

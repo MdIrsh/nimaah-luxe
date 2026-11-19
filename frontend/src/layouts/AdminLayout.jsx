@@ -150,6 +150,12 @@ export const AdminLayout = () => {
     navigate('/login');
   };
 
+  const role = (user?.role || '').toLowerCase();
+  // Defense-in-depth: Never render any part of AdminLayout if unauthorized
+  if (!user || (role !== 'admin' && role !== 'super_admin')) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F5F0] flex flex-col md:flex-row font-sans text-[#29251F]">
       {/* =========================================================================

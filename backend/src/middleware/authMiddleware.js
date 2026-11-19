@@ -44,24 +44,39 @@ export const protect = async (req, res, next) => {
 };
 
 /**
+ * Role-Based Access Control Middleware Generator
+ * Ensures req.user holds one of the authorized roles.
+ */
+export const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized: Authentication token required',
+      });
+    }
+
+    const userRole = (req.user.role || '').toLowerCase();
+    const normalizedRoles = roles.map((r) => r.toLowerCase());
+
+    if (!normalizedRoles.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: `Forbidden: Access denied. Role '${req.user.role}' is not authorized to access this resource.`,
+      });
+    }
+
+    next();
+  };
+};
+
+/**
  * AdminOnly middleware: Strictly enforces that req.user holds an ADMIN or SUPER_ADMIN role.
  * Customers and guests are strictly barred with 403 Forbidden.
  */
-export const adminOnly = (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: 'Not authorized: Authentication required',
-    });
-  }
+export const adminOnly = authorizeRoles('admin', 'super_admin');
 
-  const role = (req.user.role || '').toLowerCase();
-  if (role !== 'admin' && role !== 'super_admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Forbidden: Access denied. Only authorized administrators can access this area.',
-    });
-  }
-
-  next();
-};
+/**
+ * SuperAdminOnly middleware: Strictly enforces that req.user holds a SUPER_ADMIN role.
+ */
+export const superAdminOnly = authorizeRoles('super_admin');

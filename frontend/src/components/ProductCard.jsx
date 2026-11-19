@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Star, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { getSocket } from '../services/socket';
-import { FALLBACK_PRODUCT_IMAGE } from '../services/productService';
 
 export const ProductCard = ({ product }) => {
   const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
@@ -90,7 +89,8 @@ export const ProductCard = ({ product }) => {
           referrerPolicy="no-referrer"
           onError={(e) => {
             e.currentTarget.onerror = null;
-            e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+            e.currentTarget.src =
+              'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
           }}
           loading="lazy"
           className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
@@ -103,7 +103,8 @@ export const ProductCard = ({ product }) => {
             referrerPolicy="no-referrer"
             onError={(e) => {
               e.currentTarget.onerror = null;
-              e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+              e.currentTarget.src =
+                'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
             }}
             loading="lazy"
             className="hidden lg:block w-full h-full object-cover object-top absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out"

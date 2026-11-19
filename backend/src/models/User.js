@@ -36,7 +36,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['customer', 'admin', 'super_admin'],
       default: 'customer',
-      lowercase: true,
     },
     avatar: {
       type: String,
