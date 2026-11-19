@@ -30,6 +30,7 @@ import AdminProducts from './admin/AdminProducts';
 import AdminOrders from './admin/AdminOrders';
 import AdminCustomers from './admin/AdminCustomers';
 import AdminReviews from './admin/AdminReviews';
+import AdminLoginPage from './admin/AdminLoginPage';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -55,9 +56,9 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  // Not signed in -> redirect to login with intent
+  // Not signed in -> redirect to dedicated Admin Login portal
   if (!user) {
-    return <Navigate to="/login?redirect=/admin" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
 
   const role = (user.role || '').toLowerCase();
@@ -193,7 +194,10 @@ export const App = () => {
               <Route path="profile" element={<CustomerProfile />} />
             </Route>
 
-            {/* Admin Dashboard Routes */}
+            {/* Dedicated Administrative Gateway (Independent from Customer Flow) */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+
+            {/* Admin Command Portal Routes */}
             <Route
               path="/admin"
               element={
@@ -202,7 +206,8 @@ export const App = () => {
                 </AdminRoute>
               }
             >
-              <Route index element={<AdminDashboard />} />
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="customers" element={<AdminCustomers />} />

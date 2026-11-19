@@ -20,7 +20,7 @@ export const LoginPage = () => {
       const res = await login(email, password);
       const role = (res?.data?.role || '').toLowerCase();
       if (role === 'admin' || role === 'super_admin') {
-        navigate('/admin');
+        navigate('/admin/dashboard');
       } else {
         const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
         navigate(redirect.startsWith('/admin') ? '/' : redirect);

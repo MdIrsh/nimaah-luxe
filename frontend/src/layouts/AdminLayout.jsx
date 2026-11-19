@@ -39,7 +39,7 @@ export const AdminLayout = () => {
   // Strict RBAC Guard: Ensure user is authenticated and holds administrative authority
   useEffect(() => {
     if (!user) {
-      navigate('/login?redirect=/admin', { replace: true });
+      navigate('/admin/login', { replace: true });
     } else {
       const role = (user.role || '').toLowerCase();
       if (role !== 'admin' && role !== 'super_admin') {
@@ -133,21 +133,21 @@ export const AdminLayout = () => {
   };
 
   const navMenuItems = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, end: true },
+    { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard, end: true },
     { name: 'Products', path: '/admin/products', icon: ShoppingBag, hasChevron: true },
     { name: 'Orders', path: '/admin/orders', icon: Package, hasChevron: true },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Inventory', path: '/admin/products', icon: Archive },
-    { name: 'Coupons', path: '/admin', icon: Tag },
+    { name: 'Coupons', path: '/admin/dashboard', icon: Tag },
     { name: 'Reviews', path: '/admin/reviews', icon: Star },
-    { name: 'Analytics', path: '/admin', icon: BarChart3 },
-    { name: 'Settings', path: '/admin', icon: Settings, hasChevron: true },
+    { name: 'Analytics', path: '/admin/dashboard', icon: BarChart3 },
+    { name: 'Settings', path: '/admin/dashboard', icon: Settings, hasChevron: true },
     { name: 'Profile', path: '/account/profile', icon: User },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   const role = (user?.role || '').toLowerCase();
@@ -200,8 +200,8 @@ export const AdminLayout = () => {
             {navMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive = item.end
-                ? location.pathname === item.path
-                : location.pathname.startsWith(item.path) && item.path !== '/admin';
+                ? (location.pathname === item.path || (item.path === '/admin/dashboard' && location.pathname === '/admin'))
+                : location.pathname.startsWith(item.path) && item.path !== '/admin' && item.path !== '/admin/dashboard';
 
               return (
                 <NavLink

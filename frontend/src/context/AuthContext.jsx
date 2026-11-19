@@ -64,6 +64,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const adminLogin = async (email, password) => {
+    setLoading(true);
+    try {
+      const response = await authService.adminLogin({ email, password });
+      if (response?.data) {
+        setUser(response.data);
+      }
+      return response;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        'Access denied. Only authorized administrators can access this portal.';
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const register = async (name, email, password) => {
     setLoading(true);
     try {
@@ -104,6 +122,7 @@ export const AuthProvider = ({ children }) => {
         isSuperAdmin,
         loading,
         login,
+        adminLogin,
         register,
         logout,
         refreshSession: verifySession,

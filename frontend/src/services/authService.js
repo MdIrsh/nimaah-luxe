@@ -23,6 +23,15 @@ export const authService = {
     return response.data;
   },
 
+  async adminLogin(credentials) {
+    const response = await api.post('/auth/admin/login', credentials);
+    if (response.data?.data?.token) {
+      localStorage.setItem('stylehub_token', response.data.data.token);
+      localStorage.setItem('stylehub_user', JSON.stringify(response.data.data));
+    }
+    return response.data;
+  },
+
   async getProfile() {
     const response = await api.get('/auth/profile');
     return response.data;
