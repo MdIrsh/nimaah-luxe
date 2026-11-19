@@ -18,6 +18,7 @@ import {
   MessageCircle,
   Clock,
   CheckCircle2,
+  ShieldCheck,
 } from 'lucide-react';
 import InstagramIcon from './InstagramIcon';
 import { useAuth } from '../context/AuthContext';
@@ -32,7 +33,7 @@ export const Navbar = () => {
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
 
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { itemsCount, wishlist } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -194,9 +195,26 @@ export const Navbar = () => {
                         <p className="text-sm font-semibold text-[#29251F] truncate">{user.name}</p>
                         <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
                         <span className="inline-block mt-1 text-[9.5px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-xs bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6]">
-                          Ni'maah Privé Patron
+                          {isAdmin ? 'Store Administrator' : "Ni'maah Privé Patron"}
                         </span>
                       </div>
+
+                      {/* Admin Quick Switch (Strictly visible ONLY to verified Admins) */}
+                      {isAdmin && (
+                        <div className="p-2 mx-3 my-1.5 bg-[#14110C] border border-[#C5A059]/40 rounded-xs shadow-xs">
+                          <Link
+                            to="/admin/dashboard"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center justify-between text-xs text-[#C5A059] font-bold hover:text-white transition px-2 py-1"
+                          >
+                            <span className="flex items-center space-x-2">
+                              <ShieldCheck size={14} className="text-[#C5A059]" />
+                              <span>Admin Dashboard</span>
+                            </span>
+                            <span>&rarr;</span>
+                          </Link>
+                        </div>
+                      )}
 
                       {/* 1. My Profile */}
                       <Link
@@ -359,9 +377,32 @@ export const Navbar = () => {
           {/* Customer Profile Card on Mobile */}
           {user ? (
             <div className="p-3.5 bg-[#FAF9F6] border border-[#E9E1D6] rounded-xs mb-3 space-y-1">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest">Signed In As</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest">Signed In As</p>
+                {isAdmin && (
+                  <span className="text-[9px] uppercase font-bold px-2 py-0.5 bg-[#14110C] text-[#C5A059] rounded-xs">
+                    Admin
+                  </span>
+                )}
+              </div>
               <p className="text-sm font-bold text-[#29251F] truncate">{user.name}</p>
               <p className="text-xs text-gray-500 truncate">{user.email}</p>
+
+              {isAdmin && (
+                <div className="pt-2">
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="w-full flex items-center justify-between p-2.5 bg-[#14110C] text-[#C5A059] rounded-xs text-xs font-bold uppercase tracking-wider shadow-sm"
+                  >
+                    <span className="flex items-center space-x-2">
+                      <ShieldCheck size={15} />
+                      <span>Open Admin Dashboard</span>
+                    </span>
+                    <span>&rarr;</span>
+                  </Link>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 mb-3">

@@ -202,6 +202,9 @@ export const Footer = () => {
             <span className="hover:text-white cursor-pointer transition">Privacy Code</span>
             <span className="hover:text-white cursor-pointer transition">Terms of Atelier</span>
             <span className="hover:text-white cursor-pointer transition">Authenticity Seal</span>
+            <Link to="/admin/login" className="text-gray-500 hover:text-[#C5A059] transition">
+              Staff Access
+            </Link>
           </div>
         </div>
       </div>
