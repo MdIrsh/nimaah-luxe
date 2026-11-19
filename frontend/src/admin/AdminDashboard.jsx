@@ -18,133 +18,69 @@ import api from '../services/api';
 
 export const AdminDashboard = () => {
   const [stats, setStats] = useState({
-    totalProducts: 245,
-    totalOrders: 1850,
-    totalCustomers: 12560,
-    totalRevenue: 845230,
+    totalProducts: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+    totalRevenue: 0,
     orderStatusMap: {
-      Delivered: 45,
-      Processing: 30,
-      Shipped: 15,
-      Cancelled: 10,
+      Delivered: 0,
+      Processing: 0,
+      Shipped: 0,
+      Cancelled: 0,
     },
     recentOrders: [],
   });
 
+  const [topProducts, setTopProducts] = useState([]);
   const [activeTimeFilter, setActiveTimeFilter] = useState('1M');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLiveStats = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const res = await api.get('/admin/stats');
-        if (res.data?.success && res.data.data) {
-          const live = res.data.data;
-          setStats((prev) => ({
-            ...prev,
-            totalProducts: live.totalProducts || 245,
-            totalOrders: live.totalOrders || 1850,
-            totalCustomers: live.totalCustomers || 12560,
-            totalRevenue: live.totalRevenue || 845230,
-            recentOrders: live.recentOrders?.length ? live.recentOrders : prev.recentOrders,
-          }));
+        const [statsRes, prodRes] = await Promise.allSettled([
+          api.get('/admin/stats'),
+          api.get('/products?sort=popular'),
+        ]);
+
+        if (statsRes.status === 'fulfilled' && statsRes.value.data?.success) {
+          const live = statsRes.value.data.data;
+          setStats({
+            totalProducts: live.totalProducts ?? 0,
+            totalOrders: live.totalOrders ?? 0,
+            totalCustomers: live.totalCustomers ?? 0,
+            totalRevenue: live.totalRevenue ?? 0,
+            orderStatusMap: live.orderStatusMap || {},
+            recentOrders: Array.isArray(live.recentOrders) ? live.recentOrders : [],
+          });
+        }
+
+        if (prodRes.status === 'fulfilled' && prodRes.value.data?.success) {
+          const prods = prodRes.value.data.data?.products || [];
+          setTopProducts(prods.slice(0, 3));
         }
       } catch (err) {
-        console.warn('Using luxury benchmark dashboard metrics:', err);
+        console.error('Failed to load dashboard live data:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchLiveStats();
+    fetchDashboardData();
   }, []);
 
-  // Preset Orders matching the exact screenshot design
-  const defaultOrders = [
-    {
-      id: '#SH10025',
-      customer: 'Priya Sharma',
-      amount: '₹2,499',
-      status: 'Delivered',
-      statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      payment: 'Paid',
-      paymentColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      date: 'Apr 30, 2026',
-    },
-    {
-      id: '#SH10024',
-      customer: 'Anjali Verma',
-      amount: '₹3,199',
-      status: 'Shipped',
-      statusColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      payment: 'Paid',
-      paymentColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      date: 'Apr 29, 2026',
-    },
-    {
-      id: '#SH10023',
-      customer: 'Neha Gupta',
-      amount: '₹1,799',
-      status: 'Processing',
-      statusColor: 'bg-amber-50 text-amber-700 border-amber-200',
-      payment: 'Paid',
-      paymentColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      date: 'Apr 28, 2026',
-    },
-    {
-      id: '#SH10022',
-      customer: 'Sneha Patel',
-      amount: '₹2,999',
-      status: 'Delivered',
-      statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      payment: 'Paid',
-      paymentColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      date: 'Apr 27, 2026',
-    },
-    {
-      id: '#SH10021',
-      customer: 'Riya Singh',
-      amount: '₹1,499',
-      status: 'Cancelled',
-      statusColor: 'bg-rose-50 text-rose-700 border-rose-200',
-      payment: 'Paid',
-      paymentColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      date: 'Apr 26, 2026',
-    },
-  ];
+  const totalOrdersCount = stats.totalOrders || 0;
+  const delivCount = stats.orderStatusMap?.['Delivered'] || 0;
+  const procCount =
+    (stats.orderStatusMap?.['Processing & Tailoring'] || 0) +
+    (stats.orderStatusMap?.['Order Placed'] || 0) +
+    (stats.orderStatusMap?.['Admin Received'] || 0);
+  const shipCount = stats.orderStatusMap?.['Shipped'] || 0;
+  const cancCount = stats.orderStatusMap?.['Cancelled'] || 0;
 
-  // Top Selling Products matching screenshot
-  const topProducts = [
-    {
-      id: 1,
-      rank: '#1',
-      rankBg: 'bg-[#C5A059] text-white',
-      title: 'Floral Maxi Dress',
-      price: '₹2,499',
-      sold: '245 sold',
-      image:
-        'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=400&q=80',
-    },
-    {
-      id: 2,
-      rank: '#2',
-      rankBg: 'bg-gray-400 text-white',
-      title: 'Elegant Party Dress',
-      price: '₹3,199',
-      sold: '198 sold',
-      image:
-        'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=400&q=80',
-    },
-    {
-      id: 3,
-      rank: '#3',
-      rankBg: 'bg-[#D4A373] text-white',
-      title: 'Casual Summer Dress',
-      price: '₹1,799',
-      sold: '176 sold',
-      image:
-        'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80',
-    },
-  ];
+  const delivPct = totalOrdersCount > 0 ? Math.round((delivCount / totalOrdersCount) * 100) : 0;
+  const procPct = totalOrdersCount > 0 ? Math.round((procCount / totalOrdersCount) * 100) : 0;
+  const shipPct = totalOrdersCount > 0 ? Math.round((shipCount / totalOrdersCount) * 100) : 0;
+  const cancPct = totalOrdersCount > 0 ? Math.max(0, 100 - delivPct - procPct - shipPct) : 0;
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
@@ -517,56 +453,69 @@ export const AdminDashboard = () => {
               {/* Donut Chart with Center Text */}
               <div className="relative w-32 h-32 flex-shrink-0">
                 <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                  {/* Delivered: 45% (Green) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="15"
-                    fill="none"
-                    stroke="#10B981"
-                    strokeWidth="4"
-                    strokeDasharray="45 100"
-                    strokeDashoffset="0"
-                  />
-                  {/* Processing: 30% (Amber) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="15"
-                    fill="none"
-                    stroke="#F59E0B"
-                    strokeWidth="4"
-                    strokeDasharray="30 100"
-                    strokeDashoffset="-45"
-                  />
-                  {/* Shipped: 15% (Indigo) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="15"
-                    fill="none"
-                    stroke="#6366F1"
-                    strokeWidth="4"
-                    strokeDasharray="15 100"
-                    strokeDashoffset="-75"
-                  />
-                  {/* Cancelled: 10% (Red) */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="15"
-                    fill="none"
-                    stroke="#EF4444"
-                    strokeWidth="4"
-                    strokeDasharray="10 100"
-                    strokeDashoffset="-90"
-                  />
+                  {totalOrdersCount === 0 ? (
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="15"
+                      fill="none"
+                      stroke="#EAE1D1"
+                      strokeWidth="4"
+                    />
+                  ) : (
+                    <>
+                      {/* Delivered: Green */}
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15"
+                        fill="none"
+                        stroke="#10B981"
+                        strokeWidth="4"
+                        strokeDasharray={`${delivPct} 100`}
+                        strokeDashoffset="0"
+                      />
+                      {/* Processing: Amber */}
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15"
+                        fill="none"
+                        stroke="#F59E0B"
+                        strokeWidth="4"
+                        strokeDasharray={`${procPct} 100`}
+                        strokeDashoffset={`-${delivPct}`}
+                      />
+                      {/* Shipped: Indigo */}
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15"
+                        fill="none"
+                        stroke="#6366F1"
+                        strokeWidth="4"
+                        strokeDasharray={`${shipPct} 100`}
+                        strokeDashoffset={`-${delivPct + procPct}`}
+                      />
+                      {/* Cancelled: Red */}
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15"
+                        fill="none"
+                        stroke="#EF4444"
+                        strokeWidth="4"
+                        strokeDasharray={`${cancPct} 100`}
+                        strokeDashoffset={`-${delivPct + procPct + shipPct}`}
+                      />
+                    </>
+                  )}
                 </svg>
 
                 {/* Donut Center Count */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <span className="text-sm font-bold text-[#14110C] leading-none">
-                    1,850
+                    {totalOrdersCount.toLocaleString()}
                   </span>
                   <span className="text-[8.5px] text-gray-400 font-medium mt-0.5">
                     Total Orders
@@ -581,28 +530,36 @@ export const AdminDashboard = () => {
                     <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
                     <span>Delivered</span>
                   </span>
-                  <span className="font-semibold text-gray-800">45%</span>
+                  <span className="font-semibold text-gray-800">
+                    {delivPct}% ({delivCount})
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-gray-600">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
                     <span>Processing</span>
                   </span>
-                  <span className="font-semibold text-gray-800">30%</span>
+                  <span className="font-semibold text-gray-800">
+                    {procPct}% ({procCount})
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-gray-600">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#6366F1]" />
                     <span>Shipped</span>
                   </span>
-                  <span className="font-semibold text-gray-800">15%</span>
+                  <span className="font-semibold text-gray-800">
+                    {shipPct}% ({shipCount})
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-gray-600">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
                     <span>Cancelled</span>
                   </span>
-                  <span className="font-semibold text-gray-800">10%</span>
+                  <span className="font-semibold text-gray-800">
+                    {cancPct}% ({cancCount})
+                  </span>
                 </div>
               </div>
             </div>
@@ -619,10 +576,13 @@ export const AdminDashboard = () => {
                 Flat 30% OFF
               </h4>
               <p className="text-[10px] text-gray-600">on Premium Collection</p>
-              <button className="mt-1 px-3 py-1 bg-[#14110C] hover:bg-[#C5A059] text-white rounded-md text-[10px] font-semibold transition inline-flex items-center gap-1">
-                <span>Create Coupon</span>
+              <Link
+                to="/admin/products"
+                className="mt-1 px-3 py-1 bg-[#14110C] hover:bg-[#C5A059] text-white rounded-md text-[10px] font-semibold transition inline-flex items-center gap-1"
+              >
+                <span>Curate Collection</span>
                 <ArrowRight size={10} />
-              </button>
+              </Link>
             </div>
 
             <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden shadow-xs">
@@ -637,7 +597,7 @@ export const AdminDashboard = () => {
       </div>
 
       {/* =========================================================================
-          4. BOTTOM ROW: RECENT ORDERS TABLE & TOP SELLING PRODUCTS (Exact Match)
+          4. BOTTOM ROW: RECENT ORDERS TABLE & TOP SELLING PRODUCTS (100% Real Live Data)
           ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left: Recent Orders Table (8 cols) */}
@@ -646,6 +606,9 @@ export const AdminDashboard = () => {
             <div className="flex items-center space-x-2">
               <span className="text-base font-bold text-[#14110C]">
                 👜 Recent Orders
+              </span>
+              <span className="text-[10px] bg-[#FAF3E8] border border-[#E9DEC8] text-[#C5A059] px-2 py-0.5 rounded-full font-semibold">
+                Live MongoDB
               </span>
             </div>
             <Link
@@ -671,51 +634,89 @@ export const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F6EFE5]">
-                {defaultOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-[#FAF7F2] transition">
-                    <td className="py-3 px-3 font-semibold text-[#14110C]">
-                      {ord.id}
-                    </td>
-                    <td className="py-3 px-3 font-medium text-gray-700">
-                      {ord.customer}
-                    </td>
-                    <td className="py-3 px-3 font-semibold text-[#14110C]">
-                      {ord.amount}
-                    </td>
-                    <td className="py-3 px-3">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${ord.statusColor}`}
-                      >
-                        {ord.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${ord.paymentColor}`}
-                      >
-                        {ord.payment}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-gray-500 text-[11px]">
-                      {ord.date}
-                    </td>
-                    <td className="py-3 px-3 text-center">
-                      <Link
-                        to="/admin/orders"
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#F8F5F0] hover:bg-[#C5A059] hover:text-white text-gray-600 transition shadow-2xs"
-                        title="View order"
-                      >
-                        <Eye size={13} />
-                      </Link>
+                {stats.recentOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="py-12 text-center text-gray-400 text-xs">
+                      No real customer orders yet. Live orders will automatically appear here.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  stats.recentOrders.map((ord) => {
+                    const statusColor =
+                      ord.orderStatus === 'Delivered'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : ord.orderStatus === 'Shipped'
+                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                        : ord.orderStatus === 'Cancelled'
+                        ? 'bg-rose-50 text-rose-700 border-rose-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                    const paymentColor = ord.isPaid
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                    const formattedDate = ord.createdAt
+                      ? new Date(ord.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : 'Recent';
+
+                    const customerName =
+                      ord.user?.name ||
+                      ord.shippingAddress?.fullName ||
+                      'Valued Patron';
+
+                    const shortId = `#${(ord._id || '').slice(-6).toUpperCase()}`;
+
+                    return (
+                      <tr key={ord._id} className="hover:bg-[#FAF7F2] transition">
+                        <td className="py-3 px-3 font-semibold text-[#14110C] font-mono">
+                          {shortId}
+                        </td>
+                        <td className="py-3 px-3 font-medium text-gray-700">
+                          {customerName}
+                        </td>
+                        <td className="py-3 px-3 font-semibold text-[#14110C]">
+                          ₹{(ord.totalPrice || 0).toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusColor}`}
+                          >
+                            {ord.orderStatus || 'Processing'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${paymentColor}`}
+                          >
+                            {ord.isPaid ? 'Paid' : 'Pending'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-gray-500 text-[11px]">
+                          {formattedDate}
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <Link
+                            to="/admin/orders"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#F8F5F0] hover:bg-[#C5A059] hover:text-white text-gray-600 transition shadow-2xs"
+                            title="View order in pipeline"
+                          >
+                            <Eye size={13} />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Right: Top Selling Products (4 cols) */}
+        {/* Right: Top Selling Products (4 cols - Real Catalog) */}
         <div className="lg:col-span-4 bg-white border border-[#EAE1D1] rounded-2xl p-6 shadow-2xs space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold text-[#14110C]">
@@ -730,46 +731,67 @@ export const AdminDashboard = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {topProducts.map((p) => (
-              <div
-                key={p.id}
-                className="bg-[#FAF7F2] border border-[#E8DEC8] rounded-xl p-2.5 flex flex-col justify-between relative group hover:shadow-sm transition"
-              >
-                {/* Wishlist Heart Top Right */}
-                <button className="absolute top-3.5 right-3.5 p-1 rounded-full bg-white/80 text-gray-400 hover:text-red-500 transition shadow-2xs">
-                  <Heart size={11} />
-                </button>
+          {topProducts.length === 0 ? (
+            <div className="py-12 text-center text-xs text-gray-400">
+              No products found in atelier catalog.
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {topProducts.map((p, index) => {
+                const rankBadges = [
+                  'bg-[#C5A059] text-white',
+                  'bg-gray-400 text-white',
+                  'bg-[#D4A373] text-white',
+                ];
+                const rankText = `#${index + 1}`;
+                const rankClass = rankBadges[index] || 'bg-[#29251F] text-white';
+                const imageSrc =
+                  p.images?.[0] ||
+                  'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=400&q=80';
 
-                {/* Product Image + Rank Badge */}
-                <div className="relative w-full h-32 rounded-lg overflow-hidden bg-white mb-2 shadow-2xs">
-                  <img
-                    src={p.image}
-                    alt={p.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                  />
-                  <span
-                    className={`absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold shadow-xs ${p.rankBg}`}
+                return (
+                  <div
+                    key={p._id || index}
+                    className="bg-[#FAF7F2] border border-[#E8DEC8] rounded-xl p-2.5 flex flex-col justify-between relative group hover:shadow-sm transition"
                   >
-                    {p.rank}
-                  </span>
-                </div>
+                    {/* Wishlist Heart Top Right */}
+                    <button className="absolute top-3.5 right-3.5 p-1 rounded-full bg-white/80 text-gray-400 hover:text-red-500 transition shadow-2xs">
+                      <Heart size={11} />
+                    </button>
 
-                {/* Details */}
-                <div className="space-y-0.5">
-                  <h5 className="text-[11px] font-semibold text-[#14110C] line-clamp-1 leading-tight">
-                    {p.title}
-                  </h5>
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="font-bold text-[#14110C]">{p.price}</span>
+                    {/* Product Image + Rank Badge */}
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden bg-white mb-2 shadow-2xs">
+                      <img
+                        src={imageSrc}
+                        alt={p.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                      <span
+                        className={`absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md text-[9px] font-bold shadow-xs ${rankClass}`}
+                      >
+                        {rankText}
+                      </span>
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-0.5">
+                      <h5 className="text-[11px] font-semibold text-[#14110C] line-clamp-1 leading-tight">
+                        {p.title}
+                      </h5>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold text-[#14110C]">
+                          ₹{((p.discountedPrice !== undefined ? p.discountedPrice : p.price) || 0).toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <span className="text-[9.5px] text-gray-500 block">
+                        {p.stockCount ?? 0} in stock
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-[9.5px] text-gray-500 block">
-                    {p.sold}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -40,54 +40,9 @@ export const AdminLayout = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationRef = useRef(null);
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 'notif_1',
-      type: 'order',
-      title: 'New Order #SH10025',
-      desc: 'Priya Sharma placed an order for ₹2,499 via Razorpay',
-      time: 'Just now',
-      unread: true,
-      link: '/admin/orders',
-      icon: ShoppingBag,
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-    },
-    {
-      id: 'notif_2',
-      type: 'stock',
-      title: 'Low Stock Alert',
-      desc: 'Aura Velvet Midnight Gown has only 3 pieces left in stock',
-      time: '15m ago',
-      unread: true,
-      link: '/admin/products',
-      icon: AlertTriangle,
-      color: 'text-amber-600 bg-amber-50 border-amber-200',
-    },
-    {
-      id: 'notif_3',
-      type: 'payment',
-      title: 'Razorpay Payment Captured',
-      desc: '₹3,199 payment verified for Order #SH10024',
-      time: '1h ago',
-      unread: true,
-      link: '/admin/orders',
-      icon: CreditCard,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-    },
-    {
-      id: 'notif_4',
-      type: 'customer',
-      title: 'New Patron Joined',
-      desc: 'Anjali Verma created an account in Ni\'maah Luxe sanctuary',
-      time: '2h ago',
-      unread: false,
-      link: '/admin/customers',
-      icon: Users,
-      color: 'text-purple-600 bg-purple-50 border-purple-200',
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
-  // Fetch real live orders and low stock items from backend
+  // Fetch real live orders and low stock items from backend (Zero dummy data)
   useEffect(() => {
     const fetchLiveAlerts = async () => {
       try {
@@ -97,12 +52,12 @@ export const AdminLayout = () => {
           const liveList = [];
 
           if (recentOrders && recentOrders.length > 0) {
-            recentOrders.slice(0, 2).forEach((ord) => {
+            recentOrders.slice(0, 4).forEach((ord) => {
               liveList.push({
                 id: `live_ord_${ord._id}`,
                 type: 'order',
                 title: `Order #${ord._id.slice(-6).toUpperCase()}`,
-                desc: `${ord.user?.name || 'Patron'} placed an order for ₹${(ord.totalPrice || 0).toLocaleString('en-IN')} via ${ord.paymentMethod || 'Razorpay'}`,
+                desc: `${ord.user?.name || ord.shippingAddress?.fullName || 'Patron'} placed an order for ₹${(ord.totalPrice || 0).toLocaleString('en-IN')} via ${ord.paymentMethod || 'Razorpay'}`,
                 time: new Date(ord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 unread: true,
                 link: '/admin/orders',
@@ -113,7 +68,7 @@ export const AdminLayout = () => {
           }
 
           if (lowStockProducts && lowStockProducts.length > 0) {
-            lowStockProducts.slice(0, 2).forEach((p) => {
+            lowStockProducts.slice(0, 3).forEach((p) => {
               liveList.push({
                 id: `live_stk_${p._id}`,
                 type: 'stock',
@@ -128,16 +83,10 @@ export const AdminLayout = () => {
             });
           }
 
-          if (liveList.length > 0) {
-            setNotifications((prev) => {
-              const combined = [...liveList, ...prev];
-              const unique = Array.from(new Map(combined.map((m) => [m.id, m])).values());
-              return unique.slice(0, 6);
-            });
-          }
+          setNotifications(liveList);
         }
       } catch (e) {
-        // Fallback to initial notifications
+        // Silent on poll error
       }
     };
 
