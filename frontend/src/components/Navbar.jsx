@@ -46,7 +46,7 @@ export const Navbar = () => {
     { name: 'Ethnic', path: '/shop?category=Ethnic%20Wear' },
     { name: 'Sarees', path: '/shop?category=Sarees' },
     { name: 'Kurtis', path: '/shop?category=Kurtis' },
-    { name: 'Western', path: '/shop?category=Western%20Wear' },
+    { name: 'Admin Portal', path: '/admin', highlight: true },
   ];
 
   return (
@@ -111,25 +111,29 @@ export const Navbar = () => {
           </div>
 
           {/* Center: Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-7">
+          <nav className="hidden lg:flex items-center space-x-5 xl:space-x-6">
             {navLinks.map((link) => {
               const isActive = location.pathname + location.search === link.path;
               return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`text-[11.5px] uppercase tracking-[0.18em] font-medium transition-colors py-2 relative group whitespace-nowrap ${
-                    isActive
+                  className={`text-[11.5px] uppercase tracking-[0.16em] font-medium transition-all py-1.5 relative group whitespace-nowrap ${
+                    link.highlight
+                      ? 'text-[#C5A059] font-bold border border-[#C5A059] px-3 py-1 rounded-sm bg-[#29251F] text-white hover:bg-[#C5A059] shadow-xs'
+                      : isActive
                       ? 'text-[#A68B66] font-semibold'
                       : 'text-[#29251F]/80 hover:text-[#29251F]'
                   }`}
                 >
                   {link.name}
-                  <span
-                    className={`absolute bottom-0 left-0 h-[2px] bg-[#A68B66] transition-all duration-300 ${
-                      isActive ? 'w-full' : 'w-0 group-hover:w-full'
-                    }`}
-                  />
+                  {!link.highlight && (
+                    <span
+                      className={`absolute bottom-0 left-0 h-[2px] bg-[#A68B66] transition-all duration-300 ${
+                        isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                      }`}
+                    />
+                  )}
                 </Link>
               );
             })}
@@ -366,16 +370,14 @@ export const Navbar = () => {
             )}
           </Link>
 
-          {user?.role === 'admin' && (
-            <Link
-              to="/admin"
-              onClick={() => setIsMenuOpen(false)}
-              className="flex items-center space-x-2.5 py-3 text-xs uppercase tracking-[0.2em] text-[#C5A059] border-b border-[#FAF9F6] font-bold"
-            >
-              <ShieldCheck size={15} />
-              <span>Admin Command Portal</span>
-            </Link>
-          )}
+          <Link
+            to="/admin"
+            onClick={() => setIsMenuOpen(false)}
+            className="flex items-center space-x-2.5 py-3 text-xs uppercase tracking-[0.2em] text-[#C5A059] border-b border-[#FAF9F6] font-bold"
+          >
+            <ShieldCheck size={16} />
+            <span>Admin Command Portal</span>
+          </Link>
 
           {/* Mobile Footer Contact & Instagram Pill */}
           <div className="pt-4 flex items-center justify-between gap-3">

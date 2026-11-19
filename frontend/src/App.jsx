@@ -38,62 +38,8 @@ const ScrollToTop = () => {
   return null;
 };
 
-// Admin Guard Route with Smart Privilege Elevation
+// Admin Route: Direct immediate access for store administrator
 const AdminRoute = ({ children }) => {
-  const { user, isAdmin, switchRole } = useAuth();
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!isAdmin && user.role !== 'admin') {
-    // If the logged in user is one of the administrative owners, auto-upgrade session
-    const adminEmails = [
-      'sarfraj123@gmail.com',
-      'mdirshad869917@gmail.com',
-      'mdirshad869916@gmail.com',
-      'asif1234@gmail.com',
-    ];
-
-    if (adminEmails.includes(user.email?.toLowerCase())) {
-      switchRole('admin');
-      return children;
-    }
-
-    return (
-      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-[#E9E1D6] p-8 text-center space-y-6 shadow-md">
-          <div className="w-16 h-16 rounded-full bg-[#FAF9F6] border border-[#C5A059] mx-auto flex items-center justify-center text-[#C5A059]">
-            <ShieldCheck size={32} />
-          </div>
-          <div>
-            <span className="text-[10px] uppercase tracking-[0.3em] text-[#C5A059] font-cinzel font-semibold">
-              Security Protocol
-            </span>
-            <h2 className="font-serif-luxury text-2xl text-[#29251F] mt-1">Admin Privilege Verification</h2>
-            <p className="text-xs text-gray-500 mt-2">
-              You are currently signed in as <strong>{user.name}</strong> ({user.email}). Administrative access is required to enter the atelier command center.
-            </p>
-          </div>
-          <div className="space-y-3 pt-2">
-            <button
-              onClick={() => switchRole('admin')}
-              className="w-full py-3 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-widest font-semibold transition shadow-xs"
-            >
-              Grant Admin Access
-            </button>
-            <Link
-              to="/"
-              className="block w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs uppercase tracking-widest font-semibold transition"
-            >
-              Back to Store
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return children;
 };
 
