@@ -322,11 +322,9 @@ export const HomePage = () => {
 
           <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
             {products.slice(0, 6).map((prod) => (
-              <a
+              <Link
                 key={prod._id}
-                href="https://www.instagram.com/nimaahluxe"
-                target="_blank"
-                rel="noopener noreferrer"
+                to={`/product/${prod._id}`}
                 className="group relative aspect-square overflow-hidden rounded-lg sm:rounded-none bg-[#FAF9F6] border border-[#E9E1D6]"
               >
                 <img
@@ -336,11 +334,14 @@ export const HomePage = () => {
                   onError={handleImageError}
                   className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-500 ease-out"
                 />
-                <div className="absolute inset-0 bg-[#29251F]/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-2 text-center space-y-1">
-                  <InstagramIcon size={16} className="text-[#E8D3A2]" />
-                  <p className="text-[9px] line-clamp-2 text-gray-200">{prod.category}</p>
+                <div className="absolute inset-0 bg-[#29251F]/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-2 text-center space-y-1">
+                  <ShoppingBag size={18} className="text-[#E8D3A2]" />
+                  <p className="text-[10px] font-medium text-white truncate max-w-full px-1">{prod.title}</p>
+                  <p className="text-[9.5px] font-bold text-[#E8D3A2]">
+                    ₹{(prod.discountedPrice || prod.price).toLocaleString('en-IN')}
+                  </p>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
