@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Product } from '../models/Product.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
@@ -92,10 +93,32 @@ export const createProduct = async (req, res) => {
 // @access  Private/Admin
 export const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    let product = null;
+
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+    }
+
+    // Fallback: If not found or ID was a demo ID (e.g. 'prod_4'), match by title
+    if (!product && req.body.title) {
+      product = await Product.findOneAndUpdate(
+        { title: new RegExp(`^${req.body.title.trim()}$`, 'i') },
+        req.body,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+      // If still not found, upsert a new product creation
+      if (!product) {
+        product = new Product(req.body);
+        await product.save();
+      }
+    }
 
     if (!product) {
       return errorResponse(res, 'Product not found', 404);
@@ -112,7 +135,15 @@ export const updateProduct = async (req, res) => {
 // @access  Private/Admin
 export const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    let product = null;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      product = await Product.findByIdAndDelete(req.params.id);
+    } else {
+      product = await Product.findOneAndDelete({
+        $or: [{ slug: req.params.id }, { title: req.params.id }],
+      });
+    }
+
     if (!product) {
       return errorResponse(res, 'Product not found', 404);
     }

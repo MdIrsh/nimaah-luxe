@@ -8,6 +8,8 @@ export const AdminProducts = () => {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const [form, setForm] = useState({
     title: '',
@@ -52,9 +54,10 @@ export const AdminProducts = () => {
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setSaveError('');
     setForm({
       title: '',
-      brand: 'StyleHub Atelier',
+      brand: "Ni'maah Luxe",
       category: 'Dresses',
       price: 15000,
       discountedPrice: 12999,
@@ -69,16 +72,17 @@ export const AdminProducts = () => {
 
   const handleOpenEdit = (p) => {
     setEditingId(p._id);
+    setSaveError('');
     setForm({
-      title: p.title,
-      brand: p.brand || 'StyleHub Atelier',
-      category: p.category,
-      price: p.price,
-      discountedPrice: p.discountedPrice || p.price,
-      images: p.images || [],
+      title: p.title || '',
+      brand: p.brand || "Ni'maah Luxe",
+      category: p.category || 'Dresses',
+      price: p.price || 0,
+      discountedPrice: p.discountedPrice ?? p.price ?? 0,
+      images: p.images && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80'],
       sizes: p.sizes || ['S', 'M', 'L'],
       fabric: p.fabric || 'Pure Mulberry Silk',
-      stockCount: p.stockCount || 10,
+      stockCount: p.stockCount ?? 10,
       description: p.description || '',
     });
     setIsModalOpen(true);
@@ -93,23 +97,51 @@ export const AdminProducts = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    setIsSubmitting(true);
+    setSaveError('');
+
     try {
+      if (!form.title?.trim()) throw new Error('Please enter a product title');
+      if (!form.price || Number(form.price) <= 0) throw new Error('Please enter a valid price');
+      if (!form.description?.trim()) throw new Error('Please enter an editorial description');
+
+      const payload = {
+        ...form,
+        title: form.title.trim(),
+        price: Number(form.price),
+        discountedPrice: Number(form.discountedPrice !== undefined ? form.discountedPrice : form.price),
+        stockCount: Number(form.stockCount || 0),
+        images:
+          form.images && form.images.length > 0 && form.images[0]?.trim()
+            ? form.images
+            : ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80'],
+      };
+
       if (editingId) {
-        const updated = await productService.updateProduct(editingId, form);
-        setProducts(products.map((p) => (p._id === editingId ? (updated || { ...p, ...form }) : p)));
+        const updated = await productService.updateProduct(editingId, payload);
+        const resolved = updated?.data || updated || { ...payload, _id: editingId };
+        setProducts((prev) =>
+          prev.map((p) => (p._id === editingId ? { ...p, ...resolved } : p))
+        );
       } else {
-        const created = await productService.createProduct(form);
-        if (created) {
-          setProducts([created, ...products]);
-        } else {
-          await fetchProducts();
+        const created = await productService.createProduct(payload);
+        const resolved = created?.data || created;
+        if (resolved && resolved._id) {
+          setProducts((prev) => [resolved, ...prev]);
         }
       }
+
       setIsModalOpen(false);
+      // Fetch latest database items silently in background
+      fetchProducts();
     } catch (err) {
       console.error('Failed to save product:', err);
-      alert(err.response?.data?.message || 'Failed to save product to database');
+      const msg = err.response?.data?.message || err.message || 'Failed to save product to database';
+      setSaveError(msg);
+      alert(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -207,11 +239,11 @@ export const AdminProducts = () => {
 
                   <td className="py-3 px-4">
                     <span className="font-serif-luxury font-semibold text-[#29251F]">
-                      ₹{(p.discountedPrice || p.price).toLocaleString('en-IN')}
+                      ₹{((p.discountedPrice !== undefined ? p.discountedPrice : p.price) || 0).toLocaleString('en-IN')}
                     </span>
-                    {p.discountedPrice && p.discountedPrice < p.price && (
+                    {p.discountedPrice && p.price && p.discountedPrice < p.price && (
                       <span className="block text-[10px] text-gray-400 line-through">
-                        ₹{p.price.toLocaleString('en-IN')}
+                        ₹{(p.price || 0).toLocaleString('en-IN')}
                       </span>
                     )}
                   </td>
@@ -358,11 +390,12 @@ export const AdminProducts = () => {
                 <div>
                   <label className="block uppercase tracking-wider text-gray-500 mb-1">Primary Image URL</label>
                   <input
-                    type="url"
+                    type="text"
                     required
                     value={form.images[0] || ''}
                     onChange={(e) => setForm({ ...form, images: [e.target.value] })}
                     className="w-full p-2 bg-[#FAF9F6] border border-[#E9E1D6]"
+                    placeholder="https://..."
                   />
                 </div>
 
@@ -402,6 +435,12 @@ export const AdminProducts = () => {
                 </div>
               </div>
 
+              {saveError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded">
+                  {saveError}
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3 pt-4 border-t border-[#E9E1D6]">
                 <button
                   type="button"
@@ -412,9 +451,12 @@ export const AdminProducts = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#29251F] text-white hover:bg-[#A68B66] uppercase tracking-widest text-xs font-semibold transition"
+                  disabled={isSubmitting}
+                  className={`px-6 py-2 bg-[#29251F] text-white hover:bg-[#A68B66] uppercase tracking-widest text-xs font-semibold transition flex items-center space-x-2 ${
+                    isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
                 >
-                  Save Piece
+                  <span>{isSubmitting ? 'Saving Piece...' : 'Save Piece'}</span>
                 </button>
               </div>
             </form>
