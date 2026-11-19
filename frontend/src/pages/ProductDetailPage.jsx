@@ -134,10 +134,10 @@ export const ProductDetailPage = () => {
           setProduct((prev) =>
             prev
               ? {
-                  ...prev,
-                  ratings: data.summary.averageRating,
-                  numReviews: data.summary.totalReviews,
-                }
+                ...prev,
+                ratings: data.summary.averageRating,
+                numReviews: data.summary.totalReviews,
+              }
               : prev
           );
         }
@@ -162,7 +162,7 @@ export const ProductDetailPage = () => {
               isVerifiedBuyer: Boolean(res.isVerifiedBuyer),
             });
           }
-        } catch {}
+        } catch { }
       }
     };
     checkUserEligibility();
@@ -189,10 +189,10 @@ export const ProductDetailPage = () => {
             setProduct((prev) =>
               prev
                 ? {
-                    ...prev,
-                    ratings: data.productRating.averageRating,
-                    numReviews: data.productRating.totalReviews,
-                  }
+                  ...prev,
+                  ratings: data.productRating.averageRating,
+                  numReviews: data.productRating.totalReviews,
+                }
                 : prev
             );
           }
@@ -209,10 +209,10 @@ export const ProductDetailPage = () => {
             setProduct((prev) =>
               prev
                 ? {
-                    ...prev,
-                    ratings: data.productRating.averageRating,
-                    numReviews: data.productRating.totalReviews,
-                  }
+                  ...prev,
+                  ratings: data.productRating.averageRating,
+                  numReviews: data.productRating.totalReviews,
+                }
                 : prev
             );
           }
@@ -227,10 +227,10 @@ export const ProductDetailPage = () => {
             setProduct((prev) =>
               prev
                 ? {
-                    ...prev,
-                    ratings: data.productRating.averageRating,
-                    numReviews: data.productRating.totalReviews,
-                  }
+                  ...prev,
+                  ratings: data.productRating.averageRating,
+                  numReviews: data.productRating.totalReviews,
+                }
                 : prev
             );
           }
@@ -243,10 +243,10 @@ export const ProductDetailPage = () => {
           setProduct((prev) =>
             prev
               ? {
-                  ...prev,
-                  ratings: data.averageRating,
-                  numReviews: data.totalReviews,
-                }
+                ...prev,
+                ratings: data.averageRating,
+                numReviews: data.totalReviews,
+              }
               : prev
           );
         }
@@ -557,11 +557,10 @@ export const ProductDetailPage = () => {
                   key={sz}
                   type="button"
                   onClick={() => setSelectedSize(sz)}
-                  className={`min-w-14 py-2.5 px-3.5 text-xs uppercase tracking-widest font-semibold border transition ${
-                    selectedSize === sz
-                      ? 'bg-[#29251F] text-white border-[#29251F]'
-                      : 'bg-white border-[#E9E1D6] text-gray-700 hover:border-[#A68B66]'
-                  }`}
+                  className={`min-w-14 py-2.5 px-3.5 text-xs uppercase tracking-widest font-semibold border transition ${selectedSize === sz
+                    ? 'bg-[#29251F] text-white border-[#29251F]'
+                    : 'bg-white border-[#E9E1D6] text-gray-700 hover:border-[#A68B66]'
+                    }`}
                 >
                   {sz}
                 </button>
@@ -654,9 +653,8 @@ export const ProductDetailPage = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`text-[11px] sm:text-xs uppercase tracking-[0.18em] sm:tracking-[0.22em] font-semibold transition pb-3 relative font-cinzel flex-shrink-0 ${
-                activeTab === tab ? 'text-[#29251F]' : 'text-gray-400 hover:text-black'
-              }`}
+              className={`text-[11px] sm:text-xs uppercase tracking-[0.18em] sm:tracking-[0.22em] font-semibold transition pb-3 relative font-cinzel flex-shrink-0 ${activeTab === tab ? 'text-[#29251F]' : 'text-gray-400 hover:text-black'
+                }`}
             >
               {tab === 'description' && 'Creation Story'}
               {tab === 'fabric' && 'Fabric & Preservation'}
@@ -847,11 +845,10 @@ export const ProductDetailPage = () => {
                           setIsSizeGuideOpen(false);
                         }
                       }}
-                      className={`cursor-pointer transition ${
-                        selectedSize === row.size
-                          ? 'bg-[#E9E1D6]/60 font-semibold text-[#29251F]'
-                          : 'hover:bg-[#FAF9F6] text-gray-600'
-                      }`}
+                      className={`cursor-pointer transition ${selectedSize === row.size
+                        ? 'bg-[#E9E1D6]/60 font-semibold text-[#29251F]'
+                        : 'hover:bg-[#FAF9F6] text-gray-600'
+                        }`}
                     >
                       <td className="py-3 px-4 font-bold text-[#29251F]">{row.size}</td>
                       <td className="py-3 px-4">{row.bust}</td>

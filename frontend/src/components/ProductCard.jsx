@@ -141,11 +141,10 @@ export const ProductCard = ({ product }) => {
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistClick}
-          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full transition-all duration-300 z-10 shadow-sm ${
-            isFavorited
-              ? 'bg-[#29251F] text-[#C5A059]'
-              : 'bg-white/90 backdrop-blur-sm text-[#29251F] hover:bg-[#29251F] hover:text-[#FAF9F6]'
-          }`}
+          className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full transition-all duration-300 z-10 shadow-sm ${isFavorited
+            ? 'bg-[#29251F] text-[#C5A059]'
+            : 'bg-white/90 backdrop-blur-sm text-[#29251F] hover:bg-[#29251F] hover:text-[#FAF9F6]'
+            }`}
           title={isFavorited ? 'Remove from wishlist' : 'Save to wishlist'}
           aria-label="Wishlist toggle"
         >
@@ -200,11 +199,10 @@ export const ProductCard = ({ product }) => {
                 key={sz}
                 type="button"
                 onClick={(e) => handleSizeSelect(e, sz)}
-                className={`min-w-[22px] sm:min-w-[28px] px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8.5px] sm:text-[10px] uppercase font-semibold border rounded-xs transition cursor-pointer ${
-                  selectedSize === sz
-                    ? 'bg-[#29251F] text-[#FAF9F6] border-[#29251F]'
-                    : 'bg-[#FAF9F6] text-[#29251F]/80 border-[#E9E1D6] hover:border-[#C5A059]'
-                }`}
+                className={`min-w-[22px] sm:min-w-[28px] px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8.5px] sm:text-[10px] uppercase font-semibold border rounded-xs transition cursor-pointer ${selectedSize === sz
+                  ? 'bg-[#29251F] text-[#FAF9F6] border-[#29251F]'
+                  : 'bg-[#FAF9F6] text-[#29251F]/80 border-[#E9E1D6] hover:border-[#C5A059]'
+                  }`}
               >
                 {sz === 'Free Size' ? 'Free' : sz}
               </button>
