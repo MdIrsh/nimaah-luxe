@@ -36,6 +36,18 @@ export const AdminLayout = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Strict RBAC Guard: Ensure user is authenticated and holds administrative authority
+  useEffect(() => {
+    if (!user) {
+      navigate('/login?redirect=/admin', { replace: true });
+    } else {
+      const role = (user.role || '').toLowerCase();
+      if (role !== 'admin' && role !== 'super_admin') {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, navigate]);
+
   // Live Notifications State
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationRef = useRef(null);

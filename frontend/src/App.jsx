@@ -40,8 +40,51 @@ const ScrollToTop = () => {
   return null;
 };
 
-// Admin Route: Direct immediate access for store administrator
+// Strict Admin Route Guard: Only ADMIN or SUPER_ADMIN can enter. Customers & guests are blocked.
 const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#14110C] flex items-center justify-center text-[#E8DCC9]">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="font-cinzel text-xs tracking-widest text-[#C5A059]">Verifying Security Access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not signed in -> redirect to login with intent
+  if (!user) {
+    return <Navigate to="/login?redirect=/admin" replace />;
+  }
+
+  const role = (user.role || '').toLowerCase();
+  // If Customer tries to access Admin Panel -> strictly redirect to Customer Website
+  if (role !== 'admin' && role !== 'super_admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+// Customer Protected Route Guard: Requires authentication for account features
+const CustomerRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login?redirect=/account" replace />;
+  }
+
   return children;
 };
 
@@ -135,7 +178,14 @@ export const App = () => {
             />
 
             {/* Customer Account Portal */}
-            <Route path="/account" element={<CustomerLayout />}>
+            <Route
+              path="/account"
+              element={
+                <CustomerRoute>
+                  <CustomerLayout />
+                </CustomerRoute>
+              }
+            >
               <Route index element={<Navigate to="/account/orders" replace />} />
               <Route path="orders" element={<CustomerOrders />} />
               <Route path="orders/:orderId/track" element={<TrackOrderPage />} />

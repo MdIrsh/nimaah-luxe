@@ -2,23 +2,25 @@ import { User } from '../models/User.js';
 import { generateToken } from '../utils/generateToken.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-// @desc    Register a new user
+// @desc    Register a new customer account
 // @route   POST /api/auth/register
 // @access  Public
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return errorResponse(res, 'User already exists with this email', 400);
+      return errorResponse(res, 'An account already exists with this email address', 400);
     }
 
+    // Security Rule: Registrations are strictly assigned the 'customer' role.
+    // Administrative accounts can only be created via secure backend seeding / admin promotion.
     const user = await User.create({
       name,
       email,
       password,
-      role: role === 'admin' ? 'admin' : 'customer',
+      role: 'customer',
     });
 
     return successResponse(

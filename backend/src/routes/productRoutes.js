@@ -18,7 +18,7 @@ import { protect, adminOnly } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 router.route('/').get(getProducts).post(protect, adminOnly, createProduct);
-router.post('/seed', seedSampleProducts);
+router.post('/seed', protect, adminOnly, seedSampleProducts);
 
 router
   .route('/:id')

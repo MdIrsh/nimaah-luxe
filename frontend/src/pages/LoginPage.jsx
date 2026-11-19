@@ -18,10 +18,12 @@ export const LoginPage = () => {
     setLoading(true);
     try {
       const res = await login(email, password);
-      if (res?.data?.role === 'admin') {
+      const role = (res?.data?.role || '').toLowerCase();
+      if (role === 'admin' || role === 'super_admin') {
         navigate('/admin');
       } else {
-        navigate('/account/profile');
+        const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
+        navigate(redirect.startsWith('/admin') ? '/' : redirect);
       }
     } catch (err) {
       setError(err.message || 'Invalid email or password');

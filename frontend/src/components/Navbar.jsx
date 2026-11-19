@@ -47,7 +47,6 @@ export const Navbar = () => {
     { name: 'Ethnic', path: '/shop?category=Ethnic%20Wear' },
     { name: 'Sarees', path: '/shop?category=Sarees' },
     { name: 'Kurtis', path: '/shop?category=Kurtis' },
-    { name: 'Admin Portal', path: '/admin', highlight: true },
   ];
 
   return (
@@ -380,14 +379,16 @@ export const Navbar = () => {
             )}
           </Link>
 
-          <Link
-            to="/admin"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center space-x-2.5 py-3 text-xs uppercase tracking-[0.2em] text-[#C5A059] border-b border-[#FAF9F6] font-bold"
-          >
-            <ShieldCheck size={16} />
-            <span>Admin Command Portal</span>
-          </Link>
+          {user && (user.role === 'admin' || user.role === 'super_admin') && (
+            <Link
+              to="/admin"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center space-x-2.5 py-3 text-xs uppercase tracking-[0.2em] text-[#C5A059] border-b border-[#FAF9F6] font-bold"
+            >
+              <ShieldCheck size={16} />
+              <span>Admin Command Portal</span>
+            </Link>
+          )}
 
           {/* Mobile Footer Contact & Instagram Pill */}
           <div className="pt-4 flex items-center justify-between gap-3">

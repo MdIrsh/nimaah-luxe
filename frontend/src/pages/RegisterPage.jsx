@@ -7,7 +7,6 @@ export const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('customer');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,12 +18,8 @@ export const RegisterPage = () => {
     setError('');
     setLoading(true);
     try {
-      await register(name, email, password, role);
-      if (role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/account/profile');
-      }
+      await register(name, email, password, 'customer');
+      navigate('/account/profile');
     } catch (err) {
       setError(err.message || 'Registration failed. Please check your details.');
     } finally {
@@ -85,18 +80,6 @@ export const RegisterPage = () => {
               placeholder="At least 6 characters"
               className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#C5A059]"
             />
-          </div>
-
-          <div>
-            <label className="block uppercase tracking-wider text-gray-500 mb-1">Account Role</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full p-3 bg-[#FAF9F6] border border-[#E9E1D6]"
-            >
-              <option value="customer">Customer</option>
-              <option value="admin">Store Administrator</option>
-            </select>
           </div>
 
           <button
