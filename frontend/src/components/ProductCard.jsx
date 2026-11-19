@@ -11,10 +11,10 @@ export const ProductCard = ({ product }) => {
   const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
 
   const [liveRating, setLiveRating] = useState(
-    product.averageRating || product.ratings || 4.9
+    Number(product.averageRating ?? product.ratings ?? 0)
   );
   const [liveReviewsCount, setLiveReviewsCount] = useState(
-    product.totalReviews || product.numReviews || 0
+    Number(product.totalReviews ?? product.numReviews ?? 0)
   );
 
   useEffect(() => {
@@ -81,8 +81,9 @@ export const ProductCard = ({ product }) => {
       ? Math.round(((safePrice - safeDiscountedPrice) / safePrice) * 100)
       : null;
 
-  const rawRating = Number(liveRating || product.averageRating || product.ratings || 4.9);
-  const displayRating = (!isNaN(rawRating) && rawRating > 0 ? rawRating : 4.9).toFixed(1);
+  const rawRating = Number(liveRating ?? product.averageRating ?? product.ratings ?? 0);
+  const hasReviews = liveReviewsCount > 0 && rawRating > 0;
+  const displayRating = hasReviews ? rawRating.toFixed(1) : null;
 
   const mainImage = getProductImageUrl(
     (Array.isArray(product.images) && product.images[0]) || product.image
@@ -218,15 +219,20 @@ export const ProductCard = ({ product }) => {
               )}
             </div>
 
-            <div className="hidden sm:flex items-center space-x-1 text-xs text-[#C5A059]">
-              <Star size={12} fill="#C5A059" />
-              <span className="font-semibold text-[#29251F] text-[11px]">
-                {displayRating}
-              </span>
-              {liveReviewsCount > 0 && (
+            {hasReviews ? (
+              <div className="hidden sm:flex items-center space-x-1 text-xs text-[#C5A059]">
+                <Star size={12} fill="#C5A059" />
+                <span className="font-semibold text-[#29251F] text-[11px]">
+                  {displayRating}
+                </span>
                 <span className="text-[10px] text-gray-400 font-normal">({liveReviewsCount})</span>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center space-x-1 text-xs text-gray-400">
+                <Star size={11} className="text-gray-300" strokeWidth={1.5} />
+                <span className="text-[9.5px] uppercase tracking-wider text-gray-400 font-medium">New</span>
+              </div>
+            )}
           </div>
 
           {/* Mobile & Tablet Touch-Friendly Quick Add */}

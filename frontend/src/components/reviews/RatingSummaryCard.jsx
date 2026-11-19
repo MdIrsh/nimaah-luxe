@@ -25,17 +25,23 @@ export const RatingSummaryCard = ({
         <div className="flex items-center space-x-6">
           <div className="text-center">
             <span className="font-serif-luxury text-4xl sm:text-5xl font-bold text-[#14110C] block leading-none">
-              {average > 0 ? average.toFixed(1) : '5.0'}
+              {total > 0 && average > 0 ? average.toFixed(1) : '0.0'}
             </span>
             <span className="text-[10px] uppercase tracking-[0.25em] text-[#C5A059] font-semibold mt-1 block">
-              Out of 5.0
+              {total > 0 ? 'Out of 5.0' : 'No Ratings Yet'}
             </span>
           </div>
 
           <div className="space-y-1.5 border-l border-[#F2ECE1] pl-6">
-            <RatingStars rating={average > 0 ? average : 5} size="lg" />
+            <RatingStars rating={total > 0 ? average : 0} size="lg" />
             <p className="text-xs text-gray-500 font-medium">
-              Based on <strong className="text-[#14110C]">{total}</strong> {total === 1 ? 'patron impression' : 'patron impressions'}
+              {total > 0 ? (
+                <>
+                  Based on <strong className="text-[#14110C]">{total}</strong> {total === 1 ? 'patron impression' : 'patron impressions'}
+                </>
+              ) : (
+                <span className="text-gray-400">0 customer reviews recorded yet</span>
+              )}
             </p>
             <div className="flex items-center gap-1.5 text-[10.5px] text-emerald-700 font-medium">
               <ShieldCheck size={13} className="text-emerald-600" />

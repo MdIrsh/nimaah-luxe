@@ -389,11 +389,12 @@ export const ProductDetailPage = () => {
     ? Math.round(((safePrice - safeDiscountedPrice) / safePrice) * 100)
     : null;
 
-  const rawRating = Number(ratingSummary?.averageRating ?? product.ratings ?? product.averageRating ?? 5);
-  const safeRatingDisplay = (!isNaN(rawRating) && rawRating > 0 ? rawRating : 5).toFixed(1);
   const totalReviewsCount = Number(
     ratingSummary?.totalReviews ?? product.numReviews ?? product.totalReviews ?? reviews.length ?? 0
   );
+  const rawRating = Number(ratingSummary?.averageRating ?? product.ratings ?? product.averageRating ?? 0);
+  const hasReviews = totalReviewsCount > 0 && rawRating > 0;
+  const safeRatingDisplay = hasReviews ? rawRating.toFixed(1) : '0.0';
 
   const productImages =
     Array.isArray(product.images) && product.images.length > 0
@@ -488,14 +489,16 @@ export const ProductDetailPage = () => {
               title="Click to view and write patron reviews"
             >
               <RatingStars
-                rating={!isNaN(rawRating) && rawRating > 0 ? rawRating : 5}
+                rating={hasReviews ? rawRating : 0}
                 size="sm"
               />
               <span className="text-xs font-semibold text-[#29251F]">
                 {safeRatingDisplay}
               </span>
               <span className="text-xs text-gray-400 font-light group-hover:text-[#C5A059] group-hover:underline transition">
-                ({totalReviewsCount} patron {totalReviewsCount === 1 ? 'review' : 'reviews'})
+                {totalReviewsCount > 0
+                  ? `(${totalReviewsCount} patron ${totalReviewsCount === 1 ? 'review' : 'reviews'})`
+                  : '(0 reviews • Be the first to rate)'}
               </span>
             </button>
           </div>
@@ -701,7 +704,7 @@ export const ProductDetailPage = () => {
               <RatingSummaryCard
                 summary={
                   ratingSummary || {
-                    averageRating: !isNaN(rawRating) && rawRating > 0 ? rawRating : 5.0,
+                    averageRating: hasReviews ? rawRating : 0,
                     totalReviews: totalReviewsCount,
                     ratingDistribution: product.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
                     ratingPercentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },

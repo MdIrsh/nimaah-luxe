@@ -57,7 +57,8 @@ export const HomePage = () => {
   const spotlightRow = products.slice(0, 3);
   const weddingSpecials = products.slice(2, 5);
   const newArrivals = products.slice(0, 4);
-  const bestSellers = products.filter((p) => p.isBestSeller || p.ratings >= 4.9).slice(0, 4);
+  const filteredBestSellers = products.filter((p) => p.isBestSeller || (p.numReviews > 0 && p.ratings >= 4.5));
+  const bestSellers = (filteredBestSellers.length >= 2 ? filteredBestSellers : products).slice(0, 4);
 
   return (
     <div className="space-y-8 sm:space-y-16 lg:space-y-24 pb-12 sm:pb-24">

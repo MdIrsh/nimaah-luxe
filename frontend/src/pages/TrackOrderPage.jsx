@@ -259,8 +259,8 @@ export const TrackOrderPage = () => {
             {trackingData?.orderStatus === 'Delivered'
               ? 'Delivered'
               : trackingData?.orderStatus === 'Cancelled'
-              ? 'Cancelled'
-              : 'In Transit'}
+                ? 'Cancelled'
+                : 'In Transit'}
           </span>
         </div>
 

@@ -365,7 +365,9 @@ export const AdminProducts = () => {
                     <div className="flex items-center space-x-1.5">
                       <Star size={13} fill="#C5A059" stroke="#C5A059" />
                       <span className="font-bold text-[#14110C] text-xs">
-                        {((p.ratings || p.averageRating) || 5.0).toFixed(1)}
+                        {(p.numReviews || p.totalReviews) > 0
+                          ? Number(p.averageRating || p.ratings || 0).toFixed(1)
+                          : '0.0'}
                       </span>
                       <span className="text-[10px] text-gray-400">
                         ({p.numReviews || p.totalReviews || 0})
