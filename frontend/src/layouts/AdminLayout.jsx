@@ -157,12 +157,12 @@ export const AdminLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0] flex flex-col md:flex-row font-sans text-[#29251F]">
+    <div className="h-screen w-full overflow-hidden bg-[#F8F5F0] flex flex-col md:flex-row font-sans text-[#29251F]">
       {/* =========================================================================
-          LEFT LUXURY DARK SIDEBAR (Exact Match to Screenshot)
+          LEFT LUXURY DARK SIDEBAR (Permanently Fixed to Left)
           ========================================================================= */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[#14110C] text-[#E8DCC9] flex flex-col justify-between z-50 border-r border-[#2A231A] transition-transform duration-300 ${
+        className={`fixed md:static inset-y-0 left-0 h-full w-64 bg-[#14110C] text-[#E8DCC9] flex flex-col justify-between z-50 border-r border-[#2A231A] transition-transform duration-300 ${
           isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } overflow-y-auto no-scrollbar shadow-2xl flex-shrink-0`}
       >
@@ -276,11 +276,11 @@ export const AdminLayout = () => {
       )}
 
       {/* =========================================================================
-          RIGHT CONTENT WRAPPER
+          RIGHT CONTENT WRAPPER (Fixed Header + Independently Scrollable Main Area)
           ========================================================================= */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header Bar (Exact match to screenshot) */}
-        <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E8DEC8] px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+      <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
+        {/* Top Header Bar (Fixed at top, never scrolls away) */}
+        <header className="flex-shrink-0 z-20 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E8DEC8] px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
           {/* Mobile Hamburger + Global Search */}
           <div className="flex items-center space-x-3 flex-1 max-w-xl">
             <button
@@ -446,8 +446,8 @@ export const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Dynamic Nested Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        {/* Dynamic Nested Content (Only content scrolls) */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
