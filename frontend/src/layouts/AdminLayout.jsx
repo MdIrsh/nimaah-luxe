@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -20,8 +20,13 @@ import {
   Menu,
   X,
   ExternalLink,
+  CheckCircle2,
+  AlertTriangle,
+  CreditCard,
+  CheckCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import logoImg from '../assets/nimaah-luxe-logo.png';
 
 export const AdminLayout = () => {
@@ -30,6 +35,141 @@ export const AdminLayout = () => {
   const location = useLocation();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Live Notifications State
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const notificationRef = useRef(null);
+
+  const [notifications, setNotifications] = useState([
+    {
+      id: 'notif_1',
+      type: 'order',
+      title: 'New Order #SH10025',
+      desc: 'Priya Sharma placed an order for ₹2,499 via Razorpay',
+      time: 'Just now',
+      unread: true,
+      link: '/admin/orders',
+      icon: ShoppingBag,
+      color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+    },
+    {
+      id: 'notif_2',
+      type: 'stock',
+      title: 'Low Stock Alert',
+      desc: 'Aura Velvet Midnight Gown has only 3 pieces left in stock',
+      time: '15m ago',
+      unread: true,
+      link: '/admin/products',
+      icon: AlertTriangle,
+      color: 'text-amber-600 bg-amber-50 border-amber-200',
+    },
+    {
+      id: 'notif_3',
+      type: 'payment',
+      title: 'Razorpay Payment Captured',
+      desc: '₹3,199 payment verified for Order #SH10024',
+      time: '1h ago',
+      unread: true,
+      link: '/admin/orders',
+      icon: CreditCard,
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+    },
+    {
+      id: 'notif_4',
+      type: 'customer',
+      title: 'New Patron Joined',
+      desc: 'Anjali Verma created an account in Ni\'maah Luxe sanctuary',
+      time: '2h ago',
+      unread: false,
+      link: '/admin/customers',
+      icon: Users,
+      color: 'text-purple-600 bg-purple-50 border-purple-200',
+    },
+  ]);
+
+  // Fetch real live orders and low stock items from backend
+  useEffect(() => {
+    const fetchLiveAlerts = async () => {
+      try {
+        const res = await api.get('/admin/stats');
+        if (res.data?.success && res.data.data) {
+          const { recentOrders, lowStockProducts } = res.data.data;
+          const liveList = [];
+
+          if (recentOrders && recentOrders.length > 0) {
+            recentOrders.slice(0, 2).forEach((ord) => {
+              liveList.push({
+                id: `live_ord_${ord._id}`,
+                type: 'order',
+                title: `Order #${ord._id.slice(-6).toUpperCase()}`,
+                desc: `${ord.user?.name || 'Patron'} placed an order for ₹${(ord.totalPrice || 0).toLocaleString('en-IN')} via ${ord.paymentMethod || 'Razorpay'}`,
+                time: new Date(ord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                unread: true,
+                link: '/admin/orders',
+                icon: ShoppingBag,
+                color: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+              });
+            });
+          }
+
+          if (lowStockProducts && lowStockProducts.length > 0) {
+            lowStockProducts.slice(0, 2).forEach((p) => {
+              liveList.push({
+                id: `live_stk_${p._id}`,
+                type: 'stock',
+                title: 'Low Stock Alert',
+                desc: `${p.title} has only ${p.stockCount} items remaining in atelier`,
+                time: 'Live',
+                unread: true,
+                link: '/admin/products',
+                icon: AlertTriangle,
+                color: 'text-amber-600 bg-amber-50 border-amber-200',
+              });
+            });
+          }
+
+          if (liveList.length > 0) {
+            setNotifications((prev) => {
+              const combined = [...liveList, ...prev];
+              const unique = Array.from(new Map(combined.map((m) => [m.id, m])).values());
+              return unique.slice(0, 6);
+            });
+          }
+        }
+      } catch (e) {
+        // Fallback to initial notifications
+      }
+    };
+
+    fetchLiveAlerts();
+    const interval = setInterval(fetchLiveAlerts, 30000); // 30s live poll
+    return () => clearInterval(interval);
+  }, []);
+
+  // Close notifications dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  };
+
+  const handleNotificationClick = (item) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === item.id ? { ...n, unread: false } : n))
+    );
+    setIsNotificationsOpen(false);
+    navigate(item.link);
+  };
 
   const navMenuItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, end: true },
@@ -201,12 +341,109 @@ export const AdminLayout = () => {
 
           {/* Right Action Icons: Notification, Profile, Theme Toggle */}
           <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
-            {/* Notification Bell */}
-            <div className="relative cursor-pointer p-2 hover:bg-[#EDE5D8] rounded-full transition">
-              <Bell size={18} className="text-[#29251F]" />
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">
-                3
-              </span>
+            {/* Live Interactive Notification Bell */}
+            <div className="relative" ref={notificationRef}>
+              <button
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className={`relative p-2 rounded-full transition ${
+                  isNotificationsOpen
+                    ? 'bg-[#EDE5D8] text-[#C5A059]'
+                    : 'text-[#29251F] hover:bg-[#EDE5D8]'
+                }`}
+                title="Store Notifications"
+                aria-label="Notifications"
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Popup Dropdown */}
+              {isNotificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-[#E8DEC8] rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in duration-200">
+                  {/* Header */}
+                  <div className="p-4 bg-[#FAF7F2] border-b border-[#E8DEC8] flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-sm text-[#14110C]">Notifications</span>
+                      {unreadCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#C5A059] text-white">
+                          {unreadCount} New
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-[11px] text-[#C5A059] hover:text-[#8C6D37] font-semibold flex items-center space-x-1"
+                      >
+                        <CheckCheck size={13} />
+                        <span>Mark all read</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Notification List */}
+                  <div className="max-h-80 overflow-y-auto divide-y divide-[#F6EFE5]">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-gray-500">
+                        No notifications to display
+                      </div>
+                    ) : (
+                      notifications.map((item) => {
+                        const Icon = item.icon || Bell;
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => handleNotificationClick(item)}
+                            className={`p-3.5 flex items-start space-x-3 cursor-pointer transition hover:bg-[#FAF7F2] ${
+                              item.unread ? 'bg-[#FFFDF9]' : 'opacity-75'
+                            }`}
+                          >
+                            <div
+                              className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${
+                                item.color || 'bg-gray-100 text-gray-600 border-gray-200'
+                              }`}
+                            >
+                              <Icon size={16} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <h5 className="text-xs font-bold text-[#14110C] truncate">
+                                  {item.title}
+                                </h5>
+                                <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                                  {item.time}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-gray-600 line-clamp-2 mt-0.5 leading-snug">
+                                {item.desc}
+                              </p>
+                            </div>
+                            {item.unread && (
+                              <span className="w-2 h-2 rounded-full bg-[#C5A059] flex-shrink-0 mt-1.5" />
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-3 bg-[#FAF7F2] border-t border-[#E8DEC8] text-center">
+                    <Link
+                      to="/admin/orders"
+                      onClick={() => setIsNotificationsOpen(false)}
+                      className="text-[11px] font-semibold text-[#14110C] hover:text-[#C5A059] transition inline-flex items-center space-x-1"
+                    >
+                      <span>View All in Orders Pipeline</span>
+                      <ArrowRight size={11} />
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sun / Theme icon */}

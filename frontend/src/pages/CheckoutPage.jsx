@@ -74,9 +74,68 @@ export const CheckoutPage = () => {
         throw new Error('Razorpay SDK failed to load. Please verify your internet connection.');
       }
 
-      // Step 1: Call backend to create Razorpay Order
+      // Step 1: Call backend to create Razorpay Order with server-side validation
       setProcessingStage('Generating encrypted Razorpay Order ID on backend...');
-      const razorpayOrderData = await paymentService.createRazorpayOrder(grandTotal);
+      const cartItemsPayload = cart.map((item) => ({
+        productId: item.product._id,
+        quantity: item.quantity,
+        size: item.size,
+        color: item.color,
+      }));
+      const razorpayOrderData = await paymentService.createRazorpayOrder(
+        grandTotal,
+        `rcpt_${Date.now()}`,
+        cartItemsPayload
+      );
+
+      // Handle Sandbox simulation mode if testing without live Razorpay keys
+      if (razorpayOrderData.orderId?.startsWith('order_test_')) {
+        const confirmTestPayment = window.confirm(
+          `[Razorpay Test Gateway Simulator]\n\nOrder ID: ${razorpayOrderData.orderId}\nTotal Amount: ₹${grandTotal.toLocaleString('en-IN')}\n\nClick 'OK' to simulate SUCCESSFUL payment (UPI / Card)\nClick 'Cancel' to simulate FAILED payment.`
+        );
+
+        if (confirmTestPayment) {
+          setIsProcessing(true);
+          setProcessingStage('Verifying HMAC SHA256 payment signature with bank...');
+          const fakePaymentId = `pay_sim_${Date.now()}`;
+          const verifyPayload = {
+            razorpay_order_id: razorpayOrderData.orderId,
+            razorpay_payment_id: fakePaymentId,
+            razorpay_signature: `simulated_sig_${Date.now()}`,
+            orderItems: cart.map((item) => ({
+              product: item.product._id,
+              title: item.product.title,
+              image: item.product.images?.[0] || '',
+              price: item.price,
+              size: item.size,
+              color: item.color,
+              quantity: item.quantity,
+            })),
+            shippingAddress: formData,
+            itemsPrice: subtotal,
+            taxPrice: estimatedTax,
+            shippingPrice: shippingFee,
+            totalPrice: grandTotal,
+          };
+          const verifiedOrder = await paymentService.verifyPayment(verifyPayload);
+          setCreatedOrder(verifiedOrder);
+          clearCart();
+          setIsProcessing(false);
+          setProcessingStage('');
+          return;
+        } else {
+          setIsProcessing(false);
+          setProcessingStage('');
+          await paymentService
+            .reportFailure(
+              { description: 'Payment simulated cancellation by customer' },
+              razorpayOrderData.orderId
+            )
+            .catch(console.error);
+          alert('Payment simulation cancelled.');
+          return;
+        }
+      }
 
       // Step 2: Open Razorpay Checkout modal
       setProcessingStage('Awaiting Razorpay payment authorization...');
@@ -149,7 +208,8 @@ export const CheckoutPage = () => {
       paymentObject.on('payment.failed', function (response) {
         setIsProcessing(false);
         setProcessingStage('');
-        alert(`Payment Failed: ${response.error.description}`);
+        paymentService.reportFailure(response.error, razorpayOrderData.orderId).catch(console.error);
+        alert(`Payment Failed: ${response.error.description || response.error.reason || 'Transaction could not be completed'}`);
       });
       paymentObject.open();
     } catch (error) {

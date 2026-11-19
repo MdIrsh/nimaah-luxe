@@ -57,6 +57,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Serve Built React Frontend in Production (Render / Railway single-service deploy)
 const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
