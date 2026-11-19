@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Heart,
   ShoppingBag,
@@ -32,6 +32,10 @@ export const ProductDetailPage = () => {
   const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
   const { user } = useAuth();
 
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialTab = searchParams.get('tab') || 'description';
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,7 +43,7 @@ export const ProductDetailPage = () => {
   const [selectedSize, setSelectedSize] = useState('M');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [addedSuccess, setAddedSuccess] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
@@ -114,11 +118,18 @@ export const ProductDetailPage = () => {
     };
 
     fetchProduct();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (initialTab === 'reviews') {
+      setTimeout(() => {
+        const el = document.getElementById('product-tabs-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 400);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [id, initialTab]);
 
   // Fetch reviews & rating summary (Hook: Must be at top level before early returns)
   const fetchReviews = useCallback(async (starFilter = selectedRatingFilter) => {
@@ -466,7 +477,16 @@ export const ProductDetailPage = () => {
             </h1>
 
             {/* Rating breakdown with Reusable RatingStars */}
-            <div className="flex items-center space-x-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('reviews');
+                const el = document.getElementById('product-tabs-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="flex items-center space-x-2.5 pt-1 text-left group cursor-pointer hover:opacity-85 transition"
+              title="Click to view and write patron reviews"
+            >
               <RatingStars
                 rating={!isNaN(rawRating) && rawRating > 0 ? rawRating : 5}
                 size="sm"
@@ -474,10 +494,10 @@ export const ProductDetailPage = () => {
               <span className="text-xs font-semibold text-[#29251F]">
                 {safeRatingDisplay}
               </span>
-              <span className="text-xs text-gray-400 font-light">
+              <span className="text-xs text-gray-400 font-light group-hover:text-[#C5A059] group-hover:underline transition">
                 ({totalReviewsCount} patron {totalReviewsCount === 1 ? 'review' : 'reviews'})
               </span>
-            </div>
+            </button>
           </div>
 
           {/* Pricing Row */}
@@ -638,7 +658,7 @@ export const ProductDetailPage = () => {
       </div>
 
       {/* Tabs & Details with Horizontal Scroll on Mobile */}
-      <div className="border-t border-[#E9E1D6] pt-10 sm:pt-14">
+      <div id="product-tabs-section" className="border-t border-[#E9E1D6] pt-10 sm:pt-14">
         <div className="flex space-x-6 sm:space-x-10 border-b border-[#E9E1D6] pb-3.5 overflow-x-auto no-scrollbar whitespace-nowrap">
           {['description', 'fabric', 'reviews'].map((tab) => (
             <button

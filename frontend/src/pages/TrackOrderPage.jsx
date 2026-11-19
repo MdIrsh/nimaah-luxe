@@ -17,6 +17,7 @@ import {
   Mail,
   Phone,
   Search,
+  Star,
 } from 'lucide-react';
 
 export const TrackOrderPage = () => {
@@ -317,6 +318,17 @@ export const TrackOrderPage = () => {
             <p className="text-sm sm:text-base font-bold text-gray-900 pt-0.5">
               ₹{(activeProduct.price || 2499).toLocaleString('en-IN')}
             </p>
+            {(activeProduct.product || activeProduct._id) && (
+              <div className="pt-1.5">
+                <Link
+                  to={`/product/${activeProduct.product || activeProduct._id}?tab=reviews`}
+                  className="inline-flex items-center space-x-1.5 text-xs text-[#A68B66] hover:text-[#14110C] font-semibold bg-[#FAF9F6] border border-[#E9E1D6] px-2.5 py-1 rounded-lg transition shadow-2xs"
+                >
+                  <Star size={11} fill="#C5A059" className="text-[#C5A059]" />
+                  <span>Rate & Review Silhouette →</span>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
