@@ -1,13 +1,25 @@
-import React from 'react';
-import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShoppingBag,
   Package,
   Users,
-  ArrowLeft,
+  Archive,
+  Tag,
+  Star,
+  BarChart3,
+  Settings,
+  User,
   LogOut,
-  Crown,
+  Search,
+  Bell,
+  Sun,
+  ChevronDown,
+  ArrowRight,
+  Menu,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logoImg from '../assets/nimaah-luxe-logo.png';
@@ -15,131 +27,223 @@ import logoImg from '../assets/nimaah-luxe-logo.png';
 export const AdminLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const navItems = [
-    { name: 'Overview', fullName: 'Dashboard Overview', path: '/admin', icon: LayoutDashboard },
-    { name: 'Catalog', fullName: 'Couture Dress Catalog', path: '/admin/products', icon: ShoppingBag },
-    { name: 'Orders', fullName: 'Order Fulfillment Pipeline', path: '/admin/orders', icon: Package },
-    { name: 'Customers', fullName: 'Customer Portfolio', path: '/admin/customers', icon: Users },
+  const navMenuItems = [
+    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, end: true },
+    { name: 'Products', path: '/admin/products', icon: ShoppingBag, hasChevron: true },
+    { name: 'Orders', path: '/admin/orders', icon: Package, hasChevron: true },
+    { name: 'Customers', path: '/admin/customers', icon: Users },
+    { name: 'Inventory', path: '/admin/products', icon: Archive },
+    { name: 'Coupons', path: '/admin', icon: Tag },
+    { name: 'Reviews', path: '/admin', icon: Star },
+    { name: 'Analytics', path: '/admin', icon: BarChart3 },
+    { name: 'Settings', path: '/admin', icon: Settings, hasChevron: true },
+    { name: 'Profile', path: '/account/profile', icon: User },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex flex-col">
-      {/* Top Admin Bar */}
-      <header className="bg-[#24201A] text-[#FAF9F6] border-b border-[#3A352D] px-4 sm:px-6 lg:px-10 py-3.5 sm:py-4 flex items-center justify-between gap-3 sticky top-0 z-50">
-        <div className="flex items-center space-x-3 sm:space-x-6 min-w-0">
-          <Link
-            to="/"
-            className="flex items-center space-x-1.5 text-[11px] sm:text-xs uppercase tracking-wider text-gray-300 hover:text-white transition flex-shrink-0"
-          >
-            <ArrowLeft size={16} />
-            <span className="hidden sm:inline">Customer Website</span>
-            <span className="sm:hidden">Store</span>
-          </Link>
-          <div className="h-4 w-[1px] bg-white/20"></div>
-          <div className="flex items-center space-x-2.5 min-w-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-[#C5A059]/60 bg-black flex-shrink-0">
-              <img src={logoImg} alt="Ni'maah Luxe" className="w-full h-full object-cover" />
-            </div>
-            <div className="truncate">
-              <span className="font-cinzel text-sm sm:text-lg tracking-[0.14em] sm:tracking-[0.18em] text-[#FAF9F6] font-bold">
-                NI'MAAH LUXE
-              </span>
-              <span className="hidden md:inline text-[8.5px] uppercase tracking-[0.3em] text-[#C5A059] ml-2 font-mono">
-                Atelier Command
-              </span>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#F8F5F0] flex flex-col md:flex-row font-sans text-[#29251F]">
+      {/* =========================================================================
+          LEFT LUXURY DARK SIDEBAR (Exact Match to Screenshot)
+          ========================================================================= */}
+      <aside
+        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[#14110C] text-[#E8DCC9] flex flex-col justify-between z-50 border-r border-[#2A231A] transition-transform duration-300 ${
+          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        } overflow-y-auto no-scrollbar shadow-2xl flex-shrink-0`}
+      >
+        {/* Brand Header */}
+        <div>
+          <div className="p-6 border-b border-[#2A231A] flex items-center justify-between">
+            <Link to="/admin" className="flex items-center space-x-3 group">
+              <div className="w-11 h-11 rounded-full border border-[#C5A059] p-0.5 bg-black flex items-center justify-center flex-shrink-0 shadow-md">
+                <img
+                  src={logoImg}
+                  alt="Ni'maah Luxe"
+                  className="w-full h-full object-cover rounded-full group-hover:scale-105 transition"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-cinzel text-lg tracking-[0.14em] text-[#F3EAD8] font-bold leading-tight">
+                  N'MAAH LUXE
+                </span>
+                <span className="font-serif italic text-[10px] tracking-wider text-[#C5A059] mt-0.5">
+                  Divinely Inspired Fashion
+                </span>
+              </div>
+            </Link>
 
-        <div className="flex items-center space-x-3 flex-shrink-0">
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-semibold text-white">{user?.name || 'Administrator'}</p>
-            <p className="text-[10px] text-[#C5A059] uppercase tracking-wider font-cinzel">Super Admin</p>
-          </div>
-          <button
-            onClick={() => {
-              logout();
-              navigate('/login');
-            }}
-            className="p-2 text-gray-400 hover:text-red-400 transition"
-            title="Sign Out"
-            aria-label="Sign Out"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Admin Navigation Bar (md:hidden) */}
-      <nav className="md:hidden bg-white border-b border-[#E9E1D6] px-3 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar sticky top-[57px] z-40">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/admin'}
-              className={({ isActive }) =>
-                `flex items-center space-x-2 px-4 py-2 text-xs uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition ${
-                  isActive
-                    ? 'bg-[#29251F] text-[#FAF9F6] font-semibold'
-                    : 'bg-[#FAF9F6] text-[#29251F]/80 border border-[#E9E1D6]'
-                }`
-              }
+            <button
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="md:hidden text-gray-400 hover:text-white p-1"
             >
-              <Icon size={14} />
-              <span>{item.name}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
-
-      {/* Main Admin Body */}
-      <div className="flex flex-1">
-        {/* Desktop Admin Sidebar */}
-        <aside className="w-64 lg:w-68 bg-white border-r border-[#E9E1D6] p-6 lg:p-7 hidden md:block flex-shrink-0">
-          <div className="mb-8">
-            <p className="text-[10px] uppercase font-bold tracking-[0.25em] text-gray-400 mb-4 font-cinzel">
-              Store Management
-            </p>
-            <nav className="space-y-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    end={item.path === '/admin'}
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3.5 px-4 py-3.5 text-xs uppercase tracking-wider rounded-xs transition ${
-                        isActive
-                          ? 'bg-[#29251F] text-[#FAF9F6] font-semibold shadow-xs'
-                          : 'text-[#29251F]/80 hover:bg-[#FAF9F6] hover:text-[#C5A059]'
-                      }`
-                    }
-                  >
-                    <Icon size={16} />
-                    <span>{item.fullName}</span>
-                  </NavLink>
-                );
-              })}
-            </nav>
+              <X size={20} />
+            </button>
           </div>
 
-          <div className="mt-12 p-5 bg-[#FAF9F6] border border-[#E9E1D6] rounded-xs space-y-2">
-            <div className="flex items-center space-x-2 text-[#C5A059] text-xs font-semibold uppercase tracking-wider">
-              <Crown size={15} />
-              <span>Flowchart Sync</span>
+          {/* Navigation Links */}
+          <nav className="p-4 space-y-1.5 text-xs">
+            {navMenuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = item.end
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path) && item.path !== '/admin';
+
+              return (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  end={item.end}
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className={({ isActive: navActive }) => {
+                    const active = item.end ? navActive : isActive;
+                    return `flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium tracking-wide transition-all ${
+                      active
+                        ? 'bg-gradient-to-r from-[#C5A059] via-[#B89248] to-[#8C6D37] text-white shadow-md font-semibold'
+                        : 'text-[#B8AA99] hover:bg-[#221C14] hover:text-[#E8DCC9]'
+                    }`;
+                  }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Icon size={17} strokeWidth={1.8} />
+                    <span>{item.name}</span>
+                  </div>
+                  {item.hasChevron && (
+                    <ChevronDown size={14} className="opacity-60" />
+                  )}
+                </NavLink>
+              );
+            })}
+
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[#B8AA99] hover:bg-red-950/40 hover:text-red-400 transition text-xs font-medium"
+            >
+              <LogOut size={17} strokeWidth={1.8} />
+              <span>Logout</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Sidebar Bottom Banner & Footer */}
+        <div className="p-4 pt-0">
+          <div className="relative rounded-2xl overflow-hidden border border-[#3A3022] p-4 text-center bg-gradient-to-b from-[#221C14] to-[#120E0A] shadow-lg">
+            <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-2 border border-[#C5A059]/50 shadow-md">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+                alt="Model"
+                className="w-full h-full object-cover"
+              />
             </div>
-            <p className="text-[11px] text-gray-600 leading-relaxed font-light">
-              Real-time synchronization with order pipeline: Admin Receives Order &rarr; Process & Tailor &rarr; Shipped &rarr; Delivered.
-            </p>
+            <h4 className="font-serif-luxury text-sm font-semibold text-[#F3EAD8]">
+              Style Redefined
+            </h4>
+            <Link
+              to="/"
+              className="mt-2.5 inline-flex items-center justify-center space-x-1 px-4 py-1.5 bg-[#FAF7F2] hover:bg-[#C5A059] text-[#14110C] hover:text-white rounded-full text-[10.5px] font-semibold uppercase tracking-wider transition shadow-sm w-full"
+            >
+              <span>Visit Store</span>
+              <ArrowRight size={12} />
+            </Link>
           </div>
-        </aside>
 
-        {/* Dynamic Admin Content */}
-        <main className="flex-1 p-4 sm:p-8 lg:p-12 overflow-x-hidden">
+          <p className="text-[10px] text-gray-500 text-center mt-3 font-mono">
+            © 2026 N'MAAH LUXE
+          </p>
+        </div>
+      </aside>
+
+      {/* Overlay for mobile drawer */}
+      {isMobileSidebarOpen && (
+        <div
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-xs"
+        />
+      )}
+
+      {/* =========================================================================
+          RIGHT CONTENT WRAPPER
+          ========================================================================= */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header Bar (Exact match to screenshot) */}
+        <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E8DEC8] px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+          {/* Mobile Hamburger + Global Search */}
+          <div className="flex items-center space-x-3 flex-1 max-w-xl">
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="md:hidden p-2 text-[#29251F] hover:bg-[#EDE5D8] rounded-lg"
+              aria-label="Open sidebar"
+            >
+              <Menu size={20} />
+            </button>
+
+            <div className="relative flex-1">
+              <Search
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products, orders, customers... (Ctrl + K)"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-[#E5DAC6] rounded-xl text-xs text-[#29251F] placeholder-gray-400 focus:outline-none focus:border-[#C5A059] shadow-2xs"
+              />
+            </div>
+          </div>
+
+          {/* Right Action Icons: Notification, Profile, Theme Toggle */}
+          <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
+            {/* Notification Bell */}
+            <div className="relative cursor-pointer p-2 hover:bg-[#EDE5D8] rounded-full transition">
+              <Bell size={18} className="text-[#29251F]" />
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">
+                3
+              </span>
+            </div>
+
+            {/* Sun / Theme icon */}
+            <button
+              className="p-2 text-gray-500 hover:text-[#29251F] hover:bg-[#EDE5D8] rounded-full transition"
+              title="Light theme active"
+            >
+              <Sun size={18} />
+            </button>
+
+            {/* Admin Profile Dropdown */}
+            <div className="flex items-center space-x-2.5 pl-2 border-l border-[#E5DAC6]">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-[#C5A059] shadow-xs flex-shrink-0">
+                <img
+                  src={
+                    user?.avatar ||
+                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+                  }
+                  alt="Admin Avatar"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-bold text-[#14110C] leading-tight">
+                  {user?.name || 'Admin'}
+                </span>
+                <span className="text-[10px] text-gray-500 leading-tight">
+                  Super Admin
+                </span>
+              </div>
+              <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
+            </div>
+          </div>
+        </header>
+
+        {/* Dynamic Nested Content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
