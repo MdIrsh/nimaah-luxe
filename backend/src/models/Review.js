@@ -25,6 +25,12 @@ const reviewSchema = new mongoose.Schema(
       min: [1, 'Rating must be at least 1 star'],
       max: [5, 'Rating cannot exceed 5 stars'],
     },
+    reviewTitle: {
+      type: String,
+      trim: true,
+      maxlength: [150, 'Review title cannot exceed 150 characters'],
+      default: '',
+    },
     reviewText: {
       type: String,
       required: [true, 'Please share your review thoughts'],

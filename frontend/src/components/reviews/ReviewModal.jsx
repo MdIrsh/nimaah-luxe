@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, CheckCircle2, AlertCircle, Trash2, Image as ImageIcon } from 'lucide-react';
 import RatingStars from './RatingStars';
 import uploadService, { formatFileSize } from '../../services/uploadService';
@@ -12,8 +12,23 @@ export const ReviewModal = ({
   isVerifiedBuyer = false,
 }) => {
   const [rating, setRating] = useState(existingReview?.rating || 5);
+  const [reviewTitle, setReviewTitle] = useState(existingReview?.reviewTitle || '');
   const [reviewText, setReviewText] = useState(existingReview?.reviewText || '');
   const [images, setImages] = useState(existingReview?.reviewImages || []);
+
+  useEffect(() => {
+    if (existingReview) {
+      setRating(existingReview.rating || 5);
+      setReviewTitle(existingReview.reviewTitle || '');
+      setReviewText(existingReview.reviewText || '');
+      setImages(existingReview.reviewImages || []);
+    } else {
+      setRating(5);
+      setReviewTitle('');
+      setReviewText('');
+      setImages([]);
+    }
+  }, [existingReview, isOpen]);
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -104,6 +119,7 @@ export const ReviewModal = ({
     try {
       await onSubmit({
         rating,
+        reviewTitle: reviewTitle.trim(),
         reviewText: reviewText.trim(),
         reviewImages: images,
       });
@@ -176,6 +192,21 @@ export const ReviewModal = ({
             <p className="text-[11px] text-[#A68B66] font-serif italic">
               {ratingDescriptions[rating] || ''}
             </p>
+          </div>
+
+          {/* Review Title Input */}
+          <div className="space-y-1.5">
+            <label className="block text-xs uppercase tracking-wider text-gray-600 font-semibold">
+              Review Title (Optional)
+            </label>
+            <input
+              type="text"
+              maxLength={150}
+              value={reviewTitle}
+              onChange={(e) => setReviewTitle(e.target.value)}
+              placeholder="e.g., Exquisite drape and royal finish..."
+              className="w-full text-xs sm:text-sm bg-[#FAF9F6] border border-[#E9E1D6] rounded-xl p-3 focus:outline-none focus:border-[#C5A059] transition"
+            />
           </div>
 
           {/* Commentary Textarea */}

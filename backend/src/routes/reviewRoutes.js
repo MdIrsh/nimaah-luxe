@@ -8,6 +8,8 @@ import {
   deleteReview,
   getAdminReviews,
   moderateReviewStatus,
+  approveReview,
+  rejectReview,
 } from '../controllers/reviewController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
 
@@ -21,6 +23,8 @@ router
 
 // Admin moderation endpoints
 router.get('/admin', protect, adminOnly, getAdminReviews);
+router.patch('/admin/:reviewId/approve', protect, adminOnly, approveReview);
+router.patch('/admin/:reviewId/reject', protect, adminOnly, rejectReview);
 router.patch('/admin/:reviewId/status', protect, adminOnly, moderateReviewStatus);
 router.delete('/admin/:reviewId', protect, adminOnly, deleteReview);
 

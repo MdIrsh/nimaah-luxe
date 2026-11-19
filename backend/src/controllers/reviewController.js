@@ -12,7 +12,7 @@ import { successResponse, errorResponse } from '../utils/apiResponse.js';
 export const createReview = async (req, res) => {
   try {
     const productId = req.params.productId || req.body.productId;
-    const { rating, reviewText, reviewImages } = req.body;
+    const { rating, reviewTitle, reviewText, reviewImages } = req.body;
 
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return errorResponse(res, 'Valid Product ID is required', 400);
@@ -63,6 +63,7 @@ export const createReview = async (req, res) => {
       product: productId,
       order: deliveredOrder ? deliveredOrder._id : null,
       rating: starRating,
+      reviewTitle: reviewTitle ? reviewTitle.trim() : '',
       reviewText: reviewText.trim(),
       reviewImages: imagesList,
       isVerifiedPurchase: Boolean(deliveredOrder),
@@ -210,7 +211,7 @@ export const checkReviewEligibility = async (req, res) => {
 export const updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const { rating, reviewText, reviewImages } = req.body;
+    const { rating, reviewTitle, reviewText, reviewImages } = req.body;
 
     const review = await Review.findById(reviewId);
     if (!review) {
@@ -230,6 +231,10 @@ export const updateReview = async (req, res) => {
         return errorResponse(res, 'Rating must be between 1 and 5', 400);
       }
       review.rating = starRating;
+    }
+
+    if (reviewTitle !== undefined) {
+      review.reviewTitle = reviewTitle ? reviewTitle.trim() : '';
     }
 
     if (reviewText !== undefined) {
@@ -441,4 +446,20 @@ export const moderateReviewStatus = async (req, res) => {
   } catch (error) {
     return errorResponse(res, error.message, 500);
   }
+};
+
+// @desc    Admin: Approve a review
+// @route   PATCH /api/admin/reviews/:reviewId/approve
+// @access  Private/Admin
+export const approveReview = async (req, res) => {
+  req.body.status = 'APPROVED';
+  return moderateReviewStatus(req, res);
+};
+
+// @desc    Admin: Reject a review
+// @route   PATCH /api/admin/reviews/:reviewId/reject
+// @access  Private/Admin
+export const rejectReview = async (req, res) => {
+  req.body.status = 'REJECTED';
+  return moderateReviewStatus(req, res);
 };

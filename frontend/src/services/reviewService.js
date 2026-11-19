@@ -48,6 +48,18 @@ export const reviewService = {
     const response = await api.patch(`/admin/reviews/${reviewId}/status`, { status });
     return response.data?.data || response.data;
   },
+
+  // Admin: Approve review
+  approveReview: async (reviewId) => {
+    const response = await api.patch(`/admin/reviews/${reviewId}/approve`);
+    return response.data?.data || response.data;
+  },
+
+  // Admin: Reject review
+  rejectReview: async (reviewId) => {
+    const response = await api.patch(`/admin/reviews/${reviewId}/reject`);
+    return response.data?.data || response.data;
+  },
 };
 
 export default reviewService;

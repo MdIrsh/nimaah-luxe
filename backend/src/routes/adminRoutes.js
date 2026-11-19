@@ -3,6 +3,8 @@ import { getAdminStats, getAdminCustomers } from '../controllers/adminController
 import {
   getAdminReviews,
   moderateReviewStatus,
+  approveReview,
+  rejectReview,
   deleteReview,
 } from '../controllers/reviewController.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
@@ -16,6 +18,8 @@ router.get('/customers', getAdminCustomers);
 
 // Admin Reviews Management
 router.get('/reviews', getAdminReviews);
+router.patch('/reviews/:reviewId/approve', approveReview);
+router.patch('/reviews/:reviewId/reject', rejectReview);
 router.patch('/reviews/:reviewId/status', moderateReviewStatus);
 router.delete('/reviews/:reviewId', deleteReview);
 

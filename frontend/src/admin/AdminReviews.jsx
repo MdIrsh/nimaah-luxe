@@ -34,6 +34,7 @@ export const AdminReviews = () => {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ pages: 1, total: 0 });
   const [isUpdating, setIsUpdating] = useState(null);
+  const [viewingReview, setViewingReview] = useState(null);
 
   useEffect(() => {
     fetchAdminReviews();
@@ -118,12 +119,22 @@ export const AdminReviews = () => {
   const handleStatusChange = async (reviewId, newStatus) => {
     setIsUpdating(reviewId);
     try {
-      const res = await reviewService.moderateReview(reviewId, newStatus);
+      let res;
+      if (newStatus === 'APPROVED') {
+        res = await reviewService.approveReview(reviewId);
+      } else if (newStatus === 'REJECTED') {
+        res = await reviewService.rejectReview(reviewId);
+      } else {
+        res = await reviewService.moderateReview(reviewId, newStatus);
+      }
       const updated = res?.review;
       if (updated) {
         setReviews((prev) =>
           prev.map((r) => (r._id === reviewId ? { ...r, status: newStatus } : r))
         );
+        if (viewingReview && viewingReview._id === reviewId) {
+          setViewingReview((prev) => ({ ...prev, status: newStatus }));
+        }
       }
       fetchAdminReviews();
     } catch (err) {
@@ -219,6 +230,40 @@ export const AdminReviews = () => {
           </span>
           <span className="text-xs text-gray-500 font-medium block">Delivered Buyer Proof</span>
         </div>
+      </div>
+
+      {/* Quick Navigation Tabs */}
+      <div className="flex border-b border-[#E9E1D6] space-x-6 text-xs font-semibold overflow-x-auto no-scrollbar">
+        {[
+          { label: 'All Reviews', value: '', count: stats.totalReviews },
+          { label: 'Pending Reviews', value: 'PENDING', count: stats.pendingReviews },
+          { label: 'Approved Reviews', value: 'APPROVED', count: stats.approvedReviews },
+          { label: 'Rejected Reviews', value: 'REJECTED', count: stats.rejectedReviews },
+        ].map((tab) => (
+          <button
+            key={tab.label}
+            onClick={() => {
+              setStatusFilter(tab.value);
+              setPage(1);
+            }}
+            className={`pb-3 relative transition flex items-center space-x-1.5 whitespace-nowrap ${
+              statusFilter === tab.value
+                ? 'text-[#14110C] font-bold border-b-2 border-[#C5A059]'
+                : 'text-gray-400 hover:text-black'
+            }`}
+          >
+            <span>{tab.label}</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                statusFilter === tab.value
+                  ? 'bg-[#14110C] text-white'
+                  : 'bg-gray-100 text-gray-500'
+              }`}
+            >
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Filter & Search Bar */}
@@ -375,6 +420,11 @@ export const AdminReviews = () => {
 
                       {/* Review Commentary & Images */}
                       <td className="py-3.5 px-4 max-w-sm">
+                        {r.reviewTitle && (
+                          <h6 className="font-bold text-[#14110C] text-xs mb-0.5 truncate">
+                            {r.reviewTitle}
+                          </h6>
+                        )}
                         <p className="text-gray-700 leading-relaxed line-clamp-2">
                           "{r.reviewText}"
                         </p>
@@ -410,6 +460,14 @@ export const AdminReviews = () => {
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => setViewingReview(r)}
+                            className="p-1.5 text-gray-400 hover:text-[#C5A059] hover:bg-[#FAF9F6] rounded transition"
+                            title="View full review details"
+                          >
+                            <Eye size={14} />
+                          </button>
+
                           {r.status !== 'APPROVED' && (
                             <button
                               onClick={() => handleStatusChange(r._id, 'APPROVED')}
@@ -474,6 +532,176 @@ export const AdminReviews = () => {
           </div>
         )}
       </div>
+
+      {/* View Full Review Details Modal */}
+      {viewingReview && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setViewingReview(null)}
+        >
+          <div
+            className="bg-white border border-[#E9E1D6] max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-2xl rounded-2xl relative my-8 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-[#F2ECE1] pb-4">
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.25em] text-[#C5A059] font-cinzel font-semibold block">
+                  Review Inspection
+                </span>
+                <h3 className="font-serif-luxury text-xl font-bold text-[#14110C] mt-0.5">
+                  Patron Impression Details
+                </h3>
+              </div>
+              <button
+                onClick={() => setViewingReview(null)}
+                className="p-1.5 text-gray-400 hover:text-black transition rounded-full hover:bg-gray-100"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            {/* Patron & Product Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-[#FAF9F6] border border-[#E9E1D6] rounded-xl text-xs">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold block mb-1">
+                  Patron
+                </span>
+                <p className="font-bold text-[#14110C]">{viewingReview.user?.name || 'Valued Patron'}</p>
+                <p className="text-gray-500">{viewingReview.user?.email || 'Patron'}</p>
+                {viewingReview.isVerifiedPurchase && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 mt-2">
+                    <CheckCircle2 size={11} /> Verified Buyer
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold block mb-1">
+                  Silhouette Piece
+                </span>
+                <p className="font-bold text-[#14110C] truncate">
+                  {viewingReview.product?.title || 'Atelier Creation'}
+                </p>
+                <p className="text-gray-500">{viewingReview.product?.category || 'Collection'}</p>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Submitted:{' '}
+                  {viewingReview.createdAt
+                    ? new Date(viewingReview.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : 'Recent'}
+                </p>
+              </div>
+            </div>
+
+            {/* Rating & Title */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3">
+                <RatingStars rating={viewingReview.rating} size="lg" />
+                <span className="font-mono text-sm font-bold text-[#14110C]">
+                  {viewingReview.rating} / 5 Stars
+                </span>
+              </div>
+              {viewingReview.reviewTitle && (
+                <h4 className="font-serif-luxury text-base font-bold text-[#14110C]">
+                  {viewingReview.reviewTitle}
+                </h4>
+              )}
+            </div>
+
+            {/* Full Commentary */}
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold block">
+                Commentary
+              </span>
+              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-[#FAF9F6] p-4 rounded-xl border border-[#E9E1D6]">
+                "{viewingReview.reviewText}"
+              </p>
+            </div>
+
+            {/* Photos */}
+            {viewingReview.reviewImages && viewingReview.reviewImages.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold block">
+                  Uploaded Photos ({viewingReview.reviewImages.length})
+                </span>
+                <div className="flex flex-wrap gap-2.5">
+                  {viewingReview.reviewImages.map((img, idx) => (
+                    <a
+                      key={idx}
+                      href={img}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-20 h-28 rounded-lg overflow-hidden border border-[#E9E1D6] hover:border-[#C5A059] transition shadow-2xs"
+                    >
+                      <img
+                        src={img}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover object-top"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Current Status and Moderation Actions */}
+            <div className="flex items-center justify-between border-t border-[#F2ECE1] pt-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-500">Current Status:</span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                    viewingReview.status === 'APPROVED'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : viewingReview.status === 'PENDING'
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : 'bg-rose-50 text-rose-800 border-rose-200'
+                  }`}
+                >
+                  {viewingReview.status}
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                {viewingReview.status !== 'APPROVED' && (
+                  <button
+                    onClick={() => handleStatusChange(viewingReview._id, 'APPROVED')}
+                    disabled={isUpdating === viewingReview._id}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition"
+                  >
+                    Approve Review
+                  </button>
+                )}
+
+                {viewingReview.status !== 'REJECTED' && (
+                  <button
+                    onClick={() => handleStatusChange(viewingReview._id, 'REJECTED')}
+                    disabled={isUpdating === viewingReview._id}
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition"
+                  >
+                    Reject Review
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    handleDeleteReview(viewingReview._id);
+                    setViewingReview(null);
+                  }}
+                  className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                  title="Delete permanently"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

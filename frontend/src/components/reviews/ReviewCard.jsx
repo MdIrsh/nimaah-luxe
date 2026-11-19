@@ -71,10 +71,17 @@ export const ReviewCard = ({
         </div>
       </div>
 
-      {/* Review Commentary */}
-      <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-light">
-        {review.reviewText}
-      </p>
+      {/* Review Title & Commentary */}
+      <div className="space-y-1.5">
+        {review.reviewTitle && (
+          <h5 className="font-serif-luxury text-sm sm:text-base font-bold text-[#14110C]">
+            {review.reviewTitle}
+          </h5>
+        )}
+        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-light">
+          {review.reviewText}
+        </p>
+      </div>
 
       {/* Optional Customer Review Photos */}
       {review.reviewImages && review.reviewImages.length > 0 && (
