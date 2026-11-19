@@ -35,6 +35,8 @@ export const Navbar = () => {
 
   const { user, logout, isAdmin } = useAuth();
   const { itemsCount, wishlist } = useCart();
+  const safeWishlistCount = Array.isArray(wishlist) ? wishlist.length : 0;
+  const safeCartCount = Number(itemsCount || 0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -142,9 +144,9 @@ export const Navbar = () => {
               aria-label="Wishlist"
             >
               <Heart size={18} strokeWidth={1.6} />
-              {wishlist.length > 0 && (
+              {safeWishlistCount > 0 && (
                 <span className="absolute 0 top-0.5 right-0.5 w-4 h-4 bg-[#A68B66] text-[#FAF9F6] text-[9px] rounded-full flex items-center justify-center font-bold">
-                  {wishlist.length}
+                  {safeWishlistCount}
                 </span>
               )}
             </Link>
@@ -157,9 +159,9 @@ export const Navbar = () => {
               aria-label="Cart"
             >
               <ShoppingBag size={18} strokeWidth={1.6} />
-              {itemsCount > 0 && (
+              {safeCartCount > 0 && (
                 <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-[#29251F] text-[#FAF9F6] text-[9px] rounded-full flex items-center justify-center font-bold">
-                  {itemsCount}
+                  {safeCartCount}
                 </span>
               )}
             </Link>
@@ -246,9 +248,9 @@ export const Navbar = () => {
                           <Heart size={15} className="mr-3 text-[#A68B66]" />
                           Wishlist
                         </span>
-                        {wishlist.length > 0 && (
+                        {safeWishlistCount > 0 && (
                           <span className="px-2 py-0.5 bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6] text-[10px] rounded-full font-bold">
-                            {wishlist.length}
+                            {safeWishlistCount}
                           </span>
                         )}
                       </Link>
@@ -453,9 +455,9 @@ export const Navbar = () => {
                   <Heart size={15} className="text-[#A68B66]" />
                   <span>Wishlist</span>
                 </span>
-                {wishlist.length > 0 && (
+                {safeWishlistCount > 0 && (
                   <span className="px-2 py-0.5 bg-[#A68B66] text-white text-[10px] rounded-full font-bold">
-                    {wishlist.length}
+                    {safeWishlistCount}
                   </span>
                 )}
               </Link>

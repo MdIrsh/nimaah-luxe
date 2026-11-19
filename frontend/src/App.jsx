@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, Link } from 'react
 import { ShieldCheck } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -91,11 +92,12 @@ const CustomerRoute = ({ children }) => {
 
 export const App = () => {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <ScrollToTop />
-          <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <ScrollToTop />
+            <Routes>
             {/* Customer Website Routes wrapped in MainLayout */}
             <Route
               path="/"
@@ -220,6 +222,7 @@ export const App = () => {
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
+  </ErrorBoundary>
   );
 };
 

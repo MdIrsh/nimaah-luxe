@@ -6,7 +6,8 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('stylehub_cart');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -15,7 +16,8 @@ export const CartProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState(() => {
     try {
       const saved = localStorage.getItem('stylehub_wishlist');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -90,27 +92,38 @@ export const CartProvider = ({ children }) => {
 
   // Wishlist actions
   const addToWishlist = (product) => {
-    if (!wishlist.some((item) => item._id === product._id)) {
-      setWishlist((prev) => [...prev, product]);
-    }
+    if (!product || !product._id) return;
+    setWishlist((prev) => {
+      const list = Array.isArray(prev) ? prev : [];
+      if (!list.some((item) => item && (item._id === product._id || item.id === product._id))) {
+        return [...list, product];
+      }
+      return list;
+    });
   };
 
   const removeFromWishlist = (productId) => {
-    setWishlist((prev) => prev.filter((item) => item._id !== productId));
+    if (!productId) return;
+    setWishlist((prev) => {
+      const list = Array.isArray(prev) ? prev : [];
+      return list.filter((item) => item && item._id !== productId && item.id !== productId);
+    });
   };
 
   const isWishlisted = (productId) => {
-    return wishlist.some((item) => item._id === productId);
+    if (!productId || !Array.isArray(wishlist)) return false;
+    return wishlist.some((item) => item && (item._id === productId || item.id === productId));
   };
 
   const moveToCart = (product, size = 'M', color = null) => {
+    if (!product) return;
     addToCart(product, size, color, 1);
     removeFromWishlist(product._id);
   };
 
   // Apply Coupon
   const applyCoupon = (code) => {
-    const cleanCode = code.trim().toUpperCase();
+    const cleanCode = (code || '').trim().toUpperCase();
     if (cleanCode === 'LUXE15') {
       setCoupon({ code: 'LUXE15', discountPercent: 15 });
       setCouponError('');
@@ -131,8 +144,9 @@ export const CartProvider = ({ children }) => {
   };
 
   // Calculations
-  const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const itemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const safeCart = Array.isArray(cart) ? cart : [];
+  const subtotal = safeCart.reduce((acc, item) => acc + (Number(item?.price || 0) * Number(item?.quantity || 1)), 0);
+  const itemsCount = safeCart.reduce((acc, item) => acc + Number(item?.quantity || 1), 0);
   const discountAmount = coupon ? Math.round((subtotal * coupon.discountPercent) / 100) : 0;
   const shippingFee = subtotal > 15000 || subtotal === 0 ? 0 : 499; // Free shipping above 15,000
   const estimatedTax = Math.round((subtotal - discountAmount) * 0.05); // 5% luxury apparel GST

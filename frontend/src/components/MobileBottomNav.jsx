@@ -8,12 +8,15 @@ export const MobileBottomNav = () => {
   const { itemsCount, wishlist } = useCart();
   const { user } = useAuth();
 
+  const safeWishlistCount = Array.isArray(wishlist) ? wishlist.length : 0;
+  const safeCartCount = Number(itemsCount || 0);
+
   const tabs = [
     { name: 'Home', path: '/', icon: Home, end: true },
     { name: 'Categories', path: '/shop', icon: LayoutGrid },
-    { name: 'Wishlist', path: '/wishlist', icon: Heart, badge: wishlist.length },
+    { name: 'Wishlist', path: '/wishlist', icon: Heart, badge: safeWishlistCount },
     { name: 'Account', path: user ? '/account/profile' : '/login', icon: User },
-    { name: 'Cart', path: '/cart', icon: ShoppingBag, badge: itemsCount },
+    { name: 'Cart', path: '/cart', icon: ShoppingBag, badge: safeCartCount },
   ];
 
   return (

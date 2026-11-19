@@ -29,6 +29,7 @@
     "mongoose": "^8.10.1",
     "morgan": "^1.10.0",
     "multer": "^2.5.0",
+    "nimaah-luxe-ecommerce": "file:..",
     "razorpay": "^2.9.8",
     "socket.io": "^4.8.4"
   },

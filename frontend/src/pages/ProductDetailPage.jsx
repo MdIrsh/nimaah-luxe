@@ -32,6 +32,8 @@ export const ProductDetailPage = () => {
   const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedSize, setSelectedSize] = useState('M');
   const [selectedColor, setSelectedColor] = useState('');
@@ -55,60 +57,69 @@ export const ProductDetailPage = () => {
   });
 
   useEffect(() => {
+    let isMounted = true;
     const fetchProduct = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const data = await productService.getProductById(id);
+        if (!isMounted) return;
+        if (!data) {
+          setError('Product not found in atelier catalog.');
+          return;
+        }
         setProduct(data);
-        if (data.images && data.images.length > 0) {
+
+        // Safe image initialization
+        if (Array.isArray(data.images) && data.images.length > 0) {
           setSelectedImage(data.images[0]);
         }
-        if (data.sizes && data.sizes.length > 0) {
-          setSelectedSize(data.sizes[0]);
-        }
-        if (data.colors && data.colors.length > 0) {
-          setSelectedColor(data.colors[0].name);
+
+        // Safe size initialization
+        if (Array.isArray(data.sizes) && data.sizes.length > 0) {
+          setSelectedSize(data.sizes.includes('M') ? 'M' : data.sizes[0]);
+        } else {
+          setSelectedSize('M');
         }
 
-        const all = await productService.getProducts();
-        const related = all.filter((p) => p._id !== data._id && p.category === data.category).slice(0, 3);
-        setRelatedProducts(related);
+        // Safe color initialization
+        if (Array.isArray(data.colors) && data.colors.length > 0) {
+          const firstCol = data.colors[0];
+          setSelectedColor(typeof firstCol === 'string' ? firstCol : firstCol?.name || '');
+        } else {
+          setSelectedColor('');
+        }
+
+        // Related products (defensive)
+        try {
+          const all = await productService.getProducts();
+          if (isMounted && Array.isArray(all)) {
+            const related = all
+              .filter((p) => p && p._id !== data._id && p.category === data.category)
+              .slice(0, 3);
+            setRelatedProducts(related);
+          }
+        } catch (relErr) {
+          console.warn('Could not load related silhouettes:', relErr);
+        }
       } catch (err) {
         console.error('Error fetching product:', err);
+        if (isMounted) {
+          setError(err.response?.data?.message || 'Silhouette not found or momentarily unavailable.');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
+
     fetchProduct();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
-  if (!product) {
-    return (
-      <div className="min-h-[65vh] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="font-serif-luxury text-xl text-[#29251F]">Curating Ni'maah Luxe Piece...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const isFavorited = isWishlisted(product._id);
-  const discountPercent =
-    product.discountedPrice && product.price
-      ? Math.round(((product.price - product.discountedPrice) / product.price) * 100)
-      : null;
-
-  const handleAddToCart = () => {
-    addToCart(product, selectedSize, selectedColor, quantity);
-    setAddedSuccess(true);
-    setTimeout(() => setAddedSuccess(false), 3000);
-  };
-
-  const handleBuyNow = () => {
-    addToCart(product, selectedSize, selectedColor, quantity);
-    navigate('/checkout');
-  };
-
-  // Fetch reviews & rating summary
+  // Fetch reviews & rating summary (Hook: Must be at top level before early returns)
   const fetchReviews = useCallback(async (starFilter = selectedRatingFilter) => {
     if (!id) return;
     setReviewsLoading(true);
@@ -138,7 +149,7 @@ export const ProductDetailPage = () => {
     }
   }, [id, selectedRatingFilter]);
 
-  // Check buyer eligibility
+  // Check buyer eligibility (Hook: Must be at top level before early returns)
   useEffect(() => {
     const checkUserEligibility = async () => {
       if (user && id) {
@@ -157,12 +168,12 @@ export const ProductDetailPage = () => {
     checkUserEligibility();
   }, [user, id]);
 
-  // Load reviews on initial load & rating filter change
+  // Load reviews on initial load & rating filter change (Hook: Must be at top level)
   useEffect(() => {
     fetchReviews(selectedRatingFilter);
   }, [fetchReviews, selectedRatingFilter]);
 
-  // Socket.IO real-time subscriptions for instant live updates
+  // Socket.IO real-time subscriptions for instant live updates (Hook: Must be at top level)
   useEffect(() => {
     if (!id) return;
 
@@ -296,31 +307,123 @@ export const ProductDetailPage = () => {
     }
   };
 
+  // Safe Cart / Buy Now actions (defined before early return)
+  const handleAddToCart = () => {
+    if (!product) return;
+    addToCart(product, selectedSize, selectedColor, quantity);
+    setAddedSuccess(true);
+    setTimeout(() => setAddedSuccess(false), 3000);
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    addToCart(product, selectedSize, selectedColor, quantity);
+    navigate('/checkout');
+  };
+
+  // 1. Loading State
+  if (loading) {
+    return (
+      <div className="min-h-[65vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="font-serif-luxury text-xl text-[#29251F]">Curating Ni'maah Luxe Piece...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Error or Missing Product State
+  if (error || !product) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full bg-white border border-[#E9E1D6] p-8 sm:p-10 text-center space-y-5 shadow-lg rounded-sm">
+          <div className="w-12 h-12 rounded-full bg-[#FAF7F2] border border-[#C5A059]/40 flex items-center justify-center mx-auto text-[#C5A059]">
+            <Crown size={22} />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="font-serif-luxury text-2xl text-[#29251F] font-bold">
+              Silhouette Not Found
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-500 font-light leading-relaxed">
+              {error || 'This bespoke piece may have been retired or is momentarily unavailable in our collection.'}
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/shop"
+              className="px-6 py-2.5 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition shadow-sm rounded-xs"
+            >
+              Explore Collection
+            </Link>
+            <Link
+              to="/"
+              className="px-6 py-2.5 bg-white border border-[#E9E1D6] hover:border-[#A68B66] text-[#29251F] text-xs uppercase tracking-[0.2em] font-semibold transition rounded-xs"
+            >
+              Return Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Guaranteed Safe Calculations (Only runs when product is loaded)
+  const safePrice = Number(product.price || 0);
+  const safeDiscountedPrice = Number(product.discountedPrice || 0);
+  const isPrivilegeOffer = safeDiscountedPrice > 0 && safePrice > 0 && safeDiscountedPrice < safePrice;
+  const currentPrice = isPrivilegeOffer ? safeDiscountedPrice : safePrice;
+  const discountPercent = isPrivilegeOffer
+    ? Math.round(((safePrice - safeDiscountedPrice) / safePrice) * 100)
+    : null;
+
+  const rawRating = Number(ratingSummary?.averageRating ?? product.ratings ?? product.averageRating ?? 5);
+  const safeRatingDisplay = (!isNaN(rawRating) && rawRating > 0 ? rawRating : 5).toFixed(1);
+  const totalReviewsCount = Number(
+    ratingSummary?.totalReviews ?? product.numReviews ?? product.totalReviews ?? reviews.length ?? 0
+  );
+
+  const productImages =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images.filter(Boolean)
+      : ['https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80'];
+  const displayImage = selectedImage || productImages[0];
+
+  const productColors = Array.isArray(product.colors) ? product.colors : [];
+  const availableSizes =
+    Array.isArray(product.sizes) && product.sizes.length > 0
+      ? product.sizes
+      : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+  const stockCount = Number(product.stockCount || 0);
+  const isFavorited = isWishlisted(product._id);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 lg:py-16 space-y-12 sm:space-y-20">
       {/* Breadcrumb with Crisp Margins */}
       <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-gray-400 uppercase tracking-[0.16em] sm:tracking-[0.2em]">
         <Link to="/" className="hover:text-black">Home</Link>
         <ChevronRight size={12} />
-        <Link to={`/shop?category=${encodeURIComponent(product.category)}`} className="hover:text-black">
-          {product.category}
+        <Link to={`/shop?category=${encodeURIComponent(product.category || 'All')}`} className="hover:text-black">
+          {product.category || 'Collection'}
         </Link>
         <ChevronRight size={12} />
-        <span className="text-[#29251F] font-semibold truncate max-w-[200px] sm:max-w-xs">{product.title}</span>
+        <span className="text-[#29251F] font-semibold truncate max-w-[200px] sm:max-w-xs">{product.title || 'Haute Couture Piece'}</span>
       </nav>
 
       {/* Main Product Showcase Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 lg:gap-16">
         {/* Gallery Thumbnails + Main View */}
         <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-5">
-          {product.images?.length > 1 && (
+          {productImages.length > 1 && (
             <div className="flex sm:flex-col gap-3.5 overflow-x-auto sm:overflow-visible">
-              {product.images.map((img, idx) => (
+              {productImages.map((img, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => setSelectedImage(img)}
                   className={`w-20 aspect-[3/4] flex-shrink-0 border-2 overflow-hidden bg-[#FAF9F6] transition shadow-xs ${
-                    selectedImage === img ? 'border-[#C5A059]' : 'border-transparent hover:border-gray-300'
+                    displayImage === img ? 'border-[#C5A059]' : 'border-transparent hover:border-gray-300'
                   }`}
                 >
                   <img
@@ -341,8 +444,8 @@ export const ProductDetailPage = () => {
 
           <div className="flex-1 aspect-[3/4] bg-[#FAF9F6] border border-[#E9E1D6] overflow-hidden relative group shadow-sm">
             <img
-              src={selectedImage || product.images?.[0]}
-              alt={product.title}
+              src={displayImage}
+              alt={product.title || 'Haute Couture Silhouette'}
               referrerPolicy="no-referrer"
               onError={(e) => {
                 e.currentTarget.onerror = null;
@@ -364,7 +467,7 @@ export const ProductDetailPage = () => {
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-xs uppercase tracking-[0.3em] text-[#C5A059] font-cinzel font-semibold">
               <Crown size={14} />
-              <span>{product.brand || "Ni'maah Luxe Atelier"} • {product.category}</span>
+              <span>{product.brand || "Ni'maah Luxe Atelier"} • {product.category || 'Atelier Collection'}</span>
             </div>
             <h1 className="font-serif-luxury text-3xl sm:text-4xl lg:text-5xl text-[#29251F] leading-tight font-normal">
               {product.title}
@@ -373,14 +476,14 @@ export const ProductDetailPage = () => {
             {/* Rating breakdown with Reusable RatingStars */}
             <div className="flex items-center space-x-2.5 pt-1">
               <RatingStars
-                rating={ratingSummary?.averageRating ?? product.ratings ?? 5}
+                rating={!isNaN(rawRating) && rawRating > 0 ? rawRating : 5}
                 size="sm"
               />
               <span className="text-xs font-semibold text-[#29251F]">
-                {((ratingSummary?.averageRating ?? product.ratings) || 5.0).toFixed(1)}
+                {safeRatingDisplay}
               </span>
               <span className="text-xs text-gray-400 font-light">
-                ({ratingSummary?.totalReviews ?? product.numReviews ?? reviews.length} patron reviews)
+                ({totalReviewsCount} patron {totalReviewsCount === 1 ? 'review' : 'reviews'})
               </span>
             </div>
           </div>
@@ -388,11 +491,11 @@ export const ProductDetailPage = () => {
           {/* Pricing Row */}
           <div className="flex items-baseline space-x-4 border-y border-[#E9E1D6] py-5">
             <span className="font-serif-luxury text-3xl sm:text-4xl font-semibold text-[#29251F]">
-              ₹{(product.discountedPrice || product.price).toLocaleString('en-IN')}
+              ₹{currentPrice.toLocaleString('en-IN')}
             </span>
-            {product.discountedPrice && product.discountedPrice < product.price && (
+            {isPrivilegeOffer && (
               <span className="text-base text-gray-400 line-through">
-                ₹{product.price.toLocaleString('en-IN')}
+                ₹{safePrice.toLocaleString('en-IN')}
               </span>
             )}
             <span className="text-[11px] text-[#A68B66] uppercase tracking-wider font-semibold ml-auto">
@@ -401,7 +504,7 @@ export const ProductDetailPage = () => {
           </div>
 
           {/* Color Palette Selector */}
-          {product.colors && product.colors.length > 0 && (
+          {productColors.length > 0 && (
             <div className="space-y-2.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="uppercase tracking-[0.18em] font-semibold text-[#29251F]">
@@ -409,21 +512,26 @@ export const ProductDetailPage = () => {
                 </span>
               </div>
               <div className="flex items-center space-x-3.5">
-                {product.colors.map((col, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedColor(col.name)}
-                    className={`p-1 rounded-full border-2 transition ${
-                      selectedColor === col.name ? 'border-[#29251F]' : 'border-transparent hover:border-gray-300'
-                    }`}
-                    title={col.name}
-                  >
-                    <span
-                      className="block w-6 h-6 rounded-full border border-gray-300"
-                      style={{ backgroundColor: col.hexCode }}
-                    />
-                  </button>
-                ))}
+                {productColors.map((col, idx) => {
+                  const colName = typeof col === 'string' ? col : col?.name || `Color ${idx + 1}`;
+                  const colHex = typeof col === 'string' ? '#A68B66' : col?.hexCode || '#A68B66';
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedColor(colName)}
+                      className={`p-1 rounded-full border-2 transition ${
+                        selectedColor === colName ? 'border-[#29251F]' : 'border-transparent hover:border-gray-300'
+                      }`}
+                      title={colName}
+                    >
+                      <span
+                        className="block w-6 h-6 rounded-full border border-gray-300"
+                        style={{ backgroundColor: colHex }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -444,9 +552,10 @@ export const ProductDetailPage = () => {
               </button>
             </div>
             <div className="flex flex-wrap gap-2.5">
-              {(product.sizes || ['XS', 'S', 'M', 'L', 'XL', 'XXL']).map((sz) => (
+              {availableSizes.map((sz) => (
                 <button
                   key={sz}
+                  type="button"
                   onClick={() => setSelectedSize(sz)}
                   className={`min-w-14 py-2.5 px-3.5 text-xs uppercase tracking-widest font-semibold border transition ${
                     selectedSize === sz
@@ -464,6 +573,7 @@ export const ProductDetailPage = () => {
           <div className="flex flex-wrap items-center gap-4 sm:gap-7 pt-1">
             <div className="flex items-center border border-[#E9E1D6] bg-white shadow-xs">
               <button
+                type="button"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 className="px-4 py-2.5 text-sm hover:bg-[#FAF9F6] transition font-bold"
               >
@@ -471,6 +581,7 @@ export const ProductDetailPage = () => {
               </button>
               <span className="px-5 py-2.5 text-xs font-semibold">{quantity}</span>
               <button
+                type="button"
                 onClick={() => setQuantity(quantity + 1)}
                 className="px-4 py-2.5 text-sm hover:bg-[#FAF9F6] transition font-bold"
               >
@@ -479,10 +590,10 @@ export const ProductDetailPage = () => {
             </div>
 
             <div className="text-xs">
-              {product.stockCount > 0 ? (
+              {stockCount > 0 ? (
                 <span className="text-emerald-700 font-semibold flex items-center space-x-1.5">
                   <Check size={14} className="flex-shrink-0" />
-                  <span>Atelier In Stock ({product.stockCount} available)</span>
+                  <span>Atelier In Stock ({stockCount} available)</span>
                 </span>
               ) : (
                 <span className="text-amber-700 font-semibold">Bespoke Tailoring on Pre-order</span>
@@ -581,8 +692,8 @@ export const ProductDetailPage = () => {
               <RatingSummaryCard
                 summary={
                   ratingSummary || {
-                    averageRating: product.ratings || 5.0,
-                    totalReviews: product.numReviews || reviews.length,
+                    averageRating: !isNaN(rawRating) && rawRating > 0 ? rawRating : 5.0,
+                    totalReviews: totalReviewsCount,
                     ratingDistribution: product.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
                     ratingPercentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
                   }
@@ -731,7 +842,7 @@ export const ProductDetailPage = () => {
                     <tr
                       key={row.size}
                       onClick={() => {
-                        if ((product.sizes || []).includes(row.size)) {
+                        if (availableSizes.includes(row.size)) {
                           setSelectedSize(row.size);
                           setIsSizeGuideOpen(false);
                         }

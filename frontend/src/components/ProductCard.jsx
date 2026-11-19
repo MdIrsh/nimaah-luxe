@@ -5,6 +5,8 @@ import { useCart } from '../context/CartContext';
 import { getSocket } from '../services/socket';
 
 export const ProductCard = ({ product }) => {
+  if (!product) return null;
+
   const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
 
   const [liveRating, setLiveRating] = useState(
@@ -31,7 +33,9 @@ export const ProductCard = ({ product }) => {
   }, [product?._id]);
 
   const availableSizes =
-    product.sizes && product.sizes.length > 0 ? product.sizes : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    Array.isArray(product.sizes) && product.sizes.length > 0
+      ? product.sizes
+      : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const [selectedSize, setSelectedSize] = useState(
     availableSizes.includes('M') ? 'M' : availableSizes[0]
@@ -59,22 +63,31 @@ export const ProductCard = ({ product }) => {
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    const firstColor = Array.isArray(product.colors) && product.colors.length > 0 ? product.colors[0] : null;
     const defaultColor =
-      product.colors && product.colors.length > 0 ? product.colors[0].name : 'Royal Gold';
+      typeof firstColor === 'string'
+        ? firstColor
+        : firstColor?.name || 'Royal Gold';
     addToCart(product, selectedSize, defaultColor, 1);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1800);
   };
 
+  const safePrice = Number(product.price || 0);
+  const safeDiscountedPrice = Number(product.discountedPrice || 0);
   const discountPercent =
-    product.discountedPrice && product.price
-      ? Math.round(((product.price - product.discountedPrice) / product.price) * 100)
+    safeDiscountedPrice > 0 && safePrice > 0 && safeDiscountedPrice < safePrice
+      ? Math.round(((safePrice - safeDiscountedPrice) / safePrice) * 100)
       : null;
 
+  const rawRating = Number(liveRating || product.averageRating || product.ratings || 4.9);
+  const displayRating = (!isNaN(rawRating) && rawRating > 0 ? rawRating : 4.9).toFixed(1);
+
   const mainImage =
-    product.images?.[0] ||
+    (Array.isArray(product.images) && product.images[0]) ||
     'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=800&q=80';
-  const secondaryImage = product.images?.[1] || mainImage;
+  const secondaryImage =
+    (Array.isArray(product.images) && product.images[1]) || mainImage;
 
   return (
     <div className="group relative bg-white border border-[#E9E1D6]/80 rounded-xl sm:rounded-sm flex flex-col luxury-card-hover overflow-hidden shadow-xs">
@@ -142,7 +155,7 @@ export const ProductCard = ({ product }) => {
         {/* Rating Pill on Mobile Image Corner */}
         <div className="sm:hidden absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs px-1.5 py-0.5 rounded text-[9px] font-semibold text-[#29251F] flex items-center gap-0.5 shadow-xs">
           <Star size={9} fill="#C5A059" color="#C5A059" />
-          <span>{(liveRating || 4.9).toFixed(1)}</span>
+          <span>{displayRating}</span>
         </div>
 
         {/* Desktop Hover Overlay */}
@@ -204,11 +217,11 @@ export const ProductCard = ({ product }) => {
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <span className="text-xs sm:text-base font-bold sm:font-semibold text-[#29251F] font-sans sm:font-serif-luxury">
-                ₹{(product.discountedPrice || product.price).toLocaleString('en-IN')}
+                ₹{(safeDiscountedPrice > 0 && safeDiscountedPrice < safePrice ? safeDiscountedPrice : safePrice).toLocaleString('en-IN')}
               </span>
-              {product.discountedPrice && product.discountedPrice < product.price && (
+              {safeDiscountedPrice > 0 && safeDiscountedPrice < safePrice && (
                 <span className="text-[9.5px] sm:text-xs text-gray-400 line-through">
-                  ₹{product.price.toLocaleString('en-IN')}
+                  ₹{safePrice.toLocaleString('en-IN')}
                 </span>
               )}
             </div>
@@ -216,7 +229,7 @@ export const ProductCard = ({ product }) => {
             <div className="hidden sm:flex items-center space-x-1 text-xs text-[#C5A059]">
               <Star size={12} fill="#C5A059" />
               <span className="font-semibold text-[#29251F] text-[11px]">
-                {(liveRating || 4.9).toFixed(1)}
+                {displayRating}
               </span>
               {liveReviewsCount > 0 && (
                 <span className="text-[10px] text-gray-400 font-normal">({liveReviewsCount})</span>

@@ -11,8 +11,10 @@ export const RatingSummaryCard = ({
   hasReviewed = false,
   isVerifiedBuyer = false,
 }) => {
-  const average = summary?.averageRating || 0;
-  const total = summary?.totalReviews || 0;
+  const numAverage = Number(summary?.averageRating || 0);
+  const average = !isNaN(numAverage) ? numAverage : 0;
+  const numTotal = Number(summary?.totalReviews || 0);
+  const total = !isNaN(numTotal) ? numTotal : 0;
   const distribution = summary?.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const percentages = summary?.ratingPercentages || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
@@ -78,8 +80,8 @@ export const RatingSummaryCard = ({
         </div>
 
         {[5, 4, 3, 2, 1].map((star) => {
-          const count = distribution[star] || 0;
-          const pct = percentages[star] || 0;
+          const count = Number(distribution[star] || distribution[String(star)] || 0);
+          const pct = Number(percentages[star] || percentages[String(star)] || 0);
           const isSelected = selectedRatingFilter === star;
 
           return (
