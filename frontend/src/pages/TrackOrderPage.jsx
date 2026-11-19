@@ -273,6 +273,9 @@ export const TrackOrderPage = () => {
               Order {trackingData?.orderNumber || '#SH-10245'}
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
+              Order Date: {trackingData?.orderDate ? new Date(trackingData.orderDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'November 17, 2026'}
+            </p>
+            <p className="text-xs text-gray-400">
               Estimated delivery: {trackingData?.estimatedDeliveryDate || '24 November 2026'}
             </p>
           </div>
@@ -292,12 +295,15 @@ export const TrackOrderPage = () => {
             />
           </div>
 
-          <div className="space-y-0.5">
-            <h3 className="text-sm sm:text-base font-bold text-gray-900">
-              {activeProduct.title}
+          <div className="space-y-0.5 min-w-0">
+            <h3 className="text-sm sm:text-base font-bold text-gray-900 truncate">
+              {activeProduct.title || "Premium Women's Handbag"}
             </h3>
             <p className="text-xs text-gray-500">
-              Size: {activeProduct.size || 'M'} · Color: {activeProduct.color || 'Beige'}
+              Brand: <strong className="text-gray-700">{activeProduct.brand || 'GELANNI'}</strong>
+            </p>
+            <p className="text-xs text-gray-500">
+              {activeProduct.size ? `Size: ${activeProduct.size} · ` : ''}Color: {activeProduct.color || 'Beige'}
             </p>
             <p className="text-xs text-gray-500">
               Qty: {activeProduct.quantity || 1}
