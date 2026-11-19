@@ -279,13 +279,24 @@ export const Navbar = () => {
                   )}
                 </>
               ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="inline-block px-2.5 py-1.5 sm:px-4 sm:py-2 bg-[#29251F] hover:bg-[#C5A059] text-white text-[9.5px] sm:text-[11px] uppercase tracking-[0.08em] sm:tracking-[0.2em] font-semibold transition shadow-xs whitespace-nowrap"
-                >
-                  Sign In
-                </Link>
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="hidden sm:inline-block px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#29251F] hover:bg-[#C5A059] text-white text-[10px] sm:text-[11px] uppercase tracking-[0.15em] sm:tracking-[0.2em] font-semibold transition shadow-xs whitespace-nowrap"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="sm:hidden p-1.5 text-[#29251F] hover:text-[#A68B66] transition-colors rounded-full"
+                    title="Patron Sign In"
+                    aria-label="Sign In"
+                  >
+                    <User size={18} strokeWidth={1.6} />
+                  </Link>
+                </>
               )}
             </div>
           </div>
