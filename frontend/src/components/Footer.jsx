@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Shield, Truck, RefreshCw, Award, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Shield, Truck, RefreshCw, Award, Sparkles, ShieldCheck } from 'lucide-react';
 import InstagramIcon from './InstagramIcon';
+import { useAuth } from '../context/AuthContext';
 import logoImg from '../assets/nimaah-luxe-logo.png';
 import instaProfileImg from '../assets/nimaahluxe-profile.png';
 
 export const Footer = () => {
+  const { isAdmin } = useAuth();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -202,6 +204,18 @@ export const Footer = () => {
             <span className="hover:text-white cursor-pointer transition">Privacy Code</span>
             <span className="hover:text-white cursor-pointer transition">Terms of Atelier</span>
             <span className="hover:text-white cursor-pointer transition">Authenticity Seal</span>
+
+            {/* Staff Access: Strictly visible ONLY to verified Admin accounts */}
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                className="text-[#C5A059] hover:text-white transition font-semibold flex items-center space-x-1"
+                title="Admin Control Center"
+              >
+                <ShieldCheck size={13} className="text-[#C5A059]" />
+                <span>Staff Access</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
