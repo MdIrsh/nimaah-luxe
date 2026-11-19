@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   ShoppingBag,
   Package,
+  Users,
   ArrowLeft,
   LogOut,
   Crown,
@@ -19,6 +20,7 @@ export const AdminLayout = () => {
     { name: 'Overview', fullName: 'Dashboard Overview', path: '/admin', icon: LayoutDashboard },
     { name: 'Catalog', fullName: 'Couture Dress Catalog', path: '/admin/products', icon: ShoppingBag },
     { name: 'Orders', fullName: 'Order Fulfillment Pipeline', path: '/admin/orders', icon: Package },
+    { name: 'Customers', fullName: 'Customer Portfolio', path: '/admin/customers', icon: Users },
   ];
 
   return (

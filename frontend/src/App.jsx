@@ -26,6 +26,7 @@ import CustomerProfile from './customer/CustomerProfile';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminProducts from './admin/AdminProducts';
 import AdminOrders from './admin/AdminOrders';
+import AdminCustomers from './admin/AdminCustomers';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -140,6 +141,7 @@ export const App = () => {
               <Route index element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
               <Route path="orders" element={<AdminOrders />} />
+              <Route path="customers" element={<AdminCustomers />} />
             </Route>
 
             {/* Catch-all redirect */}

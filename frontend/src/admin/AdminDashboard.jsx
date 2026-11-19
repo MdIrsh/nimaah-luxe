@@ -13,52 +13,55 @@ import { orderService } from '../services/orderService';
 import api from '../services/api';
 
 export const AdminDashboard = () => {
-  const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+    orderStatusMap: {
+      'Order Placed': 0,
+      'Admin Received': 0,
+      'Processing & Tailoring': 0,
+      'Shipped': 0,
+      'Delivered': 0,
+      'Cancelled': 0,
+    },
+    lowStockCount: 0,
+    lowStockProducts: [],
+    recentOrders: [],
+  });
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [prodData, orderData, userRes] = await Promise.allSettled([
-          productService.getProducts(),
-          orderService.getAllOrders(),
-          api.get('/users'),
-        ]);
-
-        if (prodData.status === 'fulfilled' && Array.isArray(prodData.value)) {
-          setProducts(prodData.value);
-        }
-        if (orderData.status === 'fulfilled' && Array.isArray(orderData.value)) {
-          setOrders(orderData.value);
-        }
-        if (userRes.status === 'fulfilled' && Array.isArray(userRes.value?.data?.data)) {
-          setUsers(userRes.value.data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching admin dashboard data:', err);
-      } finally {
-        setLoading(false);
+  const fetchStats = async () => {
+    try {
+      const res = await api.get('/admin/stats');
+      if (res.data?.success && res.data.data) {
+        setStats(res.data.data);
       }
-    };
-    fetchData();
+    } catch (err) {
+      console.error('Error fetching admin dashboard stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
   }, []);
 
-  const totalRevenue = orders.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0);
-  const totalOrders = orders.length;
-  const adminReceivedCount = orders.filter((o) => o.orderStatus === 'Admin Received').length;
-  const processingCount = orders.filter((o) => o.orderStatus === 'Processing & Tailoring').length;
-  const shippedCount = orders.filter((o) => o.orderStatus === 'Shipped').length;
-  const deliveredCount = orders.filter((o) => o.orderStatus === 'Delivered').length;
+  const totalRevenue = stats.totalRevenue;
+  const totalOrders = stats.totalOrders;
+  const adminReceivedCount = stats.orderStatusMap?.['Admin Received'] || 0;
+  const processingCount = stats.orderStatusMap?.['Processing & Tailoring'] || 0;
+  const shippedCount = stats.orderStatusMap?.['Shipped'] || 0;
+  const deliveredCount = stats.orderStatusMap?.['Delivered'] || 0;
 
   const handleSeedData = async () => {
     setSeeding(true);
     try {
       await productService.seedProducts();
-      const updated = await productService.getProducts();
-      setProducts(updated);
+      await fetchStats();
       alert("Ni'maah Luxe luxury catalog successfully seeded into MongoDB!");
     } catch (err) {
       alert('Failed to seed catalog. Check MongoDB connection.');
@@ -140,7 +143,7 @@ export const AdminDashboard = () => {
             </div>
           </div>
           <p className="font-serif-luxury text-3xl font-semibold text-[#29251F]">
-            {products.length}
+            {stats.totalProducts}
           </p>
           <div className="flex items-center space-x-1 text-xs text-gray-500 font-light">
             <span>Live catalog count</span>
@@ -149,13 +152,13 @@ export const AdminDashboard = () => {
 
         <div className="bg-white border border-[#E9E1D6] p-7 space-y-3 shadow-xs">
           <div className="flex items-center justify-between text-gray-500">
-            <span className="text-xs uppercase tracking-wider font-semibold font-cinzel">Registered Users</span>
+            <span className="text-xs uppercase tracking-wider font-semibold font-cinzel">Total Customers</span>
             <div className="p-2.5 bg-[#FAF9F6] text-[#C5A059] rounded-xs border border-[#E9E1D6]">
               <Users size={18} />
             </div>
           </div>
           <p className="font-serif-luxury text-3xl font-semibold text-[#29251F]">
-            {users.length}
+            {stats.totalCustomers}
           </p>
           <div className="flex items-center space-x-1 text-xs text-emerald-700 font-medium">
             <span>Stored in nimaah_luxe.users</span>

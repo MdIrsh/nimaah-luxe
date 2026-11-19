@@ -119,3 +119,39 @@ export const updateProfile = async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 };
+
+// @desc    Admin specific login (validates credentials and asserts admin role)
+// @route   POST /api/auth/admin/login
+// @access  Public
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return errorResponse(res, 'Please provide email and password', 400);
+    }
+
+    const user = await User.findOne({ email }).select('+password');
+    if (!user || !(await user.comparePassword(password))) {
+      return errorResponse(res, 'Invalid email or password', 401);
+    }
+
+    if (user.role !== 'admin') {
+      return errorResponse(res, 'Access denied: Administrative privileges required', 403);
+    }
+
+    user.lastLoginAt = new Date();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save({ validateBeforeSave: false });
+
+    return successResponse(res, 'Admin authenticated successfully', {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      token: generateToken(user._id),
+    });
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+};

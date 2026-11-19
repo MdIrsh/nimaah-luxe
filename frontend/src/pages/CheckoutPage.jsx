@@ -14,7 +14,22 @@ import {
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/orderService';
+import { paymentService } from '../services/paymentService';
 import logoImg from '../assets/nimaah-luxe-logo.png';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export const CheckoutPage = () => {
   const { cart, subtotal, discountAmount, shippingFee, estimatedTax, grandTotal, clearCart } =
@@ -32,7 +47,7 @@ export const CheckoutPage = () => {
     country: 'India',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState('Card');
+  const [paymentMethod, setPaymentMethod] = useState('Razorpay (UPI / Card / NetBanking)');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStage, setProcessingStage] = useState('');
   const [createdOrder, setCreatedOrder] = useState(null);
@@ -45,46 +60,103 @@ export const CheckoutPage = () => {
     e.preventDefault();
     if (cart.length === 0) return;
 
+    if (!formData.fullName || !formData.phone || !formData.street || !formData.city || !formData.postalCode) {
+      alert('Please fill out all mandatory shipping address fields.');
+      return;
+    }
+
     setIsProcessing(true);
-
-    // Step 8: Make Payment
-    setProcessingStage('Initiating encrypted gateway payment...');
-    await new Promise((r) => setTimeout(r, 900));
-
-    // Step 9: Payment Verification (matching flowchart)
-    setProcessingStage('Verifying transaction authenticity with issuing bank...');
-    await new Promise((r) => setTimeout(r, 900));
-
-    // Step 10: Create Order
-    setProcessingStage('Generating bespoke Ni\'maah Luxe atelier order...');
-    const orderPayload = {
-      orderItems: cart.map((item) => ({
-        product: item.product._id,
-        title: item.product.title,
-        image: item.product.images?.[0] || '',
-        price: item.price,
-        size: item.size,
-        color: item.color,
-        quantity: item.quantity,
-      })),
-      shippingAddress: formData,
-      paymentMethod,
-      paymentId: `PAY-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-      itemsPrice: subtotal,
-      taxPrice: estimatedTax,
-      shippingPrice: shippingFee,
-      totalPrice: grandTotal,
-    };
+    setProcessingStage('Connecting to Razorpay Secure Gateway...');
 
     try {
-      const order = await orderService.createOrder(orderPayload);
-      setCreatedOrder(order);
-      clearCart();
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error('Razorpay SDK failed to load. Please verify your internet connection.');
+      }
+
+      // Step 1: Call backend to create Razorpay Order
+      setProcessingStage('Generating encrypted Razorpay Order ID on backend...');
+      const razorpayOrderData = await paymentService.createRazorpayOrder(grandTotal);
+
+      // Step 2: Open Razorpay Checkout modal
+      setProcessingStage('Awaiting Razorpay payment authorization...');
+
+      const options = {
+        key: razorpayOrderData.keyId,
+        amount: razorpayOrderData.amount,
+        currency: razorpayOrderData.currency,
+        name: "Ni'maah Luxe",
+        description: 'Luxury Boutique Haute Couture Acquisition',
+        image: logoImg,
+        order_id: razorpayOrderData.orderId,
+        prefill: {
+          name: formData.fullName,
+          email: user?.email || '',
+          contact: formData.phone || '',
+        },
+        theme: {
+          color: '#29251F',
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessing(false);
+            setProcessingStage('');
+          },
+        },
+        handler: async function (response) {
+          // Step 3: Payment captured on frontend, verify signature on backend
+          setIsProcessing(true);
+          setProcessingStage('Verifying HMAC SHA256 payment signature with bank...');
+
+          try {
+            const verifyPayload = {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderItems: cart.map((item) => ({
+                product: item.product._id,
+                title: item.product.title,
+                image: item.product.images?.[0] || '',
+                price: item.price,
+                size: item.size,
+                color: item.color,
+                quantity: item.quantity,
+              })),
+              shippingAddress: formData,
+              itemsPrice: subtotal,
+              taxPrice: estimatedTax,
+              shippingPrice: shippingFee,
+              totalPrice: grandTotal,
+            };
+
+            const verifiedOrder = await paymentService.verifyPayment(verifyPayload);
+            setCreatedOrder(verifiedOrder);
+            clearCart();
+          } catch (verifyError) {
+            console.error('Payment verification failed:', verifyError);
+            alert(
+              verifyError.response?.data?.message ||
+                'Payment verification failed. Please contact boutique support.'
+            );
+          } finally {
+            setIsProcessing(false);
+            setProcessingStage('');
+          }
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.on('payment.failed', function (response) {
+        setIsProcessing(false);
+        setProcessingStage('');
+        alert(`Payment Failed: ${response.error.description}`);
+      });
+      paymentObject.open();
     } catch (error) {
-      console.error('Failed to create order:', error);
-      alert('Order placed using local atelier confirmation.');
-    } finally {
+      console.error('Razorpay initialization error:', error);
+      alert(error.message || 'Payment initiation failed. Please try again.');
       setIsProcessing(false);
+      setProcessingStage('');
     }
   };
 

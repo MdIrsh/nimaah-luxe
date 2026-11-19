@@ -94,33 +94,34 @@ export const AdminProducts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingId) {
-      try {
-        await productService.updateProduct(editingId, form);
-      } catch {}
-      setProducts(products.map((p) => (p._id === editingId ? { ...p, ...form } : p)));
-    } else {
-      const newProduct = {
-        _id: 'prod_' + Date.now(),
-        ...form,
-        ratings: 5.0,
-        numReviews: 0,
-        createdAt: new Date().toISOString(),
-      };
-      try {
-        await productService.createProduct(form);
-      } catch {}
-      setProducts([newProduct, ...products]);
+    try {
+      if (editingId) {
+        const updated = await productService.updateProduct(editingId, form);
+        setProducts(products.map((p) => (p._id === editingId ? (updated || { ...p, ...form }) : p)));
+      } else {
+        const created = await productService.createProduct(form);
+        if (created) {
+          setProducts([created, ...products]);
+        } else {
+          await fetchProducts();
+        }
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Failed to save product:', err);
+      alert(err.response?.data?.message || 'Failed to save product to database');
     }
-    setIsModalOpen(false);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to retire this piece from the catalog?')) {
       try {
         await productService.deleteProduct(id);
-      } catch {}
-      setProducts(products.filter((p) => p._id !== id));
+        setProducts(products.filter((p) => p._id !== id));
+      } catch (err) {
+        console.error('Failed to delete product:', err);
+        alert(err.response?.data?.message || 'Failed to delete product');
+      }
     }
   };
 
