@@ -59,6 +59,9 @@ if (!fs.existsSync(uploadsStaticPath)) {
   fs.mkdirSync(uploadsStaticPath, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsStaticPath));
+app.use('/uploads', (req, res) => {
+  res.status(404).send('Upload not found');
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -97,7 +100,7 @@ if (fs.existsSync(frontendDistPath)) {
   );
 
   app.get('*', (req, res, next) => {
-    if (req.originalUrl.startsWith('/api')) {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/uploads')) {
       return next();
     }
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');

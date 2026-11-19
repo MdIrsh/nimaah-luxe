@@ -16,28 +16,24 @@ export const getProductImageUrl = (url) => {
 
   const trimmed = url.trim();
 
-  // If URL points to localhost or 127.0.0.1 (common when uploaded locally during testing)
-  if (trimmed.includes('localhost:5000') || trimmed.includes('127.0.0.1:5000')) {
-    const filename = trimmed.split('/uploads/')[1];
+  // If URL points to /uploads/ (from localhost, render, or relative)
+  if (trimmed.includes('/uploads/')) {
+    const filename = trimmed.split('/uploads/')[1]?.split('?')[0];
     if (filename) {
-      const isRemote =
-        typeof window !== 'undefined' &&
-        window.location.hostname !== 'localhost' &&
-        window.location.hostname !== '127.0.0.1';
+      if (typeof window !== 'undefined') {
+        const isLocal =
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1';
 
-      if (isRemote) {
-        // Point to high-speed CDN hosted on main repo
-        return `https://cdn.jsdelivr.net/gh/MdIrsh/nimaah-luxe@main/frontend/public/uploads/${filename}`;
+        if (isLocal && (window.location.port === '5173' || window.location.port === '3000')) {
+          // In local Vite dev, fallback to backend or root relative
+          return `/uploads/${filename}`;
+        }
+
+        // On production Render or mobile, use root relative /uploads/
+        return `/uploads/${filename}`;
       }
     }
-  }
-
-  // If URL starts with relative /uploads/
-  if (trimmed.startsWith('/uploads/')) {
-    if (typeof window !== 'undefined' && (window.location.port === '5173' || window.location.port === '3000')) {
-      return `http://${window.location.hostname}:5000${trimmed}`;
-    }
-    return trimmed;
   }
 
   return trimmed;
