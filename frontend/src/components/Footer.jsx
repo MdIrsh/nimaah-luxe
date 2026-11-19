@@ -204,18 +204,6 @@ export const Footer = () => {
             <span className="hover:text-white cursor-pointer transition">Privacy Code</span>
             <span className="hover:text-white cursor-pointer transition">Terms of Atelier</span>
             <span className="hover:text-white cursor-pointer transition">Authenticity Seal</span>
-
-            {/* Staff Access: Strictly visible ONLY to verified Admin accounts */}
-            {isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                className="text-[#C5A059] hover:text-white transition font-semibold flex items-center space-x-1"
-                title="Admin Control Center"
-              >
-                <ShieldCheck size={13} className="text-[#C5A059]" />
-                <span>Staff Access</span>
-              </Link>
-            )}
           </div>
         </div>
       </div>

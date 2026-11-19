@@ -15,11 +15,7 @@ export const MobileBottomNav = () => {
     { name: 'Home', path: '/', icon: Home, end: true },
     { name: 'Categories', path: '/shop', icon: LayoutGrid },
     { name: 'Wishlist', path: '/wishlist', icon: Heart, badge: safeWishlistCount },
-    {
-      name: isAdmin ? 'Admin' : 'Account',
-      path: isAdmin ? '/admin/dashboard' : (user ? '/account/profile' : '/login'),
-      icon: isAdmin ? ShieldCheck : User,
-    },
+    { name: 'Account', path: user ? '/account/profile' : '/login', icon: User },
     { name: 'Cart', path: '/cart', icon: ShoppingBag, badge: safeCartCount },
   ];
 
