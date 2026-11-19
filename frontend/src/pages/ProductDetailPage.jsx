@@ -14,7 +14,7 @@ import {
   X,
   MessageSquare,
 } from 'lucide-react';
-import { productService, DEMO_PRODUCTS } from '../services/productService';
+import { productService, DEMO_PRODUCTS, FALLBACK_PRODUCT_IMAGE } from '../services/productService';
 import reviewService from '../services/reviewService';
 import { getSocket, joinProductRoom, leaveProductRoom } from '../services/socket';
 import RatingStars from '../components/reviews/RatingStars';
@@ -329,8 +329,7 @@ export const ProductDetailPage = () => {
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src =
-                        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+                      e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
                     }}
                     className="w-full h-full object-cover object-top"
                   />
@@ -346,8 +345,7 @@ export const ProductDetailPage = () => {
               referrerPolicy="no-referrer"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src =
-                  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+                e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
               }}
               className="w-full h-full object-cover object-top transition duration-700 hover:scale-105 cursor-crosshair"
             />
