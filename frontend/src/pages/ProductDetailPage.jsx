@@ -811,14 +811,26 @@ export const ProductDetailPage = () => {
             let filtered = [...reviews];
 
             if (activeFilter === 'WITH_PHOTOS') {
-              filtered = filtered.filter(
-                (r) => Array.isArray(r.reviewImages) && r.reviewImages.length > 0
-              );
+              filtered = filtered.filter((r) => {
+                const imgs =
+                  (Array.isArray(r.uploadedImages) && r.uploadedImages.length > 0)
+                    ? r.uploadedImages
+                    : (Array.isArray(r.reviewImages) && r.reviewImages.length > 0)
+                    ? r.reviewImages
+                    : (Array.isArray(r.images) ? r.images : []);
+                return (
+                  imgs.filter(
+                    (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
+                  ).length > 0
+                );
+              });
             } else if (activeFilter === 'VERIFIED') {
-              filtered = filtered.filter((r) => r.isVerifiedPurchase === true);
+              filtered = filtered.filter(
+                (r) => Boolean(r.verifiedPurchase || r.isVerifiedPurchase)
+              );
             } else if (typeof activeFilter === 'number') {
               filtered = filtered.filter(
-                (r) => Math.round(r.rating) === activeFilter
+                (r) => Math.round(Number(r.rating || 0)) === activeFilter
               );
             }
 

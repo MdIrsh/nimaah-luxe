@@ -92,13 +92,41 @@ export const ReviewCard = ({
     })
     : '';
 
-  const reviewerName = review.user?.name || 'Customer';
+  const reviewerName =
+    review.customerName ||
+    review.user?.name ||
+    review.name ||
+    'Customer';
+
+  // Real user avatar ONLY (No mock/stock Unsplash fallback)
+  const userAvatarRaw = review.user?.avatar || review.customerAvatar || '';
   const reviewerAvatar =
-    review.user?.avatar ||
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
+    userAvatarRaw && !userAvatarRaw.includes('unsplash.com')
+      ? userAvatarRaw
+      : '';
+
+  const initialLetter = (reviewerName ? reviewerName.trim().charAt(0) : 'U').toUpperCase();
   const reviewerLocation = review.user?.city || review.user?.addresses?.[0]?.city || '';
 
-  const imagesList = Array.isArray(review.reviewImages) ? review.reviewImages : [];
+  const reviewTitle = (review.reviewTitle || review.title || '').trim();
+  const reviewMessage = (
+    review.reviewMessage ||
+    review.reviewText ||
+    review.comment ||
+    ''
+  ).trim();
+
+  const rawImages =
+    (Array.isArray(review.uploadedImages) && review.uploadedImages.length > 0)
+      ? review.uploadedImages
+      : (Array.isArray(review.reviewImages) && review.reviewImages.length > 0)
+      ? review.reviewImages
+      : (Array.isArray(review.images) ? review.images : []);
+
+  const imagesList = rawImages.filter(
+    (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
+  );
+  const isVerifiedBuyer = Boolean(review.verifiedPurchase || review.isVerifiedPurchase);
 
   return (
     <div className="py-4 border-b border-slate-200/90 space-y-2.5 transition">
@@ -158,20 +186,24 @@ export const ReviewCard = ({
         </div>
       )}
 
-      {/* 4. Reviewer Name & Location */}
+      {/* 4. Reviewer Name & Initial Badge (Strictly no dummy avatars) */}
       <div className="flex items-center gap-2 pt-0.5">
-        <img
-          src={reviewerAvatar}
-          alt={reviewerName}
-          referrerPolicy="no-referrer"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src =
-              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
-          }}
-          className="w-5 h-5 rounded-full object-cover border border-slate-200"
-        />
-        <span className="text-xs text-slate-500 font-semibold">
+        {reviewerAvatar ? (
+          <img
+            src={getProductImageUrl(reviewerAvatar)}
+            alt={reviewerName}
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            className="w-5 h-5 rounded-full object-cover border border-slate-200"
+          />
+        ) : (
+          <div className="w-5 h-5 rounded-full bg-[#0B192C] text-white flex items-center justify-center text-[10px] font-bold uppercase shadow-2xs">
+            {initialLetter}
+          </div>
+        )}
+        <span className="text-xs text-slate-800 font-semibold">
           {reviewerName}
           {reviewerLocation ? `, ${reviewerLocation}` : ''}
         </span>
