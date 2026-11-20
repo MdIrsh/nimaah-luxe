@@ -13,10 +13,12 @@ export const AdminLoginPage = () => {
   const { user, isAdmin, adminLogin } = useAuth();
   const navigate = useNavigate();
 
-  // If already authenticated as Admin, navigate to Admin Dashboard
+  // If already authenticated as Admin, navigate to Admin Dashboard; if customer, redirect to storefront
   useEffect(() => {
     if (user && isAdmin) {
       navigate('/admin/dashboard', { replace: true });
+    } else if (user && !isAdmin) {
+      navigate('/', { replace: true });
     }
   }, [user, isAdmin, navigate]);
 

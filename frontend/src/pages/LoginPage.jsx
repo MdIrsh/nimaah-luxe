@@ -90,16 +90,6 @@ export const LoginPage = () => {
             Create an Account
           </Link>
         </div>
-
-        <div className="pt-2 text-center">
-          <Link
-            to="/admin/login"
-            className="text-[10.5px] uppercase tracking-widest text-gray-400 hover:text-[#C5A059] transition inline-flex items-center space-x-1.5"
-          >
-            <ShieldCheck size={12} className="text-[#C5A059]" />
-            <span>Staff & Admin Sign In Portal &rarr;</span>
-          </Link>
-        </div>
       </div>
     </div>
   );
