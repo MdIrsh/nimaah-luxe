@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Star,
   CheckCircle2,
@@ -117,16 +117,34 @@ export const ReviewCard = ({
   ).trim();
 
   const rawImages =
-    (Array.isArray(review.uploadedImages) && review.uploadedImages.length > 0)
-      ? review.uploadedImages
+    (Array.isArray(review.images) && review.images.length > 0)
+      ? review.images
       : (Array.isArray(review.reviewImages) && review.reviewImages.length > 0)
       ? review.reviewImages
-      : (Array.isArray(review.images) ? review.images : []);
+      : (Array.isArray(review.uploadedImages) && review.uploadedImages.length > 0)
+      ? review.uploadedImages
+      : [];
 
   const imagesList = rawImages.filter(
     (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
   );
   const isVerifiedBuyer = Boolean(review.verifiedPurchase || review.isVerifiedPurchase);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setLightboxIndex(null);
+      if (e.key === 'ArrowLeft') {
+        setLightboxIndex((prev) => (prev > 0 ? prev - 1 : imagesList.length - 1));
+      }
+      if (e.key === 'ArrowRight') {
+        setLightboxIndex((prev) => (prev < imagesList.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, imagesList.length]);
 
   return (
     <div className="py-4 border-b border-slate-200/90 space-y-2.5 transition">
@@ -148,39 +166,44 @@ export const ReviewCard = ({
         <span className="text-xs font-bold text-[#16A34A] font-mono ml-0.5">
           {Number(review.rating || 5).toFixed(1)}
         </span>
-        {review.reviewTitle && (
+        {reviewTitle && (
           <>
             <span className="text-slate-400 font-bold">•</span>
             <h5 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
-              {review.reviewTitle}
+              {reviewTitle}
             </h5>
           </>
         )}
       </div>
 
       {/* 2. Review Description */}
-      <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal whitespace-pre-line">
-        {review.reviewText}
-      </p>
+      {reviewMessage && (
+        <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal whitespace-pre-line">
+          {reviewMessage}
+        </p>
+      )}
 
       {/* 3. Customer Review Photos Gallery */}
       {imagesList.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+        <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1">
           {imagesList.map((img, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setLightboxIndex(idx)}
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
-              title={`Click to view photo ${idx + 1}`}
+              title={`Click to expand photo ${idx + 1} of ${imagesList.length}`}
             >
               <img
                 src={getProductImageUrl(img)}
-                alt=""
+                alt={`Customer review photo ${idx + 1}`}
                 referrerPolicy="no-referrer"
                 onError={handleImageError}
                 className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
               />
+              <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] font-bold px-1 rounded">
+                {idx + 1}
+              </span>
             </button>
           ))}
         </div>
@@ -368,6 +391,32 @@ export const ReviewCard = ({
                 </button>
               )}
             </div>
+
+            {/* Thumbnail Navigator Strip inside Lightbox */}
+            {imagesList.length > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-100 overflow-x-auto">
+                {imagesList.map((thumb, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setLightboxIndex(idx)}
+                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
+                      lightboxIndex === idx
+                        ? 'border-blue-600 scale-105 shadow-xs'
+                        : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={getProductImageUrl(thumb)}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      onError={handleImageError}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

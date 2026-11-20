@@ -99,6 +99,66 @@ export const uploadService = {
       });
     }
   },
+
+  uploadMultipleImages: async (files, onProgress) => {
+    if (!files || files.length === 0) return [];
+    const fileList = Array.from(files);
+
+    // 1. Validate each file
+    for (const file of fileList) {
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        throw new Error(`"${file.name}": ${validation.error}`);
+      }
+    }
+
+    // 2. Try batch upload in one multi-file multipart request
+    try {
+      const formData = new FormData();
+      fileList.forEach((file) => formData.append('images', file));
+
+      const response = await api.post('/upload', formData, {
+        headers: {
+          'Content-Type': undefined,
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total && onProgress) {
+            const pct = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onProgress(pct);
+          }
+        },
+      });
+
+      const resData = response.data?.data || response.data;
+      if (Array.isArray(resData?.urls) && resData.urls.length > 0) {
+        if (onProgress) onProgress(100);
+        return resData.urls;
+      }
+      if (resData?.url) {
+        if (onProgress) onProgress(100);
+        return [resData.url];
+      }
+    } catch (batchErr) {
+      console.warn('Batch upload warning, executing resilient file-by-file upload:', batchErr.message);
+    }
+
+    // 3. Fallback: upload each file individually
+    const collectedUrls = [];
+    for (let i = 0; i < fileList.length; i++) {
+      const result = await uploadService.uploadImage(fileList[i], (pct) => {
+        if (onProgress) {
+          const overall = Math.round(((i + pct / 100) / fileList.length) * 100);
+          onProgress(overall);
+        }
+      });
+      if (result && result.url) {
+        collectedUrls.push(result.url);
+      }
+    }
+
+    if (onProgress) onProgress(100);
+    return collectedUrls;
+  },
 };
 
 export default uploadService;

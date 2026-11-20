@@ -57,11 +57,11 @@ export const upload = multer({
   fileFilter,
 });
 
-// Express middleware wrapper to catch multer errors cleanly
+// Express middleware wrapper to catch multer errors cleanly and support single and multiple file uploads
 export const handleUploadMiddleware = (req, res, next) => {
-  const uploadSingle = upload.single('image');
+  const uploadHandler = upload.any();
 
-  uploadSingle(req, res, (err) => {
+  uploadHandler(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
@@ -81,7 +81,11 @@ export const handleUploadMiddleware = (req, res, next) => {
       });
     }
 
-    if (!req.file) {
+    if (req.files && req.files.length > 0) {
+      req.file = req.files[0];
+    }
+
+    if (!req.file && (!req.files || req.files.length === 0)) {
       return res.status(400).json({
         success: false,
         message: 'No image file uploaded. Please select an image.',

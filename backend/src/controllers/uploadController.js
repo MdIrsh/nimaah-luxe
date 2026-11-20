@@ -15,50 +15,21 @@ if (
   });
 }
 
-// @desc    Upload an image (supports up to 50MB, formats: JPG, JPEG, PNG, WEBP)
+// @desc    Upload image(s) (supports up to 50MB per file, formats: JPG, JPEG, PNG, WEBP)
 // @route   POST /api/upload
 // @access  Public / Private
 export const uploadImage = async (req, res) => {
   try {
-    const file = req.file;
-    if (!file) {
+    const files =
+      req.files && req.files.length > 0 ? req.files : req.file ? [req.file] : [];
+
+    if (!files || files.length === 0) {
       return errorResponse(res, 'No image file uploaded', 400);
     }
 
-    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    const uploadedResults = [];
 
-    // If Cloudinary is configured, upload to Cloudinary
-    if (
-      process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET
-    ) {
-      try {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'stylehub-luxe',
-          resource_type: 'image',
-          allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-          max_bytes: 50 * 1024 * 1024,
-        });
-
-        // Clean up temporary local disk file
-        try {
-          fs.unlinkSync(file.path);
-        } catch {}
-
-        return successResponse(res, 'Image uploaded successfully to Cloudinary', {
-          url: result.secure_url,
-          filename: file.originalname,
-          size: `${fileSizeMB} MB`,
-          format: result.format,
-          publicId: result.public_id,
-        });
-      } catch (cloudErr) {
-        console.warn('Cloudinary upload warning (falling back to server upload):', cloudErr.message);
-      }
-    }
-
-    // Server-hosted fallback URL (smart protocol & reverse-proxy detection)
+    // Protocol & baseUrl detection
     const isHttps =
       req.protocol === 'https' ||
       req.headers['x-forwarded-proto'] === 'https' ||
@@ -69,13 +40,57 @@ export const uploadImage = async (req, res) => {
       process.env.RENDER_EXTERNAL_URL ||
       process.env.BACKEND_URL ||
       `${protocol}://${host}`;
-    const serverUrl = `${baseUrl.replace(/\/$/, '')}/uploads/${file.filename}`;
 
-    return successResponse(res, 'Image uploaded successfully to server', {
-      url: serverUrl,
-      filename: file.originalname,
-      size: `${fileSizeMB} MB`,
-      format: file.mimetype.split('/')[1] || 'image',
+    const hasCloudinary = Boolean(
+      process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET
+    );
+
+    for (const file of files) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      let uploadedUrl = null;
+
+      if (hasCloudinary) {
+        try {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: 'stylehub-luxe',
+            resource_type: 'image',
+            allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+            max_bytes: 50 * 1024 * 1024,
+          });
+
+          try {
+            fs.unlinkSync(file.path);
+          } catch {}
+
+          uploadedUrl = result.secure_url;
+        } catch (cloudErr) {
+          console.warn('Cloudinary upload warning (fallback to server disk):', cloudErr.message);
+        }
+      }
+
+      if (!uploadedUrl) {
+        uploadedUrl = `${baseUrl.replace(/\/$/, '')}/uploads/${file.filename}`;
+      }
+
+      uploadedResults.push({
+        url: uploadedUrl,
+        filename: file.originalname,
+        size: `${fileSizeMB} MB`,
+        format: file.mimetype?.split('/')[1] || 'image',
+      });
+    }
+
+    if (uploadedResults.length === 1) {
+      return successResponse(res, 'Image uploaded successfully', uploadedResults[0]);
+    }
+
+    return successResponse(res, 'Images uploaded successfully', {
+      url: uploadedResults[0].url,
+      urls: uploadedResults.map((r) => r.url),
+      images: uploadedResults,
+      count: uploadedResults.length,
     });
   } catch (error) {
     console.error('Upload controller error:', error);

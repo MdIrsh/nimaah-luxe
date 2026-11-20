@@ -2,6 +2,8 @@ import express from 'express';
 import {
   createReview,
   getProductReviews,
+  getReviewById,
+  getReviewOrProductReviews,
   getProductRatingSummary,
   checkReviewEligibility,
   updateReview,
@@ -21,8 +23,11 @@ const router = express.Router();
 // POST /api/reviews -> Submit a review (authenticated customer or guest)
 router.post('/', protectOptional, createReview);
 
-// GET /api/reviews/:productId -> Fetch reviews for product
-router.get('/:productId', getProductReviews);
+// GET /api/reviews/product/:productId -> Explicit endpoint to fetch reviews for a product
+router.get('/product/:productId', getProductReviews);
+
+// GET /api/reviews/single/:reviewId -> Explicit endpoint to fetch a single review
+router.get('/single/:reviewId', getReviewById);
 
 // GET /api/reviews/:productId/rating -> Fetch rating summary
 router.get('/:productId/rating', getProductRatingSummary);
@@ -30,15 +35,16 @@ router.get('/:productId/rating', getProductRatingSummary);
 // GET /api/reviews/:productId/eligibility -> Check customer review eligibility
 router.get('/:productId/eligibility', protect, checkReviewEligibility);
 
-// Single Review operations:
+// Single Review operations / Smart ID dispatcher:
 router
   .route('/:reviewId')
+  .get(getReviewOrProductReviews)
   .put(protect, updateReview)
   .delete(protect, deleteReview);
 
 // Helpful feedback & reporting
-router.post('/:reviewId/helpful', protect, markHelpful);
-router.post('/:reviewId/report', protect, reportReview);
+router.post('/:reviewId/helpful', protectOptional, markHelpful);
+router.post('/:reviewId/report', protectOptional, reportReview);
 
 // Admin Moderation Endpoints:
 router.get('/admin/all', protect, adminOnly, getAdminReviews);

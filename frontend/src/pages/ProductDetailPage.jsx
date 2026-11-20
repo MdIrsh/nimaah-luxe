@@ -206,8 +206,15 @@ export const ProductDetailPage = () => {
     const socket = getSocket();
 
     if (socket) {
+      const isForThisProduct = (rev) =>
+        rev &&
+        (rev.product === id ||
+          rev.product?._id === id ||
+          rev.productId === id ||
+          rev.productId?._id === id);
+
       const onReviewCreated = (data) => {
-        if (data?.review && (data.review.product === id || data.review.product?._id === id)) {
+        if (data?.review && isForThisProduct(data.review)) {
           setReviews((prev) => [data.review, ...prev.filter((r) => r._id !== data.review._id)]);
           if (data.productRating) {
             setRatingSummary(data.productRating);
@@ -225,7 +232,7 @@ export const ProductDetailPage = () => {
       };
 
       const onReviewUpdated = (data) => {
-        if (data?.review && (data.review.product === id || data.review.product?._id === id)) {
+        if (data?.review && isForThisProduct(data.review)) {
           setReviews((prev) =>
             prev.map((r) => (r._id === data.review._id ? data.review : r))
           );
@@ -245,7 +252,7 @@ export const ProductDetailPage = () => {
       };
 
       const onReviewDeleted = (data) => {
-        if (data?.productId === id) {
+        if (data?.productId === id || data?.product === id) {
           setReviews((prev) => prev.filter((r) => r._id !== data.reviewId));
           if (data.productRating) {
             setRatingSummary(data.productRating);
@@ -263,7 +270,7 @@ export const ProductDetailPage = () => {
       };
 
       const onRatingUpdated = (data) => {
-        if (data?.productId === id) {
+        if (data?.productId === id || data?.product === id) {
           setRatingSummary(data);
           setProduct((prev) =>
             prev

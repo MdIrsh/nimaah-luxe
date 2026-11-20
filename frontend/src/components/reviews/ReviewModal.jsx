@@ -73,41 +73,48 @@ export const ReviewModal = ({
   };
 
   const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const fileList = Array.from(e.target.files || []);
+    if (!fileList || fileList.length === 0) return;
 
     setUploadError('');
-
-    // Pre-validate file type with mobile compatibility
-    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    const isImage = (file.type && file.type.toLowerCase().startsWith('image/')) || validExts.includes(ext);
-
-    if (!isImage) {
-      setUploadError('Only JPG, JPEG, PNG, and WEBP formats are supported.');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
-    // 50 MB check
-    if (file.size > 50 * 1024 * 1024) {
-      setUploadError('Image size must not exceed 50 MB.');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
-    setSelectedFile(file);
     setIsUploading(true);
     setUploadProgress(0);
 
+    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+    const validFiles = [];
+
+    for (const file of fileList) {
+      const ext = file.name ? file.name.split('.').pop()?.toLowerCase() : '';
+      const isImage =
+        (file.type && file.type.toLowerCase().startsWith('image/')) ||
+        validExts.includes(ext);
+
+      if (!isImage) {
+        setUploadError(`"${file.name}" is not supported. Please choose JPG, JPEG, PNG, or WEBP.`);
+        continue;
+      }
+
+      if (file.size > 50 * 1024 * 1024) {
+        setUploadError(`"${file.name}" exceeds 50 MB.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     try {
-      const result = await uploadService.uploadImage(file, (pct) => {
+      const urls = await uploadService.uploadMultipleImages(validFiles, (pct) => {
         setUploadProgress(pct);
       });
 
-      if (result && result.url) {
-        setImages((prev) => [...prev, result.url]);
-        setSelectedFile(null);
+      if (Array.isArray(urls) && urls.length > 0) {
+        setImages((prev) => [...prev, ...urls]);
         setUploadProgress(100);
       }
     } catch (err) {
@@ -368,6 +375,7 @@ export const ReviewModal = ({
               <input
                 ref={fileInputRef}
                 type="file"
+                multiple
                 accept="image/*,.jpg,.jpeg,.png,.webp"
                 onChange={handleFileSelect}
                 disabled={isUploading}
@@ -424,29 +432,38 @@ export const ReviewModal = ({
 
             {/* Thumbnail Preview Strip */}
             {images.length > 0 && (
-              <div className="flex flex-wrap gap-2.5 pt-1">
-                {images.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative w-16 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-2xs group"
-                  >
-                    <img
-                      src={getProductImageUrl(img)}
-                      alt="Uploaded review"
-                      referrerPolicy="no-referrer"
-                      onError={handleImageError}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(idx)}
-                      className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-red-600 text-white rounded-full transition cursor-pointer"
-                      title="Remove image"
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-0.5">
+                  <span>Attached Photos ({images.length})</span>
+                  <span className="text-[11px] text-blue-600">Click trash icon to remove</span>
+                </div>
+                <div className="flex flex-wrap gap-2.5">
+                  {images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-2xs group bg-slate-100"
                     >
-                      <Trash2 size={11} />
-                    </button>
-                  </div>
-                ))}
+                      <img
+                        src={getProductImageUrl(img)}
+                        alt={`Uploaded photo ${idx + 1}`}
+                        referrerPolicy="no-referrer"
+                        onError={handleImageError}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                        #{idx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-1 right-1 p-1 bg-black/70 hover:bg-red-600 text-white rounded-full transition cursor-pointer"
+                        title="Remove image"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

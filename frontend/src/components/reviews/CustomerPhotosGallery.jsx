@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ZoomIn, CheckCircle2, ChevronLeft, ChevronRight, Camera } from 'lucide-react';
 import { getProductImageUrl, handleImageError } from '../../utils/imageUtils';
 
@@ -9,11 +9,13 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
   const allPhotos = [];
   reviews.forEach((rev) => {
     const rawImages =
-      (Array.isArray(rev.uploadedImages) && rev.uploadedImages.length > 0)
-        ? rev.uploadedImages
+      (Array.isArray(rev.images) && rev.images.length > 0)
+        ? rev.images
         : (Array.isArray(rev.reviewImages) && rev.reviewImages.length > 0)
         ? rev.reviewImages
-        : (Array.isArray(rev.images) ? rev.images : []);
+        : (Array.isArray(rev.uploadedImages) && rev.uploadedImages.length > 0)
+        ? rev.uploadedImages
+        : [];
 
     if (rawImages.length > 0) {
       rawImages.forEach((img) => {
@@ -44,6 +46,22 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
       });
     }
   });
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (activePhotoIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setActivePhotoIndex(null);
+      if (e.key === 'ArrowLeft') {
+        setActivePhotoIndex((prev) => (prev > 0 ? prev - 1 : allPhotos.length - 1));
+      }
+      if (e.key === 'ArrowRight') {
+        setActivePhotoIndex((prev) => (prev < allPhotos.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePhotoIndex, allPhotos.length]);
 
   // STRICTLY NO MOCK PHOTOS: If no customer has uploaded photos yet, render nothing!
   if (allPhotos.length === 0) return null;
@@ -167,6 +185,32 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
               <p className="text-xs text-slate-600 font-medium italic pt-1">
                 "{currentPhoto.title}"
               </p>
+            )}
+
+            {/* Thumbnail Navigator Strip inside Lightbox */}
+            {allPhotos.length > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-100 overflow-x-auto no-scrollbar">
+                {allPhotos.map((thumb, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActivePhotoIndex(idx)}
+                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition cursor-pointer flex-shrink-0 ${
+                      activePhotoIndex === idx
+                        ? 'border-blue-600 scale-105 shadow-xs'
+                        : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={thumb.url}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      onError={handleImageError}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>

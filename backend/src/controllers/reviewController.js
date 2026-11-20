@@ -85,13 +85,20 @@ export const createReview = async (req, res) => {
 
     const review = await Review.create({
       user: reviewUserId,
+      userId: reviewUserId,
       product: productId,
+      productId: productId,
       order: deliveredOrder ? deliveredOrder._id : null,
+      orderId: deliveredOrder ? deliveredOrder._id : null,
       rating: starRating,
       reviewTitle: title.trim(),
+      title: title.trim(),
       reviewText: comment.trim(),
+      comment: comment.trim(),
       reviewImages: imagesList,
+      images: imagesList,
       isVerifiedPurchase: Boolean(deliveredOrder),
+      verifiedPurchase: Boolean(deliveredOrder),
       status: 'APPROVED', // Instant live publication
       helpfulCount: 0,
       unhelpfulCount: 0,
@@ -188,6 +195,58 @@ export const getProductReviews = async (req, res) => {
     console.error('Error fetching reviews:', error);
     return errorResponse(res, error.message, 500);
   }
+};
+
+// @desc    Get individual review by ID
+// @route   GET /api/reviews/:reviewId
+// @access  Public
+export const getReviewById = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    if (!reviewId || !mongoose.Types.ObjectId.isValid(reviewId)) {
+      return errorResponse(res, 'Valid Review ID is required', 400);
+    }
+
+    const review = await Review.findById(reviewId)
+      .populate('user', 'name email avatar')
+      .populate('product', 'title images price category ratings');
+
+    if (!review) {
+      return errorResponse(res, 'Review not found', 404);
+    }
+
+    return successResponse(res, 'Review retrieved successfully', review);
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+};
+
+// @desc    Dispatcher: Get review by ID OR product reviews
+// @route   GET /api/reviews/:id
+// @access  Public
+export const getReviewOrProductReviews = async (req, res, next) => {
+  const { id } = req.params;
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    return errorResponse(res, 'Valid identifier is required', 400);
+  }
+
+  // Check if ID is a product
+  const isProduct = await Product.exists({ _id: id });
+  if (isProduct) {
+    req.params.productId = id;
+    return getProductReviews(req, res);
+  }
+
+  // Otherwise check if ID is a single review
+  const isReview = await Review.exists({ _id: id });
+  if (isReview) {
+    req.params.reviewId = id;
+    return getReviewById(req, res);
+  }
+
+  // Fallback to product reviews query
+  req.params.productId = id;
+  return getProductReviews(req, res);
 };
 
 // @desc    Get product rating summary & breakdown
