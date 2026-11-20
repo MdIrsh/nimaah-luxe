@@ -3,6 +3,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import cloudinary, { uploadStreamToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
+import { Media } from '../models/Media.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,17 +77,40 @@ export const uploadImage = async (req, res) => {
         }
       }
 
-      // 2. Resilient fallback to server disk if Cloudinary was unavailable or restricted
+      // 2. Resilient permanent fallback to MongoDB Atlas & server disk if Cloudinary was restricted
       if (!uploadedUrl) {
         const fallbackFilename = `${cleanBaseName}-${Date.now()}${ext}`;
         const filePath = path.join(uploadDir, fallbackFilename);
 
         if (file.buffer) {
-          fs.writeFileSync(filePath, file.buffer);
+          // A. Save to disk cache
+          try {
+            fs.writeFileSync(filePath, file.buffer);
+          } catch (fsErr) {
+            console.warn('Local disk cache write failed:', fsErr.message);
+          }
+
+          // B. Save permanently to MongoDB Atlas so Render redeploys NEVER lose the image
+          try {
+            const base64Url = `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`;
+            await Media.findOneAndUpdate(
+              { filename: fallbackFilename },
+              {
+                filename: fallbackFilename,
+                contentType: file.mimetype || 'image/jpeg',
+                data: file.buffer,
+                base64Url,
+                size: file.size,
+              },
+              { upsert: true, new: true }
+            );
+          } catch (dbErr) {
+            console.error('Failed to save media to MongoDB:', dbErr.message);
+          }
         }
         uploadedUrl = `${baseUrl.replace(/\/$/, '')}/uploads/${fallbackFilename}`;
         publicId = fallbackFilename;
-        uploadSource = 'server-disk';
+        uploadSource = 'mongodb-atlas';
       }
 
       uploadedResults.push({

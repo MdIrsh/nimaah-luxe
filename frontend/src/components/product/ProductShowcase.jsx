@@ -104,11 +104,10 @@ export const ProductShowcase = ({
                 type="button"
                 onClick={() => onSelectImage(img)}
                 aria-label={`View thumbnail ${idx + 1}`}
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-white flex-shrink-0 p-1 transition-all cursor-pointer border-2 ${
-                  isSelected
-                    ? 'border-blue-600 ring-2 ring-blue-100 shadow-sm scale-102'
-                    : 'border-slate-200/80 hover:border-blue-300 opacity-80 hover:opacity-100'
-                }`}
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-white flex-shrink-0 p-1 transition-all cursor-pointer border-2 ${isSelected
+                  ? 'border-blue-600 ring-2 ring-blue-100 shadow-sm scale-102'
+                  : 'border-slate-200/80 hover:border-blue-300 opacity-80 hover:opacity-100'
+                  }`}
               >
                 <img
                   src={img}

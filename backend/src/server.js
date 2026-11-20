@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
 import { initSocket } from './config/socket.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import { Media } from './models/Media.js';
 
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -58,9 +59,37 @@ const uploadsStaticPath = path.resolve(__dirname, '../uploads');
 if (!fs.existsSync(uploadsStaticPath)) {
   fs.mkdirSync(uploadsStaticPath, { recursive: true });
 }
+// Serve uploaded images: first check disk cache; if missing (e.g. after Render redeploy), seamlessly fetch from MongoDB Atlas Media
 app.use('/uploads', express.static(uploadsStaticPath));
-app.use('/uploads', (req, res) => {
-  res.status(404).send('Upload not found');
+app.get('/uploads/:filename', async (req, res, next) => {
+  try {
+    const filename = req.params.filename;
+    const diskPath = path.join(uploadsStaticPath, filename);
+
+    // 1. If exists on disk cache
+    if (fs.existsSync(diskPath)) {
+      return res.sendFile(diskPath);
+    }
+
+    // 2. Fallback to MongoDB Atlas permanent storage
+    const media = await Media.findOne({ filename });
+    if (media && media.data) {
+      // Re-hydrate disk cache for subsequent requests
+      try {
+        fs.writeFileSync(diskPath, media.data);
+      } catch (writeErr) {
+        // Non-blocking
+      }
+      res.set('Content-Type', media.contentType || 'image/jpeg');
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.send(media.data);
+    }
+
+    // 3. If file not found anywhere
+    return res.status(404).send('Upload not found');
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Health Check

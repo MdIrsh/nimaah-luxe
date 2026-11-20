@@ -12,10 +12,10 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
       (Array.isArray(rev.images) && rev.images.length > 0)
         ? rev.images
         : (Array.isArray(rev.reviewImages) && rev.reviewImages.length > 0)
-        ? rev.reviewImages
-        : (Array.isArray(rev.uploadedImages) && rev.uploadedImages.length > 0)
-        ? rev.uploadedImages
-        : [];
+          ? rev.reviewImages
+          : (Array.isArray(rev.uploadedImages) && rev.uploadedImages.length > 0)
+            ? rev.uploadedImages
+            : [];
 
     if (rawImages.length > 0) {
       rawImages.forEach((img) => {
@@ -36,9 +36,9 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
               '',
             date: rev.createdAt
               ? new Date(rev.createdAt).toLocaleDateString('en-US', {
-                  month: 'short',
-                  year: 'numeric',
-                })
+                month: 'short',
+                year: 'numeric',
+              })
               : '',
             isVerified: Boolean(rev.verifiedPurchase || rev.isVerifiedPurchase),
           });
@@ -195,11 +195,10 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
                     key={idx}
                     type="button"
                     onClick={() => setActivePhotoIndex(idx)}
-                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition cursor-pointer flex-shrink-0 ${
-                      activePhotoIndex === idx
-                        ? 'border-blue-600 scale-105 shadow-xs'
-                        : 'border-transparent opacity-60 hover:opacity-100'
-                    }`}
+                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition cursor-pointer flex-shrink-0 ${activePhotoIndex === idx
+                      ? 'border-blue-600 scale-105 shadow-xs'
+                      : 'border-transparent opacity-60 hover:opacity-100'
+                      }`}
                   >
                     <img
                       src={thumb.url}

@@ -120,10 +120,10 @@ export const ReviewCard = ({
     (Array.isArray(review.images) && review.images.length > 0)
       ? review.images
       : (Array.isArray(review.reviewImages) && review.reviewImages.length > 0)
-      ? review.reviewImages
-      : (Array.isArray(review.uploadedImages) && review.uploadedImages.length > 0)
-      ? review.uploadedImages
-      : [];
+        ? review.reviewImages
+        : (Array.isArray(review.uploadedImages) && review.uploadedImages.length > 0)
+          ? review.uploadedImages
+          : [];
 
   const imagesList = rawImages.filter(
     (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
@@ -400,11 +400,10 @@ export const ReviewCard = ({
                     key={idx}
                     type="button"
                     onClick={() => setLightboxIndex(idx)}
-                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition cursor-pointer ${
-                      lightboxIndex === idx
-                        ? 'border-blue-600 scale-105 shadow-xs'
-                        : 'border-transparent opacity-60 hover:opacity-100'
-                    }`}
+                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition cursor-pointer ${lightboxIndex === idx
+                      ? 'border-blue-600 scale-105 shadow-xs'
+                      : 'border-transparent opacity-60 hover:opacity-100'
+                      }`}
                   >
                     <img
                       src={getProductImageUrl(thumb)}
