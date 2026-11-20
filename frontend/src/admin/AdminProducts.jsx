@@ -46,55 +46,82 @@ export const AdminProducts = () => {
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadStatusText, setUploadStatusText] = useState('');
   const [uploadError, setUploadError] = useState('');
+  const [urlInput, setUrlInput] = useState('');
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleMultipleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     setUploadError('');
-
-    // Pre-validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
-
-    if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(ext)) {
-      setUploadError('Only JPG, JPEG, PNG, and WEBP formats are supported.');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
-    // 50 MB check
-    if (file.size > 50 * 1024 * 1024) {
-      setUploadError('Image size must not exceed 50 MB.');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
-    setSelectedFile(file);
     setIsUploading(true);
     setUploadProgress(0);
+    setUploadStatusText(`Uploading ${files.length} photo${files.length > 1 ? 's' : ''} to Cloudinary...`);
 
     try {
-      const res = await uploadService.uploadImage(file, (pct) => {
+      const uploadedUrls = await uploadService.uploadMultipleImages(files, (pct) => {
         setUploadProgress(pct);
       });
 
-      if (res && res.url) {
-        setForm((prev) => ({ ...prev, images: [res.url] }));
-        setSelectedFile(null);
+      if (uploadedUrls && uploadedUrls.length > 0) {
+        setForm((prev) => {
+          const current = (prev.images || []).filter(
+            (img) => img && img !== FALLBACK_PRODUCT_IMAGE
+          );
+          return {
+            ...prev,
+            images: [...current, ...uploadedUrls],
+          };
+        });
         setUploadProgress(100);
+        setUploadStatusText(`${uploadedUrls.length} photo(s) added successfully!`);
       }
     } catch (err) {
-      console.error('Upload failed:', err);
-      // Preserve existing image if upload fails!
-      setUploadError(err.message || 'Image upload failed. Existing image preserved.');
+      console.error('Multiple upload failed:', err);
+      setUploadError(err.message || 'Image upload failed. Existing images preserved.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      setTimeout(() => setUploadStatusText(''), 3500);
     }
+  };
+
+  const handleAddImageUrl = () => {
+    if (!urlInput.trim()) return;
+    const cleaned = cleanImageUrl(urlInput.trim());
+    setForm((prev) => {
+      const current = (prev.images || []).filter(
+        (img) => img && img !== FALLBACK_PRODUCT_IMAGE
+      );
+      return {
+        ...prev,
+        images: [...current, cleaned],
+      };
+    });
+    setUrlInput('');
+  };
+
+  const handleSetMainImage = (index) => {
+    if (index === 0) return;
+    setForm((prev) => {
+      const images = [...(prev.images || [])];
+      const [selected] = images.splice(index, 1);
+      return {
+        ...prev,
+        images: [selected, ...images],
+      };
+    });
+  };
+
+  const handleRemoveImage = (index) => {
+    setForm((prev) => {
+      const images = (prev.images || []).filter((_, idx) => idx !== index);
+      return {
+        ...prev,
+        images: images.length > 0 ? images : [FALLBACK_PRODUCT_IMAGE],
+      };
+    });
   };
 
   const [form, setForm] = useState({
@@ -307,16 +334,23 @@ export const AdminProducts = () => {
               {filtered.map((p) => (
                 <tr key={p._id} className="hover:bg-[#FAF9F6]/60 transition">
                   <td className="py-3 px-4 flex items-center space-x-3">
-                    <img
-                      src={getProductImageUrl(p.images?.[0])}
-                      alt={p.title}
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
-                      }}
-                      className="w-10 h-14 object-cover object-top border border-[#E9E1D6] rounded-xs bg-[#FAF9F6]"
-                    />
+                    <div className="relative shrink-0">
+                      <img
+                        src={getProductImageUrl(p.images?.[0])}
+                        alt={p.title}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                        }}
+                        className="w-10 h-14 object-cover object-top border border-[#E9E1D6] rounded-xs bg-[#FAF9F6]"
+                      />
+                      {p.images && p.images.length > 1 && (
+                        <span className="absolute -bottom-1 -right-1 bg-[#14110C] text-[#C5A059] border border-[#C5A059]/40 text-[9px] font-bold px-1 rounded shadow-xs" title={`${p.images.length} images total`}>
+                          +{p.images.length - 1}
+                        </span>
+                      )}
+                    </div>
                     <div>
                       <p className="font-serif-luxury text-sm font-semibold text-[#29251F]">{p.title}</p>
                       <p className="text-[10px] text-gray-400">{p.brand} • {p.fabric || 'Pure Silk'}</p>
@@ -492,59 +526,78 @@ export const AdminProducts = () => {
                   />
                 </div>
 
-                <div className="col-span-2 sm:col-span-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block uppercase tracking-wider text-gray-500">
-                      Product Photo
-                    </label>
-                    <span className="text-[9.5px] text-gray-400">
-                      Max 50 MB • JPG, PNG, WEBP
-                    </span>
-                  </div>
+                <div className="col-span-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E9E1D6]">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <label className="block uppercase tracking-wider text-gray-700 font-bold text-xs">
+                          Product Photos & Gallery
+                        </label>
+                        <span className="text-[10px] bg-[#C5A059]/10 text-[#C5A059] font-bold px-2 py-0.5 rounded-full border border-[#C5A059]/30">
+                          {(form.images || []).length} Photo{(form.images || []).length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        Image #1 is the <strong className="text-[#C5A059]">Main Cover Photo</strong>. Additional images form the interactive 3D gallery.
+                      </p>
+                    </div>
 
-                  <input
-                    type="text"
-                    required
-                    value={form.images[0] || ''}
-                    onChange={(e) => {
-                      const cleaned = cleanImageUrl(e.target.value);
-                      setForm({ ...form, images: [cleaned] });
-                    }}
-                    className="w-full p-2 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66] text-xs"
-                    placeholder="https://... (Direct image or Google image URL)"
-                  />
-
-                  {/* File Upload Trigger */}
-                  <div className="mt-2 flex items-center gap-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      id="admin-product-file-upload"
-                      accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                      onChange={handleFileUpload}
-                      disabled={isUploading}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="admin-product-file-upload"
-                      className={`px-3 py-1.5 bg-white border border-[#E9E1D6] hover:border-[#C5A059] text-[#14110C] text-[11px] font-semibold rounded cursor-pointer inline-flex items-center space-x-1.5 transition ${isUploading ? 'opacity-50 pointer-events-none' : ''
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        id="admin-product-multi-upload"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        onChange={handleMultipleFileUpload}
+                        disabled={isUploading}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="admin-product-multi-upload"
+                        className={`px-3.5 py-1.5 bg-[#14110C] hover:bg-[#A68B66] text-white text-[11px] font-semibold rounded cursor-pointer inline-flex items-center space-x-1.5 shadow-sm transition ${
+                          isUploading ? 'opacity-50 pointer-events-none' : ''
                         }`}
-                    >
-                      <Upload size={13} className="text-[#C5A059]" />
-                      <span>{isUploading ? 'Uploading...' : 'Upload Image File (50 MB)'}</span>
-                    </label>
+                      >
+                        <Upload size={13} className="text-[#C5A059]" />
+                        <span>{isUploading ? 'Uploading to Cloudinary...' : 'Upload Photos (Cloudinary)'}</span>
+                      </label>
+                    </div>
                   </div>
 
-                  {/* Live Progress Bar */}
-                  {isUploading && selectedFile && (
-                    <div className="mt-2 p-2.5 bg-white border border-[#E9E1D6] rounded space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-medium text-[#14110C] truncate max-w-[180px]">
-                          {selectedFile.name}
+                  {/* Add URL Row */}
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddImageUrl();
+                        }
+                      }}
+                      placeholder="Paste image URL here and click Add..."
+                      className="flex-1 p-2 bg-[#FAF9F6] border border-[#E9E1D6] focus:outline-none focus:border-[#A68B66] text-xs rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddImageUrl}
+                      className="px-3.5 py-2 bg-white border border-[#E9E1D6] hover:border-[#C5A059] text-xs font-semibold text-slate-800 rounded transition cursor-pointer"
+                    >
+                      + Add URL
+                    </button>
+                  </div>
+
+                  {/* Live Upload Progress */}
+                  {isUploading && (
+                    <div className="mt-2.5 p-3 bg-white border border-[#E9E1D6] rounded shadow-xs space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-[#14110C] flex items-center gap-1.5">
+                          <Upload size={13} className="animate-bounce text-[#C5A059]" />
+                          {uploadStatusText || 'Uploading images to Cloudinary...'}
                         </span>
-                        <span className="text-gray-400 font-mono text-[10px]">
-                          {formatFileSize(selectedFile.size)}
-                        </span>
+                        <span className="font-bold text-[#C5A059] font-mono">{uploadProgress}%</span>
                       </div>
                       <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
@@ -552,41 +605,93 @@ export const AdminProducts = () => {
                           style={{ width: `${uploadProgress}%` }}
                         />
                       </div>
-                      <span className="text-[10px] text-gray-500 block text-right font-bold">
-                        {uploadProgress}%
-                      </span>
                     </div>
                   )}
 
                   {/* Upload Error Banner */}
                   {uploadError && (
-                    <div className="mt-2 p-2 bg-rose-50 border border-rose-200 text-rose-700 text-[11px] rounded flex items-center space-x-1.5">
-                      <AlertCircle size={13} className="shrink-0" />
+                    <div className="mt-2.5 p-2 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded flex items-center space-x-1.5">
+                      <AlertCircle size={14} className="shrink-0" />
                       <span>{uploadError}</span>
                     </div>
                   )}
 
-                  {/* Preview Thumbnail */}
-                  {form.images[0] && (
-                    <div className="flex items-center gap-2.5 mt-2 p-2 bg-[#FAF9F6] border border-[#E9E1D6] rounded">
-                      <img
-                        src={getProductImageUrl(form.images[0])}
-                        alt="Preview"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
-                        }}
-                        className="w-10 h-12 object-cover object-top border border-[#E9E1D6] rounded-xs bg-white shrink-0"
-                      />
-                      <div className="overflow-hidden">
-                        <span className="text-[10px] font-semibold text-[#29251F] block">Live Image Preview</span>
-                        <span className="text-[9.5px] text-[#A68B66] block truncate">
-                          {form.images[0]}
-                        </span>
+                  {/* Images Grid */}
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {(form.images || []).map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        className={`relative rounded-lg border overflow-hidden bg-white shadow-xs transition group ${
+                          idx === 0
+                            ? 'border-[#C5A059] ring-2 ring-[#C5A059]/30'
+                            : 'border-[#E9E1D6] hover:border-slate-400'
+                        }`}
+                      >
+                        <div className="aspect-square w-full bg-[#FAF9F6] relative overflow-hidden flex items-center justify-center">
+                          <img
+                            src={getProductImageUrl(imgUrl)}
+                            alt={`Product ${idx + 1}`}
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                            }}
+                            className="w-full h-full object-cover"
+                          />
+
+                          {/* Badge */}
+                          <div className="absolute top-1.5 left-1.5">
+                            {idx === 0 ? (
+                              <span className="bg-[#14110C] text-[#C5A059] border border-[#C5A059] text-[9.5px] font-black px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                                <Star size={10} className="fill-[#C5A059]" /> Main Image
+                              </span>
+                            ) : (
+                              <span className="bg-black/60 backdrop-blur-xs text-white text-[9.5px] font-bold px-1.5 py-0.5 rounded">
+                                #{idx + 1}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                            {idx !== 0 && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetMainImage(idx)}
+                                className="p-1 bg-white/95 hover:bg-[#C5A059] text-slate-700 hover:text-white rounded-full shadow-sm transition cursor-pointer"
+                                title="Set as Main Cover Photo"
+                              >
+                                <Star size={12} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(idx)}
+                              className="p-1 bg-white/95 hover:bg-rose-600 text-slate-700 hover:text-white rounded-full shadow-sm transition cursor-pointer"
+                              title="Remove Image"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="p-1.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                          <span className="text-gray-400 truncate max-w-[100px]">
+                            {imgUrl.startsWith('data:') ? 'Local Image' : imgUrl}
+                          </span>
+                          {idx !== 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleSetMainImage(idx)}
+                              className="text-[#C5A059] hover:underline font-bold"
+                            >
+                              Set Main
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
 
                 <div className="col-span-2">

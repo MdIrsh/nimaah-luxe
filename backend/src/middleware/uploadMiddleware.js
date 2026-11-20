@@ -1,40 +1,24 @@
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Multer in-memory storage (buffers are passed directly to Cloudinary upload_stream)
+const storage = multer.memoryStorage();
 
-// Ensure local uploads directory exists
-const uploadDir = path.resolve(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer Disk Storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const cleanName = path
-      .basename(file.originalname, ext)
-      .replace(/[^a-zA-Z0-9_-]/g, '_');
-    cb(null, `${cleanName}-${Date.now()}${ext}`);
-  },
-});
-
-// File validation filter
+// File format validation filter (JPG, JPEG, PNG, WEBP)
 const fileFilter = (req, file, cb) => {
   const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
-  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/pjpeg', 'image/x-png'];
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/pjpeg',
+    'image/x-png',
+  ];
 
   const ext = path.extname(file.originalname).toLowerCase();
   const mime = (file.mimetype || '').toLowerCase();
 
-  // Accept valid extension or image mimetype (with standard mobile compatibility)
   if (
     allowedExtensions.includes(ext) ||
     allowedMimeTypes.includes(mime) ||
@@ -48,16 +32,17 @@ const fileFilter = (req, file, cb) => {
   return cb(err, false);
 };
 
-// 50 MB Maximum Size
+// 50 MB Maximum Size configuration
 export const upload = multer({
   storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50 Megabytes
+    fileSize: 50 * 1024 * 1024, // 50 Megabytes per file
+    files: 10, // Up to 10 files per request
   },
   fileFilter,
 });
 
-// Express middleware wrapper to catch multer errors cleanly and support single and multiple file uploads
+// Express middleware wrapper to catch errors and normalize req.files / req.file
 export const handleUploadMiddleware = (req, res, next) => {
   const uploadHandler = upload.any();
 
@@ -67,6 +52,12 @@ export const handleUploadMiddleware = (req, res, next) => {
         return res.status(400).json({
           success: false,
           message: 'Image size must not exceed 50 MB.',
+        });
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({
+          success: false,
+          message: 'Too many files uploaded at once. Maximum 10 images allowed.',
         });
       }
       if (err.code === 'INVALID_FILE_TYPE') {
