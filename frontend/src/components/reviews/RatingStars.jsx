@@ -17,6 +17,7 @@ export const RatingStars = ({
     md: 16,
     lg: 20,
     xl: 26,
+    '2xl': 32,
   };
 
   const starPx = starSizes[size] || 16;
@@ -24,7 +25,7 @@ export const RatingStars = ({
 
   return (
     <div
-      className={`inline-flex items-center space-x-1 ${className}`}
+      className={`inline-flex items-center space-x-1.5 ${className}`}
       onMouseLeave={() => interactive && setHoveredRating(0)}
     >
       {[...Array(maxRating)].map((_, index) => {
@@ -42,19 +43,19 @@ export const RatingStars = ({
             disabled={!interactive}
             onClick={() => interactive && onChange && onChange(starValue)}
             onMouseEnter={() => interactive && setHoveredRating(starValue)}
-            className={`transition-transform duration-150 ${
+            className={`transition-all duration-150 ${
               interactive
-                ? 'cursor-pointer hover:scale-115 focus:outline-none p-0.5'
+                ? 'cursor-pointer hover:scale-120 focus:outline-none p-0.5'
                 : 'cursor-default pointer-events-none'
             }`}
             aria-label={`${starValue} star rating`}
           >
             <Star
               size={starPx}
-              stroke="#C5A059"
+              stroke={isFilled || isHalf ? '#D97706' : '#C5A059'}
               strokeWidth={1.8}
-              fill={isFilled ? '#C5A059' : isHalf ? '#C5A059' : 'transparent'}
-              className="transition-colors duration-150"
+              fill={isFilled ? '#F59E0B' : isHalf ? '#F59E0B' : 'transparent'}
+              className="transition-colors duration-150 drop-shadow-2xs"
             />
           </button>
         );

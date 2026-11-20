@@ -86,18 +86,16 @@ export const HomePage = () => {
               <Link
                 key={cat.name}
                 to={cat.path}
-                className={`flex flex-col items-center gap-1 pb-2 flex-shrink-0 border-b-2 transition ${
-                  cat.active
-                    ? 'border-[#29251F] text-[#29251F] font-semibold'
-                    : 'border-transparent text-[#29251F]/70'
-                }`}
+                className={`flex flex-col items-center gap-1 pb-2 flex-shrink-0 border-b-2 transition ${cat.active
+                  ? 'border-[#29251F] text-[#29251F] font-semibold'
+                  : 'border-transparent text-[#29251F]/70'
+                  }`}
               >
                 <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center border ${
-                    cat.active
-                      ? 'bg-[#29251F] text-[#E8D3A2] border-[#29251F]'
-                      : 'bg-white text-[#A68B66] border-[#E9E1D6]'
-                  }`}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center border ${cat.active
+                    ? 'bg-[#29251F] text-[#E8D3A2] border-[#29251F]'
+                    : 'bg-white text-[#A68B66] border-[#E9E1D6]'
+                    }`}
                 >
                   <Icon size={16} strokeWidth={1.7} />
                 </div>
