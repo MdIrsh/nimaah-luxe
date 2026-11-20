@@ -26,8 +26,8 @@ export const getProductImageUrl = (url) => {
           window.location.hostname === '127.0.0.1';
 
         if (isLocal && (window.location.port === '5173' || window.location.port === '3000')) {
-          // In local Vite dev, fallback to backend or root relative
-          return `/uploads/${filename}`;
+          // In local Vite dev, proxy or route to backend port 5000
+          return `http://localhost:5000/uploads/${filename}`;
         }
 
         // On production Render or mobile, use root relative /uploads/

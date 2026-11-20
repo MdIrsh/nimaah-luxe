@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import RatingStars from './RatingStars';
 import uploadService, { formatFileSize } from '../../services/uploadService';
-import { FALLBACK_PRODUCT_IMAGE, handleImageError } from '../../utils/imageUtils';
+import { FALLBACK_PRODUCT_IMAGE, getProductImageUrl, handleImageError } from '../../utils/imageUtils';
 
 export const ReviewModal = ({
   isOpen,
@@ -135,8 +135,13 @@ export const ReviewModal = ({
       await onSubmit({
         rating,
         reviewTitle: reviewTitle.trim(),
+        title: reviewTitle.trim(),
+        reviewMessage: reviewText.trim(),
         reviewText: reviewText.trim(),
+        comment: reviewText.trim(),
+        uploadedImages: images,
         reviewImages: images,
+        images: images,
       });
       onClose();
     } catch (err) {
@@ -397,9 +402,10 @@ export const ReviewModal = ({
                     className="relative w-16 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-2xs group"
                   >
                     <img
-                      src={img}
+                      src={getProductImageUrl(img)}
                       alt="Uploaded review"
                       referrerPolicy="no-referrer"
+                      onError={handleImageError}
                       className="w-full h-full object-cover"
                     />
                     <button

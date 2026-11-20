@@ -3,26 +3,46 @@ import api from './api';
 export const reviewService = {
   // Get paginated reviews for a product with rating filter
   getProductReviews: async (productId, params = {}) => {
-    const response = await api.get(`/products/${productId}/reviews`, { params });
-    return response.data?.data || response.data;
+    try {
+      const response = await api.get(`/reviews/${productId}`, { params });
+      return response.data?.data || response.data;
+    } catch {
+      const response = await api.get(`/products/${productId}/reviews`, { params });
+      return response.data?.data || response.data;
+    }
   },
 
   // Get rating summary & distribution
   getProductRating: async (productId) => {
-    const response = await api.get(`/products/${productId}/rating`);
-    return response.data?.data || response.data;
+    try {
+      const response = await api.get(`/reviews/${productId}/rating`);
+      return response.data?.data || response.data;
+    } catch {
+      const response = await api.get(`/products/${productId}/rating`);
+      return response.data?.data || response.data;
+    }
   },
 
   // Check customer's eligibility to review
   checkEligibility: async (productId) => {
-    const response = await api.get(`/products/${productId}/eligibility`);
-    return response.data?.data || response.data;
+    try {
+      const response = await api.get(`/reviews/${productId}/eligibility`);
+      return response.data?.data || response.data;
+    } catch {
+      const response = await api.get(`/products/${productId}/eligibility`);
+      return response.data?.data || response.data;
+    }
   },
 
   // Submit review
   createReview: async (productId, reviewData) => {
-    const response = await api.post(`/products/${productId}/reviews`, reviewData);
-    return response.data?.data || response.data;
+    try {
+      const response = await api.post(`/reviews`, { ...reviewData, productId });
+      return response.data?.data || response.data;
+    } catch {
+      const response = await api.post(`/products/${productId}/reviews`, reviewData);
+      return response.data?.data || response.data;
+    }
   },
 
   // Edit existing review

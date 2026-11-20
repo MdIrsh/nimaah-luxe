@@ -12,7 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { handleImageError } from '../../utils/imageUtils';
+import { getProductImageUrl, handleImageError } from '../../utils/imageUtils';
 import reviewService from '../../services/reviewService';
 
 export const ReviewCard = ({
@@ -87,18 +87,40 @@ export const ReviewCard = ({
 
   const formattedDate = review.createdAt
     ? new Date(review.createdAt).toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric',
-      })
+      month: 'short',
+      year: 'numeric',
+    })
     : '';
 
-  const reviewerName = review.user?.name || 'Customer';
+  const reviewerName =
+    review.customerName ||
+    review.user?.name ||
+    review.name ||
+    'Customer';
+
   const reviewerAvatar =
     review.user?.avatar ||
+    review.customerAvatar ||
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
   const reviewerLocation = review.user?.city || review.user?.addresses?.[0]?.city || '';
 
-  const imagesList = Array.isArray(review.reviewImages) ? review.reviewImages : [];
+  const reviewTitle = (review.reviewTitle || review.title || '').trim();
+  const reviewMessage = (
+    review.reviewMessage ||
+    review.reviewText ||
+    review.comment ||
+    ''
+  ).trim();
+
+  const rawImages =
+    (Array.isArray(review.uploadedImages) && review.uploadedImages.length > 0)
+      ? review.uploadedImages
+      : (Array.isArray(review.reviewImages) && review.reviewImages.length > 0)
+      ? review.reviewImages
+      : (Array.isArray(review.images) ? review.images : []);
+
+  const imagesList = rawImages.filter((img) => img && typeof img === 'string');
+  const isVerifiedBuyer = Boolean(review.verifiedPurchase || review.isVerifiedPurchase);
 
   return (
     <div className="py-4 border-b border-slate-200/90 space-y-2.5 transition">
@@ -118,43 +140,48 @@ export const ReviewCard = ({
           ))}
         </div>
         <span className="text-xs font-bold text-[#16A34A] font-mono ml-0.5">
-          {Number(review.rating || 5).toFixed(1)}
+          {Number(review.rating || 5).toFixed(1)} / 5
         </span>
-        {review.reviewTitle && (
+        {reviewTitle && (
           <>
             <span className="text-slate-400 font-bold">•</span>
             <h5 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
-              {review.reviewTitle}
+              {reviewTitle}
             </h5>
           </>
         )}
       </div>
 
       {/* 2. Review Description */}
-      <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal whitespace-pre-line">
-        {review.reviewText}
-      </p>
+      {reviewMessage ? (
+        <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal whitespace-pre-line">
+          {reviewMessage}
+        </p>
+      ) : null}
 
       {/* 3. Customer Review Photos Gallery */}
       {imagesList.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-          {imagesList.map((img, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setLightboxIndex(idx)}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
-              title={`Click to view photo ${idx + 1}`}
-            >
-              <img
-                src={img}
-                alt=""
-                referrerPolicy="no-referrer"
-                onError={handleImageError}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-              />
-            </button>
-          ))}
+          {imagesList.map((img, idx) => {
+            const resolvedUrl = getProductImageUrl(img);
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setLightboxIndex(idx)}
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
+                title={`Click to view photo ${idx + 1}`}
+              >
+                <img
+                  src={resolvedUrl}
+                  alt="Customer review photo"
+                  referrerPolicy="no-referrer"
+                  onError={handleImageError}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -184,9 +211,8 @@ export const ReviewCard = ({
           <button
             type="button"
             onClick={handleHelpful}
-            className={`flex items-center gap-1.5 transition cursor-pointer ${
-              userVoted === 'helpful' ? 'text-blue-600 font-bold' : 'hover:text-slate-800'
-            }`}
+            className={`flex items-center gap-1.5 transition cursor-pointer ${userVoted === 'helpful' ? 'text-blue-600 font-bold' : 'hover:text-slate-800'
+              }`}
           >
             <ThumbsUp
               size={14}
@@ -200,9 +226,8 @@ export const ReviewCard = ({
           <button
             type="button"
             onClick={handleUnhelpful}
-            className={`flex items-center gap-1.5 transition cursor-pointer ${
-              userVoted === 'unhelpful' ? 'text-slate-800 font-bold' : 'hover:text-slate-800'
-            }`}
+            className={`flex items-center gap-1.5 transition cursor-pointer ${userVoted === 'unhelpful' ? 'text-slate-800 font-bold' : 'hover:text-slate-800'
+              }`}
           >
             <ThumbsDown
               size={14}
@@ -214,7 +239,7 @@ export const ReviewCard = ({
 
         {/* Right: Verified Purchase Badge + More Options Menu */}
         <div className="flex items-center gap-3 relative">
-          {review.isVerifiedPurchase && (
+          {isVerifiedBuyer && (
             <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
               <CheckCircle2 size={13} className="text-emerald-600 fill-emerald-600 text-white flex-shrink-0" />
               <span>Verified Purchase {formattedDate ? `• ${formattedDate}` : ''}</span>
@@ -319,7 +344,7 @@ export const ReviewCard = ({
               )}
 
               <img
-                src={imagesList[lightboxIndex]}
+                src={getProductImageUrl(imagesList[lightboxIndex])}
                 alt="Review full size"
                 referrerPolicy="no-referrer"
                 onError={handleImageError}

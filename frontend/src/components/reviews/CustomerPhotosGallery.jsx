@@ -1,28 +1,44 @@
 import React, { useState } from 'react';
 import { X, ZoomIn, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { handleImageError } from '../../utils/imageUtils';
+import { getProductImageUrl, handleImageError } from '../../utils/imageUtils';
 
 export const CustomerPhotosGallery = ({ reviews = [] }) => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(null);
 
-  // Extract all reviewImages from all approved reviews
+  // Extract all customer photos from all reviews
   const allPhotos = [];
   reviews.forEach((rev) => {
-    if (Array.isArray(rev.reviewImages) && rev.reviewImages.length > 0) {
-      rev.reviewImages.forEach((img) => {
+    const rawImages =
+      (Array.isArray(rev.uploadedImages) && rev.uploadedImages.length > 0)
+        ? rev.uploadedImages
+        : (Array.isArray(rev.reviewImages) && rev.reviewImages.length > 0)
+        ? rev.reviewImages
+        : (Array.isArray(rev.images) ? rev.images : []);
+
+    if (rawImages.length > 0) {
+      rawImages.forEach((img) => {
         if (img && typeof img === 'string') {
           allPhotos.push({
-            url: img,
-            userName: rev.user?.name || 'Customer',
+            url: getProductImageUrl(img),
+            userName:
+              rev.customerName ||
+              rev.user?.name ||
+              rev.name ||
+              'Customer',
             rating: rev.rating || 5,
-            title: rev.reviewTitle || '',
+            title:
+              rev.reviewTitle ||
+              rev.title ||
+              rev.reviewMessage ||
+              rev.reviewText ||
+              '',
             date: rev.createdAt
               ? new Date(rev.createdAt).toLocaleDateString('en-US', {
                   month: 'short',
                   year: 'numeric',
                 })
               : '',
-            isVerified: rev.isVerifiedPurchase,
+            isVerified: Boolean(rev.verifiedPurchase || rev.isVerifiedPurchase),
           });
         }
       });
