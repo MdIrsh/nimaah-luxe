@@ -1,5 +1,6 @@
 import React from 'react';
-import { Star, CheckCircle2 } from 'lucide-react';
+import { Star, ShieldCheck, Check } from 'lucide-react';
+import RatingStars from './RatingStars';
 
 export const RatingSummaryCard = ({
   summary,
@@ -9,120 +10,120 @@ export const RatingSummaryCard = ({
   canReview = true,
   hasReviewed = false,
   isVerifiedBuyer = false,
-  brand = 'Brand',
 }) => {
   const numAverage = Number(summary?.averageRating || 0);
-  const average = !isNaN(numAverage) ? numAverage : 4.0;
+  const average = !isNaN(numAverage) ? numAverage : 0;
   const numTotal = Number(summary?.totalReviews || 0);
-  const totalReviews = !isNaN(numTotal) && numTotal > 0 ? numTotal : 49320;
-  const totalRatings = totalReviews * 14; // Flipkart standard ratio or real count
-
-  const distribution = summary?.ratingDistribution || {
-    5: Math.round(totalRatings * 0.54),
-    4: Math.round(totalRatings * 0.21),
-    3: Math.round(totalRatings * 0.09),
-    2: Math.round(totalRatings * 0.05),
-    1: Math.round(totalRatings * 0.11),
-  };
-
-  const percentages = summary?.ratingPercentages || {
-    5: 54,
-    4: 21,
-    3: 9,
-    2: 5,
-    1: 11,
-  };
+  const total = !isNaN(numTotal) ? numTotal : 0;
+  const distribution = summary?.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  const percentages = summary?.ratingPercentages || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-2xs space-y-5">
-      {/* Top Split: Stars & Count (Left) vs Progress Bars (Right) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-        {/* Left Side: 5 Green Stars & Total Ratings/Reviews Count */}
-        <div className="md:col-span-5 space-y-2 text-left">
-          {/* Green Stars Row */}
-          <div className="flex items-center space-x-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                size={22}
-                className={
-                  star <= Math.round(average)
-                    ? 'text-[#16A34A] fill-[#16A34A]'
-                    : 'text-slate-200 fill-slate-200'
-                }
-              />
-            ))}
+    <div className="bg-white border border-[#E9E1D6] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-[#F2ECE1]">
+        {/* Left: Overall Score */}
+        <div className="flex items-center space-x-6">
+          <div className="text-center">
+            <span className="font-serif-luxury text-4xl sm:text-5xl font-bold text-[#14110C] block leading-none">
+              {total > 0 && average > 0 ? average.toFixed(1) : '0.0'}
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.25em] text-[#C5A059] font-semibold mt-1 block">
+              {total > 0 ? 'Out of 5.0' : 'No Ratings Yet'}
+            </span>
           </div>
 
-          {/* Ratings and Reviews Count Text */}
-          <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
-            <strong className="text-slate-800 font-bold">
-              {totalRatings.toLocaleString('en-IN')}
-            </strong>{' '}
-            ratings and{' '}
-            <strong className="text-slate-800 font-bold">
-              {totalReviews.toLocaleString('en-IN')}
-            </strong>{' '}
-            reviews
-          </p>
-
-          {/* Write Review Action Link */}
-          {canReview && (
-            <div className="pt-1">
-              <button
-                type="button"
-                onClick={onOpenWriteReview}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline transition cursor-pointer"
-              >
-                <span>Rate & Review Product</span>
-                <span>→</span>
-              </button>
+          <div className="space-y-1.5 border-l border-[#F2ECE1] pl-6">
+            <RatingStars rating={total > 0 ? average : 0} size="lg" />
+            <p className="text-xs text-gray-500 font-medium">
+              {total > 0 ? (
+                <>
+                  Based on <strong className="text-[#14110C]">{total}</strong> {total === 1 ? 'patron impression' : 'patron impressions'}
+                </>
+              ) : (
+                <span className="text-gray-400">0 customer reviews recorded yet</span>
+              )}
+            </p>
+            <div className="flex items-center gap-1.5 text-[10.5px] text-emerald-700 font-medium">
+              <ShieldCheck size={13} className="text-emerald-600" />
+              <span>100% Genuine Verified Patron Feedback</span>
             </div>
+          </div>
+        </div>
+
+        {/* Right: Write / Edit Review Button */}
+        {canReview && (
+          <div className="w-full md:w-auto">
+            <button
+              onClick={onOpenWriteReview}
+              className="w-full md:w-auto px-6 py-3 bg-[#14110C] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition duration-300 shadow-sm flex items-center justify-center space-x-2 rounded-xs"
+            >
+              <Star size={14} className="text-[#C5A059]" fill="#C5A059" />
+              <span>{hasReviewed ? 'Edit Your Impression' : 'Write Patron Review'}</span>
+            </button>
+            {isVerifiedBuyer && (
+              <span className="text-[10px] text-emerald-700 font-semibold flex items-center justify-center md:justify-end gap-1 mt-1.5">
+                <Check size={11} /> You are an eligible verified buyer
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Star Rating Breakdown Progress Bars */}
+      <div className="space-y-2.5 max-w-xl">
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+          <span className="text-[11px] uppercase tracking-wider font-semibold text-gray-600">
+            Rating Breakdown
+          </span>
+          {selectedRatingFilter && (
+            <button
+              onClick={() => onSelectRatingFilter && onSelectRatingFilter(null)}
+              className="text-[11px] text-[#C5A059] hover:underline font-semibold"
+            >
+              Clear filter (showing {selectedRatingFilter}★)
+            </button>
           )}
         </div>
 
-        {/* Right Side: 5★ to 1★ Distribution Bars with Real Counts */}
-        <div className="md:col-span-7 space-y-1.5">
-          {[5, 4, 3, 2, 1].map((star) => {
-            const count = Number(distribution[star] || distribution[String(star)] || 0);
-            const pct = Number(percentages[star] || percentages[String(star)] || (count / (totalRatings || 1)) * 100);
-            const isSelected = selectedRatingFilter === star;
+        {[5, 4, 3, 2, 1].map((star) => {
+          const count = Number(distribution[star] || distribution[String(star)] || 0);
+          const pct = Number(percentages[star] || percentages[String(star)] || 0);
+          const isSelected = selectedRatingFilter === star;
 
-            return (
-              <button
-                key={star}
-                type="button"
-                onClick={() =>
-                  onSelectRatingFilter &&
-                  onSelectRatingFilter(isSelected ? null : star)
-                }
-                className={`w-full flex items-center gap-2.5 text-xs py-0.5 rounded-md transition cursor-pointer group ${
-                  isSelected ? 'bg-blue-50/80 px-1.5' : 'hover:bg-slate-50 px-1'
-                }`}
-                title={`Filter by ${star} star reviews`}
-              >
-                {/* Star Number */}
-                <span className="w-7 flex items-center justify-start gap-0.5 text-slate-700 font-semibold text-xs">
-                  <span>{star}</span>
-                  <Star size={11} className="fill-slate-700 text-slate-700" />
-                </span>
+          return (
+            <button
+              key={star}
+              type="button"
+              onClick={() =>
+                onSelectRatingFilter &&
+                onSelectRatingFilter(isSelected ? null : star)
+              }
+              className={`w-full flex items-center space-x-3 text-xs p-1.5 rounded-lg transition text-left group ${
+                isSelected
+                  ? 'bg-[#FAF7F2] border border-[#C5A059]/40'
+                  : 'hover:bg-[#FAF9F6]'
+              }`}
+            >
+              <div className="w-14 flex items-center space-x-1 text-gray-700 font-medium">
+                <span>{star}</span>
+                <Star size={12} fill="#C5A059" stroke="#C5A059" />
+              </div>
 
-                {/* Progress Bar Track with Vibrant Green Fill */}
-                <div className="flex-1 h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#16A34A] rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${Math.min(100, Math.max(4, pct))}%` }}
-                  />
-                </div>
+              {/* Progress Bar Track */}
+              <div className="flex-1 h-2 bg-[#F2ECE1] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#C5A059] to-[#E3C385] rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
 
-                {/* Review Count formatted */}
-                <span className="w-18 text-right text-[11px] text-slate-500 font-sans">
-                  {count.toLocaleString('en-IN')}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+              <div className="w-16 text-right text-[11px] text-gray-500 font-mono">
+                <span>{pct}%</span>{' '}
+                <span className="text-gray-400">({count})</span>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

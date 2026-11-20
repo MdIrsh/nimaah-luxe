@@ -61,9 +61,9 @@ export const ProductDetailPage = () => {
   const [reviews, setReviews] = useState([]);
   const [ratingSummary, setRatingSummary] = useState(null);
   const [reviewsLoading, setReviewsLoading] = useState(true);
-  const [selectedRatingFilter, setSelectedRatingFilter] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('ALL'); // 'ALL' | 'WITH_PHOTOS' | 'VERIFIED' | 5 | 4 | 3 | 2 | 1
+  const [sortBy, setSortBy] = useState('Most Helpful'); // 'Most Helpful' | 'Most Recent' | 'Highest Rating' | 'Lowest Rating'
   const [selectedTopic, setSelectedTopic] = useState('Overall');
-  const [sortBy, setSortBy] = useState('Most Helpful');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [eligibility, setEligibility] = useState({
@@ -718,8 +718,8 @@ export const ProductDetailPage = () => {
               },
             }
           }
-          selectedRatingFilter={selectedRatingFilter}
-          onSelectRatingFilter={(star) => setSelectedRatingFilter(star)}
+          selectedRatingFilter={typeof activeFilter === 'number' ? activeFilter : null}
+          onSelectRatingFilter={(star) => setActiveFilter(activeFilter === star ? 'ALL' : star)}
           onOpenWriteReview={handleOpenWriteReview}
           canReview={true}
           hasReviewed={eligibility.hasReviewed}
@@ -729,14 +729,60 @@ export const ProductDetailPage = () => {
 
         {/* Customer Uploaded Photos Row (Square Thumbnails Strip) */}
         <div className="space-y-1.5 pt-1">
-          <CustomerPhotosGallery reviews={reviews} />
+          <CustomerPhotosGallery
+            reviews={reviews}
+            onFilterWithPhotos={() => setActiveFilter('WITH_PHOTOS')}
+          />
+        </div>
+
+        {/* Interactive Customer Review Filters */}
+        <div className="space-y-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Filter Reviews
+            </span>
+            {activeFilter !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setActiveFilter('ALL')}
+                className="text-xs text-blue-600 hover:underline font-semibold cursor-pointer"
+              >
+                Reset Filter
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            {[
+              { id: 'ALL', label: 'All Reviews' },
+              { id: 'WITH_PHOTOS', label: '📷 With Photos' },
+              { id: 'VERIFIED', label: '✓ Verified Purchases' },
+              { id: 5, label: '5 Star ★' },
+              { id: 4, label: '4 Star ★' },
+              { id: 3, label: '3 Star ★' },
+              { id: 2, label: '2 Star ★' },
+              { id: 1, label: '1 Star ★' },
+            ].map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setActiveFilter(f.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                  activeFilter === f.id
+                    ? 'bg-[#EBF3FE] text-[#1D4ED8] border border-blue-500 font-bold shadow-2xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* User Reviews Sorted By Filter Section */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
+        <div className="space-y-2 pt-1 border-t border-slate-100">
           <h4 className="text-sm font-bold text-slate-900">User reviews sorted by</h4>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {['Most Helpful', 'Latest', 'Positive', 'Negative'].map((opt) => (
+            {['Most Helpful', 'Most Recent', 'Highest Rating', 'Lowest Rating'].map((opt) => (
               <button
                 key={opt}
                 type="button"
@@ -756,8 +802,28 @@ export const ProductDetailPage = () => {
         {/* Sorted Flipkart Review Cards List */}
         <div className="divide-y divide-slate-200/90 pt-1">
           {(() => {
-            // Default demo reviews matching the uploaded screenshot
             const demoList = [
+              {
+                _id: 'rev_rahul_sharma',
+                rating: 5,
+                reviewTitle: 'Excellent Product Quality!',
+                reviewText:
+                  'The sound quality is excellent. Bass is powerful and battery backup is also very good. Highly recommended!',
+                reviewImages: [
+                  'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
+                  'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?auto=format&fit=crop&w=600&q=80',
+                ],
+                user: {
+                  name: 'Rahul Sharma',
+                  city: 'Delhi',
+                  avatar:
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+                },
+                isVerifiedPurchase: true,
+                helpfulCount: 2450,
+                unhelpfulCount: 112,
+                createdAt: '2022-10-04T12:00:00.000Z',
+              },
               {
                 _id: 'rev_sarfraz_alam',
                 rating: 4,
@@ -769,29 +835,19 @@ export const ProductDetailPage = () => {
                   'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
                   'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
                 ],
-                user: { name: 'Sarfraz Alam', city: 'Gorakhpur' },
+                user: {
+                  name: 'Sarfraz Alam',
+                  city: 'Gorakhpur',
+                  avatar:
+                    'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=400&q=80',
+                },
                 isVerifiedPurchase: true,
                 helpfulCount: 2048,
                 unhelpfulCount: 558,
                 createdAt: '2022-09-15T10:30:00.000Z',
               },
-              {
-                _id: 'rev_priya_sharma',
-                rating: 5,
-                reviewTitle: 'Perfect product!',
-                reviewText: 'Super acoustics, clear highs and booming bass. The battery easily lasts beyond 40 hours of listening!',
-                reviewImages: [
-                  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
-                ],
-                user: { name: 'Priya Sharma', city: 'Mumbai' },
-                isVerifiedPurchase: true,
-                helpfulCount: 894,
-                unhelpfulCount: 42,
-                createdAt: '2022-08-20T14:15:00.000Z',
-              },
             ];
 
-            // Merge real user reviews on top of demo reviews
             const combined = [...reviews];
             demoList.forEach((d) => {
               if (!combined.some((r) => r._id === d._id)) {
@@ -799,21 +855,47 @@ export const ProductDetailPage = () => {
               }
             });
 
-            // Filter by star rating if selected
-            let filtered = selectedRatingFilter
-              ? combined.filter((r) => Math.round(r.rating) === selectedRatingFilter)
-              : combined;
+            // Filter reviews
+            let filtered = [...combined];
+            if (activeFilter === 'WITH_PHOTOS') {
+              filtered = filtered.filter(
+                (r) => Array.isArray(r.reviewImages) && r.reviewImages.length > 0
+              );
+            } else if (activeFilter === 'VERIFIED') {
+              filtered = filtered.filter((r) => r.isVerifiedPurchase === true);
+            } else if (typeof activeFilter === 'number') {
+              filtered = filtered.filter(
+                (r) => Math.round(r.rating) === activeFilter
+              );
+            }
 
-            // Sort
-            if (sortBy === 'Latest') {
+            // Sort reviews
+            if (sortBy === 'Most Recent') {
               filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            } else if (sortBy === 'Positive') {
+            } else if (sortBy === 'Highest Rating') {
               filtered.sort((a, b) => b.rating - a.rating);
-            } else if (sortBy === 'Negative') {
+            } else if (sortBy === 'Lowest Rating') {
               filtered.sort((a, b) => a.rating - b.rating);
             } else {
-              // Most helpful
+              // Most Helpful
               filtered.sort((a, b) => (b.helpfulCount || 0) - (a.helpfulCount || 0));
+            }
+
+            if (filtered.length === 0) {
+              return (
+                <div className="py-12 text-center space-y-2">
+                  <p className="text-sm font-semibold text-slate-700">
+                    No reviews match the selected filter.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter('ALL')}
+                    className="text-xs text-blue-600 underline font-bold cursor-pointer"
+                  >
+                    View All Reviews
+                  </button>
+                </div>
+              );
             }
 
             return filtered.map((rev) => (
@@ -832,26 +914,41 @@ export const ProductDetailPage = () => {
           })()}
         </div>
 
-        {/* Product Specifications Card */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 space-y-3 mt-8 shadow-2xs">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-            Product Specifications
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+        {/* Product Story & Specifications Card */}
+        <div className="bg-white border border-blue-100 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xs">
+          <div className="space-y-1">
+            <span className="text-xs uppercase font-extrabold text-blue-600 tracking-wider">
+              Product Specifications
+            </span>
+            <h3 className="text-xl font-black text-[#0B192C]">
+              About This Silhouette & Craftsmanship
+            </h3>
+          </div>
+          <p className="text-sm text-slate-600 leading-relaxed font-normal">
             {product.description}
           </p>
           {product.fabric && (
-            <div className="text-xs text-slate-600 pt-1">
-              <strong className="text-slate-800">Composition:</strong> {product.fabric}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-slate-600 border-t border-slate-100">
+              <div>
+                <strong className="text-[#0B192C]">Fabric & Composition:</strong> {product.fabric}
+              </div>
+              <div>
+                <strong className="text-[#0B192C]">Care Instructions:</strong> Specialized dry clean / Store in protective cover
+              </div>
             </div>
           )}
         </div>
 
         {/* Related Products Section */}
         {relatedProducts.length > 0 && (
-          <div className="pt-8 border-t border-slate-200/80">
-            <h2 className="text-lg font-bold text-slate-900 mb-5">You might also like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="pt-6 sm:pt-8 border-t border-blue-100">
+            <div className="mb-8 space-y-1">
+              <span className="text-xs uppercase font-black tracking-wider text-blue-600">
+                You May Also Admire
+              </span>
+              <h2 className="text-2xl font-black text-[#0B192C]">Related Products</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {relatedProducts.map((p) => (
                 <ProductCard key={p._id} product={p} />
               ))}

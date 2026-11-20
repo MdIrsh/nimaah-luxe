@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
-import { Star, CheckCircle2, ThumbsUp, ThumbsDown, MoreVertical, Edit3, Trash2, X } from 'lucide-react';
+import {
+  Star,
+  CheckCircle2,
+  ThumbsUp,
+  ThumbsDown,
+  MoreVertical,
+  Edit3,
+  Trash2,
+  X,
+  Flag,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { handleImageError } from '../../utils/imageUtils';
+import reviewService from '../../services/reviewService';
 
 export const ReviewCard = ({
   review,
@@ -9,22 +22,30 @@ export const ReviewCard = ({
   onEdit,
   onDelete,
 }) => {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [reported, setReported] = useState(review.isReported || false);
 
   // Helpful state
   const [helpfulCount, setHelpfulCount] = useState(review.helpfulCount ?? 2048);
   const [unhelpfulCount, setUnhelpfulCount] = useState(review.unhelpfulCount ?? 558);
   const [userVoted, setUserVoted] = useState(null); // 'helpful' | 'unhelpful' | null
 
-  const handleHelpful = () => {
-    if (userVoted === 'helpful') {
-      setUserVoted(null);
-      setHelpfulCount((c) => Math.max(0, c - 1));
-    } else {
-      if (userVoted === 'unhelpful') setUnhelpfulCount((c) => Math.max(0, c - 1));
-      setUserVoted('helpful');
-      setHelpfulCount((c) => c + 1);
+  const handleHelpful = async () => {
+    try {
+      if (userVoted === 'helpful') {
+        setUserVoted(null);
+        setHelpfulCount((c) => Math.max(0, c - 1));
+      } else {
+        if (userVoted === 'unhelpful') setUnhelpfulCount((c) => Math.max(0, c - 1));
+        setUserVoted('helpful');
+        setHelpfulCount((c) => c + 1);
+      }
+      if (review._id && review._id.length === 24) {
+        await reviewService.markHelpful(review._id);
+      }
+    } catch (err) {
+      console.warn('Helpful sync:', err.message);
     }
   };
 
@@ -36,6 +57,23 @@ export const ReviewCard = ({
       if (userVoted === 'helpful') setHelpfulCount((c) => Math.max(0, c - 1));
       setUserVoted('unhelpful');
       setUnhelpfulCount((c) => c + 1);
+    }
+  };
+
+  const handleReport = async () => {
+    const reason = window.prompt(
+      'Why would you like to report this review? (e.g. Inappropriate language, fake review, spam)'
+    );
+    if (!reason) return;
+    try {
+      if (review._id && review._id.length === 24) {
+        await reviewService.reportReview(review._id, reason);
+      }
+      setReported(true);
+      setShowMenu(false);
+      alert('Thank you. This review has been submitted to moderators for evaluation.');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to report review');
     }
   };
 
@@ -54,12 +92,17 @@ export const ReviewCard = ({
       })
     : 'Sep, 2022';
 
-  const reviewerName = review.user?.name || 'Sarfraz Alam';
+  const reviewerName = review.user?.name || 'Rahul Sharma';
+  const reviewerAvatar =
+    review.user?.avatar ||
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
   const reviewerCity = review.user?.city || review.user?.addresses?.[0]?.city || 'Gorakhpur';
+
+  const imagesList = Array.isArray(review.reviewImages) ? review.reviewImages : [];
 
   const defaultHeadline =
     review.rating === 5
-      ? 'Perfect product!'
+      ? 'Excellent Product Quality!'
       : review.rating === 4
       ? 'Pretty good'
       : review.rating === 3
@@ -84,7 +127,7 @@ export const ReviewCard = ({
           ))}
         </div>
         <span className="text-xs font-bold text-[#16A34A] font-mono ml-0.5">
-          {Number(review.rating || 4).toFixed(1)}
+          {Number(review.rating || 5).toFixed(1)}
         </span>
         <span className="text-slate-400 font-bold">•</span>
         <h5 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
@@ -102,31 +145,47 @@ export const ReviewCard = ({
         {review.reviewText}
       </p>
 
-      {/* 4. Customer Review Photos Row */}
-      {review.reviewImages && review.reviewImages.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-          {review.reviewImages.map((img, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setSelectedImage(img)}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100"
-            >
-              <img
-                src={img}
-                alt=""
-                referrerPolicy="no-referrer"
-                onError={handleImageError}
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
+      {/* 4. Customer Review Photos Gallery (Horizontal Row) */}
+      {imagesList.length > 0 && (
+        <div className="space-y-1 pt-0.5">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            {imagesList.map((img, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setLightboxIndex(idx)}
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
+                title={`Click to view photo ${idx + 1}`}
+              >
+                <img
+                  src={img}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  onError={handleImageError}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* 5. Reviewer Name & City */}
-      <div className="text-xs text-slate-500 font-semibold pt-0.5">
-        {reviewerName}, {reviewerCity}
+      {/* 5. Reviewer Name, Avatar & Location */}
+      <div className="flex items-center gap-2 pt-0.5">
+        <img
+          src={reviewerAvatar}
+          alt={reviewerName}
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src =
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
+          }}
+          className="w-5 h-5 rounded-full object-cover border border-slate-200"
+        />
+        <span className="text-xs text-slate-500 font-semibold">
+          {reviewerName}, {reviewerCity}
+        </span>
       </div>
 
       {/* 6. Footer: Helpful, Dislike, Verified Purchase Badge, Menu */}
@@ -144,7 +203,9 @@ export const ReviewCard = ({
               size={14}
               className={userVoted === 'helpful' ? 'fill-blue-600 text-blue-600' : ''}
             />
-            <span>Helpful for {helpfulCount > 999 ? `${(helpfulCount / 1000).toFixed(0)}K` : helpfulCount}</span>
+            <span>
+              Helpful for {helpfulCount > 999 ? `${(helpfulCount / 1000).toFixed(0)}K` : helpfulCount}
+            </span>
           </button>
 
           <button
@@ -162,89 +223,129 @@ export const ReviewCard = ({
           </button>
         </div>
 
-        {/* Right: Verified Purchase Badge + More Action */}
+        {/* Right: Verified Purchase Badge + More Options Menu */}
         <div className="flex items-center gap-3 relative">
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
             <CheckCircle2 size={13} className="text-slate-900 fill-slate-900 text-white flex-shrink-0" />
             <span>Verified Purchase • {formattedDate}</span>
           </div>
 
-          {canManage && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer"
-                aria-label="More options"
-              >
-                <MoreVertical size={15} />
-              </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+              aria-label="More options"
+            >
+              <MoreVertical size={15} />
+            </button>
 
-              {showMenu && (
-                <div className="absolute right-0 bottom-full mb-1 w-36 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-20">
-                  {onEdit && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMenu(false);
-                        onEdit(review);
-                      }}
-                      className="w-full px-3 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                    >
-                      <Edit3 size={13} />
-                      <span>Edit Review</span>
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMenu(false);
-                        onDelete(review._id);
-                      }}
-                      className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
-                    >
-                      <Trash2 size={13} />
-                      <span>Delete</span>
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+            {showMenu && (
+              <div className="absolute right-0 bottom-full mb-1 w-40 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-30 animate-in fade-in">
+                {canManage && onEdit && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMenu(false);
+                      onEdit(review);
+                    }}
+                    className="w-full px-3 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Edit3 size={13} />
+                    <span>Edit Review</span>
+                  </button>
+                )}
+                {canManage && onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMenu(false);
+                      onDelete(review._id);
+                    }}
+                    className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleReport}
+                  className="w-full px-3 py-1.5 text-left text-xs text-slate-600 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                >
+                  <Flag size={13} />
+                  <span>{reported ? 'Reported ✓' : 'Report Review'}</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Lightbox Image Preview Modal */}
-      {selectedImage && (
+      {/* Lightbox Image Preview Modal with Image Navigation */}
+      {lightboxIndex !== null && imagesList.length > 0 && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
-          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setLightboxIndex(null)}
         >
           <div
-            className="relative max-w-lg w-full bg-white p-3 rounded-2xl shadow-2xl space-y-3"
+            className="relative max-w-xl w-full bg-white p-4 rounded-3xl shadow-2xl space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Lightbox Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <span className="text-xs font-bold text-slate-800">
-                Photo by {reviewerName}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-800">
+                  Photo by {reviewerName}
+                </span>
+                <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">
+                  {lightboxIndex + 1} / {imagesList.length}
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => setSelectedImage(null)}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition"
+                onClick={() => setLightboxIndex(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
             </div>
-            <div className="max-h-[65vh] overflow-hidden rounded-xl bg-black/5 flex items-center justify-center">
+
+            {/* Lightbox Main Image + Navigation Arrows */}
+            <div className="relative max-h-[65vh] overflow-hidden rounded-2xl bg-black/5 flex items-center justify-center">
+              {imagesList.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLightboxIndex(
+                      (lightboxIndex - 1 + imagesList.length) % imagesList.length
+                    )
+                  }
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition cursor-pointer z-10"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              )}
+
               <img
-                src={selectedImage}
+                src={imagesList[lightboxIndex]}
                 alt="Review full size"
                 referrerPolicy="no-referrer"
                 onError={handleImageError}
                 className="max-h-[65vh] max-w-full object-contain"
               />
+
+              {imagesList.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLightboxIndex((lightboxIndex + 1) % imagesList.length)
+                  }
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition cursor-pointer z-10"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              )}
             </div>
           </div>
         </div>

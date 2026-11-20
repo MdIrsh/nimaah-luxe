@@ -24,6 +24,7 @@ export const AdminReviews = () => {
     approvedReviews: 0,
     pendingReviews: 0,
     rejectedReviews: 0,
+    reportedReviews: 0,
     verifiedPurchases: 0,
     averageRating: 0,
   });
@@ -239,6 +240,7 @@ export const AdminReviews = () => {
           { label: 'Pending Reviews', value: 'PENDING', count: stats.pendingReviews },
           { label: 'Approved Reviews', value: 'APPROVED', count: stats.approvedReviews },
           { label: 'Rejected Reviews', value: 'REJECTED', count: stats.rejectedReviews },
+          { label: 'Reported Content', value: 'REPORTED', count: stats.reportedReviews || 0 },
         ].map((tab) => (
           <button
             key={tab.label}

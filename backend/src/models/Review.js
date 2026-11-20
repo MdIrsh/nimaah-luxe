@@ -47,10 +47,40 @@ const reviewSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    helpfulCount: {
+      type: Number,
+      default: 0,
+    },
+    helpfulUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    unhelpfulCount: {
+      type: Number,
+      default: 0,
+    },
+    unhelpfulUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    isReported: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    reportReason: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     status: {
       type: String,
       enum: ['PENDING', 'APPROVED', 'REJECTED'],
-      default: 'APPROVED', // Approved by default for live instant review display, with Admin moderation controls
+      default: 'APPROVED', // Instant live review display, with Admin moderation controls
       index: true,
     },
   },
@@ -61,7 +91,7 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
-// Virtual field aliases for convenience
+// Virtual field aliases for convenience and full specification compatibility
 reviewSchema.virtual('userId').get(function () {
   return this.user;
 });
@@ -71,8 +101,21 @@ reviewSchema.virtual('productId').get(function () {
 reviewSchema.virtual('orderId').get(function () {
   return this.order;
 });
+reviewSchema.virtual('title').get(function () {
+  return this.reviewTitle;
+});
+reviewSchema.virtual('comment').get(function () {
+  return this.reviewText;
+});
+reviewSchema.virtual('images').get(function () {
+  return this.reviewImages;
+});
+reviewSchema.virtual('verifiedPurchase').get(function () {
+  return this.isVerifiedPurchase;
+});
 
 // Ensure a customer cannot submit duplicate reviews for the same product
 reviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
 export const Review = mongoose.model('Review', reviewSchema);
+export default Review;

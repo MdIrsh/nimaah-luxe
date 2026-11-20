@@ -37,6 +37,18 @@ export const reviewService = {
     return response.data?.data || response.data;
   },
 
+  // Mark review as helpful
+  markHelpful: async (reviewId) => {
+    const response = await api.post(`/reviews/${reviewId}/helpful`);
+    return response.data?.data || response.data;
+  },
+
+  // Report inappropriate review
+  reportReview: async (reviewId, reason) => {
+    const response = await api.post(`/reviews/${reviewId}/report`, { reason });
+    return response.data?.data || response.data;
+  },
+
   // Admin: Get all reviews
   getAdminReviews: async (params = {}) => {
     const response = await api.get('/admin/reviews', { params });
