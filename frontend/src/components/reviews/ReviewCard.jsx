@@ -329,11 +329,11 @@ export const ReviewCard = ({
       {/* Lightbox Image Preview Modal with Image Navigation */}
       {lightboxIndex !== null && imagesList.length > 0 && (
         <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
           onClick={() => setLightboxIndex(null)}
         >
           <div
-            className="relative max-w-xl w-full bg-white p-4 rounded-3xl shadow-2xl space-y-3"
+            className="relative max-w-xl w-full max-h-[90dvh] bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl space-y-2.5 sm:space-y-3 flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Lightbox Header */}

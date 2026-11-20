@@ -113,11 +113,11 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
       {/* Photo Lightbox Modal with Next / Prev Navigation */}
       {currentPhoto && (
         <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
           onClick={() => setActivePhotoIndex(null)}
         >
           <div
-            className="relative max-w-xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl p-4 sm:p-5 space-y-3"
+            className="relative max-w-xl w-full max-h-[90dvh] bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl p-3 sm:p-5 space-y-2.5 sm:space-y-3 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Lightbox Header */}

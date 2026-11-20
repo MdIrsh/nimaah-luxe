@@ -119,7 +119,7 @@ export const RatingSummaryCard = ({
                 </div>
 
                 {/* Review Count formatted */}
-                <span className="w-18 text-right text-[11px] text-slate-500 font-sans">
+                <span className="min-w-[36px] sm:min-w-[48px] text-right text-[11px] text-slate-500 font-sans">
                   {count.toLocaleString('en-IN')}
                 </span>
               </button>

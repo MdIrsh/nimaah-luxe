@@ -28,7 +28,7 @@ export const ProductShowcase = ({
   return (
     <div className="space-y-4">
       {/* 3D Pedestal Main Display Box */}
-      <div className="relative aspect-[4/3] sm:aspect-square w-full rounded-3xl bg-gradient-to-b from-[#EBF3FE] via-[#E2EFFF] to-[#D5E6FE] p-6 sm:p-10 flex items-center justify-center border border-blue-100/70 shadow-sm overflow-hidden group">
+      <div className="relative aspect-[4/3] sm:aspect-square w-full rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#EBF3FE] via-[#E2EFFF] to-[#D5E6FE] p-3.5 sm:p-10 flex items-center justify-center border border-blue-100/70 shadow-sm overflow-hidden group">
         {/* Soft Pedestal Base Glow Effect */}
         <div className="absolute bottom-3 sm:bottom-6 inset-x-8 sm:inset-x-14 h-16 sm:h-20 bg-gradient-to-t from-[#B9D5FA]/70 via-[#CFE2FD]/40 to-transparent rounded-[100%] blur-sm pointer-events-none" />
 
