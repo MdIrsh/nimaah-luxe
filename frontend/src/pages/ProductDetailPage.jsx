@@ -293,30 +293,51 @@ export const ProductDetailPage = () => {
   }, [id]);
 
   const handleOpenWriteReview = () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     setEditingReview(eligibility.existingReview || null);
     setIsReviewModalOpen(true);
   };
 
   const handleModalSubmit = async (formData) => {
+    let result = null;
     if (editingReview) {
-      await reviewService.updateReview(editingReview._id, formData);
+      result = await reviewService.updateReview(editingReview._id, formData);
     } else {
-      await reviewService.createReview(id, formData);
+      result = await reviewService.createReview(id, formData);
     }
+
+    // Instant local state update for zero-latency live display
+    if (result?.review) {
+      setReviews((prev) => [
+        result.review,
+        ...prev.filter((r) => r._id !== result.review._id),
+      ]);
+      if (result.productRating) {
+        setRatingSummary(result.productRating);
+        setProduct((prev) =>
+          prev
+            ? {
+                ...prev,
+                ratings: result.productRating.averageRating,
+                numReviews: result.productRating.totalReviews,
+              }
+            : prev
+        );
+      }
+    }
+
+    // Fetch synchronized backend state
     fetchReviews();
     if (user && id) {
-      const res = await reviewService.checkEligibility(id);
-      if (res) {
-        setEligibility({
-          hasReviewed: Boolean(res.hasReviewed),
-          existingReview: res.existingReview || null,
-          isVerifiedBuyer: Boolean(res.isVerifiedBuyer),
-        });
-      }
+      try {
+        const res = await reviewService.checkEligibility(id);
+        if (res) {
+          setEligibility({
+            hasReviewed: Boolean(res.hasReviewed),
+            existingReview: res.existingReview || null,
+            isVerifiedBuyer: Boolean(res.isVerifiedBuyer),
+          });
+        }
+      } catch {}
     }
   };
 

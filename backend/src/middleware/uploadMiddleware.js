@@ -29,12 +29,17 @@ const storage = multer.diskStorage({
 // File validation filter
 const fileFilter = (req, file, cb) => {
   const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
-  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/pjpeg', 'image/x-png'];
 
   const ext = path.extname(file.originalname).toLowerCase();
-  const mime = file.mimetype.toLowerCase();
+  const mime = (file.mimetype || '').toLowerCase();
 
-  if (allowedExtensions.includes(ext) && allowedMimeTypes.includes(mime)) {
+  // Accept valid extension or image mimetype (with standard mobile compatibility)
+  if (
+    allowedExtensions.includes(ext) ||
+    allowedMimeTypes.includes(mime) ||
+    mime.startsWith('image/')
+  ) {
     return cb(null, true);
   }
 

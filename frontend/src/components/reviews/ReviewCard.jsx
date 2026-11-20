@@ -12,7 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { handleImageError } from '../../utils/imageUtils';
+import { getProductImageUrl, handleImageError } from '../../utils/imageUtils';
 import reviewService from '../../services/reviewService';
 
 export const ReviewCard = ({
@@ -171,11 +171,11 @@ export const ReviewCard = ({
               key={idx}
               type="button"
               onClick={() => setLightboxIndex(idx)}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
               title={`Click to view photo ${idx + 1}`}
             >
               <img
-                src={img}
+                src={getProductImageUrl(img)}
                 alt=""
                 referrerPolicy="no-referrer"
                 onError={handleImageError}
@@ -349,7 +349,7 @@ export const ReviewCard = ({
               )}
 
               <img
-                src={imagesList[lightboxIndex]}
+                src={getProductImageUrl(imagesList[lightboxIndex])}
                 alt="Review full size"
                 referrerPolicy="no-referrer"
                 onError={handleImageError}

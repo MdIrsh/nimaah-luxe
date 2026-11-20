@@ -13,7 +13,7 @@ import {
   getProductRatingSummary,
   checkReviewEligibility,
 } from '../controllers/reviewController.js';
-import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import { protect, protectOptional, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -29,7 +29,7 @@ router
 // Reviews & Ratings for products
 router
   .route('/:productId/reviews')
-  .post(protect, createReview)
+  .post(protectOptional, createReview)
   .get(getProductReviews);
 
 router.get('/:productId/rating', getProductRatingSummary);

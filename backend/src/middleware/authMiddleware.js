@@ -44,6 +44,36 @@ export const protect = async (req, res, next) => {
 };
 
 /**
+ * Optional Authentication Middleware:
+ * If a valid Bearer token is attached, attaches req.user.
+ * If no token is provided or invalid, proceeds gracefully with req.user = null.
+ */
+export const protectOptional = async (req, res, next) => {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'supersecret_nimaah_luxe_jwt_key_2026'
+      );
+      const user = await User.findById(decoded.id).select('-password');
+      if (user) {
+        req.user = user;
+      }
+    } catch (err) {
+      // Graceful fallback to guest session
+      req.user = null;
+    }
+  } else {
+    req.user = null;
+  }
+  return next();
+};
+
+/**
  * Role-Based Access Control Middleware Generator
  * Ensures req.user holds one of the authorized roles.
  */

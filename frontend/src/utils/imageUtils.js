@@ -6,7 +6,7 @@ export const FALLBACK_PRODUCT_IMAGE =
  * Handles:
  * 1. localhost:5000 URLs when accessed from mobile or remote production (Render)
  * 2. Relative URLs (/uploads/...)
- * 3. CDN & external URLs
+ * 3. CDN & external URLs (Cloudinary, etc.)
  * 4. Fallback for invalid/empty URLs
  */
 export const getProductImageUrl = (url) => {
@@ -21,18 +21,19 @@ export const getProductImageUrl = (url) => {
     const filename = trimmed.split('/uploads/')[1]?.split('?')[0];
     if (filename) {
       if (typeof window !== 'undefined') {
-        const isLocal =
-          window.location.hostname === 'localhost' ||
-          window.location.hostname === '127.0.0.1';
+        const isLocalDev =
+          (window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1') &&
+          (window.location.port === '5173' || window.location.port === '3000');
 
-        if (isLocal && (window.location.port === '5173' || window.location.port === '3000')) {
-          // In local Vite dev, fallback to backend or root relative
-          return `/uploads/${filename}`;
+        if (isLocalDev) {
+          return `http://localhost:5000/uploads/${filename}`;
         }
 
         // On production Render or mobile, use root relative /uploads/
         return `/uploads/${filename}`;
       }
+      return `/uploads/${filename}`;
     }
   }
 

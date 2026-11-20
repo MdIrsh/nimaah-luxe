@@ -13,13 +13,13 @@ import {
   approveReview,
   rejectReview,
 } from '../controllers/reviewController.js';
-import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import { protect, protectOptional, adminOnly } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Public & Customer Routes:
-// POST /api/reviews -> Submit a review
-router.post('/', protect, createReview);
+// POST /api/reviews -> Submit a review (authenticated customer or guest)
+router.post('/', protectOptional, createReview);
 
 // GET /api/reviews/:productId -> Fetch reviews for product
 router.get('/:productId', getProductReviews);

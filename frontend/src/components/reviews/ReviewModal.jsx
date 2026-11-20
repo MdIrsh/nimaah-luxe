@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import RatingStars from './RatingStars';
 import uploadService, { formatFileSize } from '../../services/uploadService';
-import { FALLBACK_PRODUCT_IMAGE, handleImageError } from '../../utils/imageUtils';
+import { FALLBACK_PRODUCT_IMAGE, getProductImageUrl, handleImageError } from '../../utils/imageUtils';
+import { useAuth } from '../../context/AuthContext';
 
 export const ReviewModal = ({
   isOpen,
@@ -27,6 +28,10 @@ export const ReviewModal = ({
   productBrand = 'NOISE',
   isVerifiedBuyer = false,
 }) => {
+  const { user } = useAuth();
+  const [customerName, setCustomerName] = useState(
+    existingReview?.customerName || existingReview?.user?.name || user?.name || ''
+  );
   const [rating, setRating] = useState(existingReview?.rating || 4);
   const [reviewTitle, setReviewTitle] = useState(existingReview?.reviewTitle || '');
   const [reviewText, setReviewText] = useState(existingReview?.reviewText || '');
@@ -34,17 +39,19 @@ export const ReviewModal = ({
 
   useEffect(() => {
     if (existingReview) {
+      setCustomerName(existingReview.customerName || existingReview.user?.name || user?.name || '');
       setRating(existingReview.rating || 4);
       setReviewTitle(existingReview.reviewTitle || '');
       setReviewText(existingReview.reviewText || '');
       setImages(existingReview.reviewImages || []);
     } else {
+      setCustomerName(user?.name || '');
       setRating(4);
       setReviewTitle('');
       setReviewText('');
       setImages([]);
     }
-  }, [existingReview, isOpen]);
+  }, [existingReview, isOpen, user]);
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -71,12 +78,12 @@ export const ReviewModal = ({
 
     setUploadError('');
 
-    // Pre-validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const ext = file.name.split('.').pop()?.toLowerCase();
+    // Pre-validate file type with mobile compatibility
     const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const isImage = (file.type && file.type.toLowerCase().startsWith('image/')) || validExts.includes(ext);
 
-    if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(ext)) {
+    if (!isImage) {
       setUploadError('Only JPG, JPEG, PNG, and WEBP formats are supported.');
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -125,6 +132,11 @@ export const ReviewModal = ({
       return;
     }
 
+    if (!user && !customerName.trim()) {
+      setFormError('Please enter your name.');
+      return;
+    }
+
     if (!reviewText.trim()) {
       setFormError('Please share your thoughts on the product.');
       return;
@@ -137,6 +149,7 @@ export const ReviewModal = ({
         reviewTitle: reviewTitle.trim(),
         reviewText: reviewText.trim(),
         reviewImages: images,
+        customerName: user?.name || customerName.trim(),
       });
       onClose();
     } catch (err) {
@@ -214,6 +227,28 @@ export const ReviewModal = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Customer Name (When not logged in or editing name) */}
+          {!user ? (
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-[#0B192C]">
+                Your Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={50}
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="e.g. Rahul Sharma"
+                className="w-full rounded-2xl border border-slate-200 bg-[#F8FAFC] focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-sm text-[#0B192C] placeholder:text-slate-400 transition outline-none shadow-2xs"
+              />
+            </div>
+          ) : (
+            <div className="text-xs text-slate-500 font-medium px-1">
+              Reviewing as: <strong className="text-slate-800">{user.name}</strong>
+            </div>
+          )}
+
           {/* Section 1: Rate Your Experience Card */}
           <div className="bg-gradient-to-r from-blue-50/50 via-white to-sky-50/40 border border-blue-100 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-2xs space-y-2.5">
             {/* "Be the Voice" Script Watermark */}
@@ -333,7 +368,7 @@ export const ReviewModal = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                accept="image/*,.jpg,.jpeg,.png,.webp"
                 onChange={handleFileSelect}
                 disabled={isUploading}
                 className="hidden"
@@ -396,9 +431,10 @@ export const ReviewModal = ({
                     className="relative w-16 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-2xs group"
                   >
                     <img
-                      src={img}
+                      src={getProductImageUrl(img)}
                       alt="Uploaded review"
                       referrerPolicy="no-referrer"
+                      onError={handleImageError}
                       className="w-full h-full object-cover"
                     />
                     <button

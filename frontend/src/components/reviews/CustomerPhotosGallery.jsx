@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { X, ZoomIn, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { handleImageError } from '../../utils/imageUtils';
+import { X, ZoomIn, CheckCircle2, ChevronLeft, ChevronRight, Camera } from 'lucide-react';
+import { getProductImageUrl, handleImageError } from '../../utils/imageUtils';
 
-export const CustomerPhotosGallery = ({ reviews = [] }) => {
+export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(null);
 
   // Extract all reviewImages from all approved reviews
@@ -51,21 +51,32 @@ export const CustomerPhotosGallery = ({ reviews = [] }) => {
   const currentPhoto = activePhotoIndex !== null ? allPhotos[activePhotoIndex] : null;
 
   return (
-    <div className="py-2">
-      <div className="flex items-center justify-between pb-1.5">
-        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-          Customer Photos ({allPhotos.length})
+    <div className="py-2 space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+          <Camera size={13} className="text-blue-600" />
+          <span>Customer Photos ({allPhotos.length})</span>
         </span>
+        {onFilterWithPhotos && (
+          <button
+            type="button"
+            onClick={onFilterWithPhotos}
+            className="text-xs text-blue-600 hover:underline font-semibold cursor-pointer"
+          >
+            View With Photos →
+          </button>
+        )}
       </div>
 
       {/* Horizontal Strip of Square Customer Photos (Flipkart Style) */}
-      <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar py-2">
+      <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar py-1">
         {allPhotos.map((photo, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => setActivePhotoIndex(idx)}
-            className="w-20 h-20 sm:w-28 sm:h-28 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 active:scale-95 transition bg-slate-100 relative group shadow-2xs"
+            className="w-20 h-20 sm:w-28 sm:h-28 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 active:scale-95 transition bg-slate-100 relative group shadow-2xs"
+            title={`View photo by ${photo.userName}`}
           >
             <img
               src={photo.url}

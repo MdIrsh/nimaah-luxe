@@ -2,13 +2,14 @@ import mongoose from 'mongoose';
 import { Review } from '../models/Review.js';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
+import { User } from '../models/User.js';
 import { recalculateProductRating } from '../services/reviewService.js';
 import { broadcastReviewEvent } from '../config/socket.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
 // @desc    Submit a new review for a product
 // @route   POST /api/reviews OR POST /api/products/:productId/reviews
-// @access  Private (Authenticated Customer)
+// @access  Public / Private (Authenticated or Guest with Name)
 export const createReview = async (req, res) => {
   try {
     const productId = req.params.productId || req.body.productId;
@@ -16,6 +17,7 @@ export const createReview = async (req, res) => {
     const title = req.body.reviewTitle || req.body.title || '';
     const comment = req.body.reviewText || req.body.comment || '';
     const images = req.body.reviewImages || req.body.images || [];
+    const customerName = (req.body.customerName || req.body.name || '').trim();
 
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return errorResponse(res, 'Valid Product ID is required', 400);
@@ -35,26 +37,46 @@ export const createReview = async (req, res) => {
       return errorResponse(res, 'Product not found', 404);
     }
 
-    // Check for duplicate review by the same user
-    const existing = await Review.findOne({
-      product: productId,
-      user: req.user._id,
-    });
+    // Resolve Review User (Authenticated patron or Guest customer)
+    let reviewUserId = req.user?._id;
+    let reviewerName = req.user?.name || customerName || 'Verified Patron';
 
-    if (existing) {
-      return errorResponse(
-        res,
-        'You have already shared a review for this product. You can edit your existing review.',
-        400
-      );
+    if (!reviewUserId) {
+      // Find or create customer user document for MongoDB referential integrity
+      const guestEmail = `customer_${Date.now()}_${Math.floor(Math.random() * 10000)}@nimaahluxe.store`;
+      const guestUser = await User.create({
+        name: reviewerName,
+        email: guestEmail,
+        password: 'GuestPassword123!',
+        role: 'customer',
+        avatar: '',
+      });
+      reviewUserId = guestUser._id;
+    } else {
+      // Check for duplicate review by the same authenticated user
+      const existing = await Review.findOne({
+        product: productId,
+        user: req.user._id,
+      });
+
+      if (existing) {
+        return errorResponse(
+          res,
+          'You have already shared a review for this product. You can edit your existing review.',
+          400
+        );
+      }
     }
 
     // Verify Purchase: check if customer has a delivered order containing this product
-    const deliveredOrder = await Order.findOne({
-      user: req.user._id,
-      'orderItems.product': productId,
-      orderStatus: 'Delivered',
-    });
+    let deliveredOrder = null;
+    if (req.user) {
+      deliveredOrder = await Order.findOne({
+        user: req.user._id,
+        'orderItems.product': productId,
+        orderStatus: 'Delivered',
+      });
+    }
 
     // Clean review images
     const imagesList = Array.isArray(images)
@@ -62,7 +84,7 @@ export const createReview = async (req, res) => {
       : [];
 
     const review = await Review.create({
-      user: req.user._id,
+      user: reviewUserId,
       product: productId,
       order: deliveredOrder ? deliveredOrder._id : null,
       rating: starRating,
@@ -70,7 +92,7 @@ export const createReview = async (req, res) => {
       reviewText: comment.trim(),
       reviewImages: imagesList,
       isVerifiedPurchase: Boolean(deliveredOrder),
-      status: 'APPROVED', // Instant live publication with admin moderation power
+      status: 'APPROVED', // Instant live publication
       helpfulCount: 0,
       unhelpfulCount: 0,
       helpfulUsers: [],
