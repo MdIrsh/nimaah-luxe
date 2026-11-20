@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Heart,
@@ -430,7 +430,7 @@ export const ProductDetailPage = () => {
     : null;
 
   // Robust rating and review calculations (dynamically derived from database reviews if summary pending)
-  const activeSummary = useMemo(() => {
+  const calculateActiveSummary = () => {
     if (ratingSummary && Number(ratingSummary.totalReviews) > 0) {
       return ratingSummary;
     }
@@ -456,13 +456,15 @@ export const ProductDetailPage = () => {
     }
     return (
       ratingSummary || {
-        averageRating: Number(product.ratings || product.averageRating || 0),
-        totalReviews: Number(product.numReviews || product.totalReviews || 0),
-        ratingDistribution: product.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        averageRating: Number(product?.ratings || product?.averageRating || 0),
+        totalReviews: Number(product?.numReviews || product?.totalReviews || 0),
+        ratingDistribution: product?.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
         ratingPercentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       }
     );
-  }, [ratingSummary, reviews, product]);
+  };
+
+  const activeSummary = calculateActiveSummary();
 
   const totalReviewsCount = Number(activeSummary.totalReviews || 0);
   const rawRating = Number(activeSummary.averageRating || 0);
