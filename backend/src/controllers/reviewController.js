@@ -478,12 +478,12 @@ export const getAdminReviews = async (req, res) => {
     const avgScore =
       totalApproved > 0
         ? Math.round(
-            (allReviews
-              .filter((r) => r.status === 'APPROVED')
-              .reduce((acc, r) => acc + r.rating, 0) /
-              totalApproved) *
-              10
-          ) / 10
+          (allReviews
+            .filter((r) => r.status === 'APPROVED')
+            .reduce((acc, r) => acc + r.rating, 0) /
+            totalApproved) *
+          10
+        ) / 10
         : 0;
 
     return successResponse(res, 'Admin reviews list retrieved', {

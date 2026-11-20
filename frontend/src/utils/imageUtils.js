@@ -16,6 +16,11 @@ export const getProductImageUrl = (url) => {
 
   const trimmed = url.trim();
 
+  // If already a data URL (Base64) or blob URL, return as is
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+    return trimmed;
+  }
+
   // If URL points to /uploads/ (from localhost, render, or relative)
   if (trimmed.includes('/uploads/')) {
     const filename = trimmed.split('/uploads/')[1]?.split('?')[0];
