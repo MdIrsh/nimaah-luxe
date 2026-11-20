@@ -18,12 +18,25 @@ export class ErrorBoundary extends React.Component {
 
   handleReload = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
+    try {
+      if (typeof window !== 'undefined') {
+        if ('caches' in window) {
+          caches.keys().then((keys) => {
+            keys.forEach((k) => caches.delete(k));
+          });
+        }
+        localStorage.removeItem('cached_bundle');
+        const cleanUrl = window.location.pathname + '?reload=' + Date.now();
+        window.location.replace(cleanUrl);
+        return;
+      }
+    } catch {}
     window.location.reload();
   };
 
   handleGoHome = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
-    window.location.href = '/';
+    window.location.href = '/?refresh=' + Date.now();
   };
 
   render() {
@@ -52,7 +65,7 @@ export class ErrorBoundary extends React.Component {
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="w-full sm:w-auto px-6 py-3 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 shadow-sm rounded-xs"
+                className="w-full sm:w-auto px-6 py-3 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 shadow-sm rounded-xs cursor-pointer"
               >
                 <RotateCcw size={14} />
                 <span>Reload Page</span>
@@ -61,20 +74,20 @@ export class ErrorBoundary extends React.Component {
               <button
                 type="button"
                 onClick={this.handleGoHome}
-                className="w-full sm:w-auto px-6 py-3 bg-white border border-[#E9E1D6] hover:border-[#A68B66] text-[#29251F] text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 rounded-xs"
+                className="w-full sm:w-auto px-6 py-3 bg-white border border-[#E9E1D6] hover:border-[#A68B66] text-[#29251F] text-xs uppercase tracking-[0.2em] font-semibold transition flex items-center justify-center space-x-2 rounded-xs cursor-pointer"
               >
                 <Home size={14} />
                 <span>Return to Home</span>
               </button>
             </div>
 
-            {/* Error Details (Development) */}
+            {/* Error Details (Always open and visible for instant diagnosis) */}
             {this.state.error && (
-              <details className="text-left text-[11px] text-gray-400 bg-gray-50 p-3 rounded border border-gray-200 mt-4 overflow-auto max-h-32">
-                <summary className="cursor-pointer font-mono font-semibold text-gray-600">
+              <details open className="text-left text-[11px] text-gray-500 bg-gray-50 p-3.5 rounded border border-gray-200 mt-4 overflow-auto max-h-48">
+                <summary className="cursor-pointer font-mono font-semibold text-gray-700">
                   Technical Details
                 </summary>
-                <p className="mt-1 font-mono text-red-600 whitespace-pre-wrap">
+                <p className="mt-1 font-mono text-rose-600 whitespace-pre-wrap font-medium">
                   {this.state.error.toString()}
                 </p>
               </details>
