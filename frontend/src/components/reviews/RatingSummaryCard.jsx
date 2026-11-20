@@ -99,9 +99,8 @@ export const RatingSummaryCard = ({
                   onSelectRatingFilter &&
                   onSelectRatingFilter(isSelected ? null : star)
                 }
-                className={`w-full flex items-center gap-2.5 text-xs py-0.5 rounded-md transition cursor-pointer group ${
-                  isSelected ? 'bg-blue-50/80 px-1.5' : 'hover:bg-slate-50 px-1'
-                }`}
+                className={`w-full flex items-center gap-2.5 text-xs py-0.5 rounded-md transition cursor-pointer group ${isSelected ? 'bg-blue-50/80 px-1.5' : 'hover:bg-slate-50 px-1'
+                  }`}
                 title={`Filter by ${star} star reviews`}
               >
                 {/* Star Number */}
@@ -119,7 +118,7 @@ export const RatingSummaryCard = ({
                 </div>
 
                 {/* Review Count formatted */}
-                <span className="min-w-[36px] sm:min-w-[48px] text-right text-[11px] text-slate-500 font-sans">
+                <span className="w-18 text-right text-[11px] text-slate-500 font-sans">
                   {count.toLocaleString('en-IN')}
                 </span>
               </button>

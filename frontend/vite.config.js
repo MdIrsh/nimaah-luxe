@@ -11,8 +11,18 @@ const repoName = process.env.GITHUB_REPOSITORY
 export default defineConfig({
   base: repoName,
   server: {
-    host: true,
+    host: true, // Listen on all network addresses (0.0.0.0) for phone/LAN testing
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [react(), tailwindcss()],
 });

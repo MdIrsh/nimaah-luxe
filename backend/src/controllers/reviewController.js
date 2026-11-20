@@ -335,7 +335,9 @@ export const updateReview = async (req, res) => {
 
     const newTitle = reviewTitle !== undefined ? reviewTitle : title;
     if (newTitle !== undefined) {
-      review.reviewTitle = newTitle ? newTitle.trim() : '';
+      const cleanTitle = newTitle ? newTitle.trim() : '';
+      review.reviewTitle = cleanTitle;
+      review.title = cleanTitle;
     }
 
     const newText = reviewText !== undefined ? reviewText : comment;
@@ -343,12 +345,18 @@ export const updateReview = async (req, res) => {
       if (!newText.trim()) {
         return errorResponse(res, 'Review commentary cannot be empty', 400);
       }
-      review.reviewText = newText.trim();
+      const cleanText = newText.trim();
+      review.reviewText = cleanText;
+      review.comment = cleanText;
     }
 
     const newImages = reviewImages !== undefined ? reviewImages : images;
     if (newImages !== undefined && Array.isArray(newImages)) {
-      review.reviewImages = newImages.filter((img) => img && typeof img === 'string').map((s) => s.trim());
+      const cleanedImgs = newImages
+        .filter((img) => img && typeof img === 'string')
+        .map((s) => s.trim());
+      review.reviewImages = cleanedImgs;
+      review.images = cleanedImgs;
     }
 
     await review.save();

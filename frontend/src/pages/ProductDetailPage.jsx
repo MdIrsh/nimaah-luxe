@@ -429,10 +429,43 @@ export const ProductDetailPage = () => {
     ? Math.round(((safePrice - safeDiscountedPrice) / safePrice) * 100)
     : null;
 
-  const totalReviewsCount = Number(
-    ratingSummary?.totalReviews ?? product.numReviews ?? product.totalReviews ?? reviews.length ?? 0
-  );
-  const rawRating = Number(ratingSummary?.averageRating ?? product.ratings ?? product.averageRating ?? 0);
+  // Robust rating and review calculations (dynamically derived from database reviews if summary pending)
+  const activeSummary = useMemo(() => {
+    if (ratingSummary && Number(ratingSummary.totalReviews) > 0) {
+      return ratingSummary;
+    }
+    if (reviews && reviews.length > 0) {
+      const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      let sum = 0;
+      reviews.forEach((r) => {
+        const star = Math.max(1, Math.min(5, Math.round(Number(r.rating || 5))));
+        dist[star] = (dist[star] || 0) + 1;
+        sum += star;
+      });
+      const avg = Math.round((sum / reviews.length) * 10) / 10;
+      const pcts = {};
+      for (let s = 1; s <= 5; s++) {
+        pcts[s] = Math.round((dist[s] / reviews.length) * 100);
+      }
+      return {
+        averageRating: avg,
+        totalReviews: reviews.length,
+        ratingDistribution: dist,
+        ratingPercentages: pcts,
+      };
+    }
+    return (
+      ratingSummary || {
+        averageRating: Number(product.ratings || product.averageRating || 0),
+        totalReviews: Number(product.numReviews || product.totalReviews || 0),
+        ratingDistribution: product.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        ratingPercentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      }
+    );
+  }, [ratingSummary, reviews, product]);
+
+  const totalReviewsCount = Number(activeSummary.totalReviews || 0);
+  const rawRating = Number(activeSummary.averageRating || 0);
   const hasReviews = totalReviewsCount > 0 && rawRating > 0;
   const safeRatingDisplay = hasReviews ? rawRating.toFixed(1) : '0.0';
 
@@ -450,7 +483,7 @@ export const ProductDetailPage = () => {
 
   const stockCount = Number(product.stockCount || 0);
   const isFavorited = isWishlisted(product._id);
-  const brandName = product.brand || 'NOISE';
+  const brandName = product.brand || "Ni'maah Luxe";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F0F7FF]/50 via-white to-[#F0F7FF]/30 pb-28 sm:pb-20">
@@ -477,7 +510,7 @@ export const ProductDetailPage = () => {
               <Link to="/" className="hover:text-blue-600 transition">Home</Link>
               <ChevronRight size={12} />
               <Link to={`/shop?category=${encodeURIComponent(product.category || 'All')}`} className="hover:text-blue-600 transition">
-                {product.category || 'Audio'}
+                {product.category || 'Luxury'}
               </Link>
               <ChevronRight size={12} />
               <span className="text-[#0B192C] font-bold truncate max-w-[140px] sm:max-w-xs">
@@ -540,7 +573,7 @@ export const ProductDetailPage = () => {
                 {product.title}
               </h1>
               <p className="text-sm sm:text-base text-slate-500 font-medium">
-                {product.subtitle || product.tagline || (product.fabric ? `${product.fabric} • Handcrafted Luxury` : 'Deep Bass. All Day Comfort.')}
+                {product.subtitle || product.tagline || (product.fabric ? `${product.fabric} • Handcrafted Luxury` : 'Handcrafted Luxury • Premium Quality')}
               </p>
             </div>
 
@@ -733,26 +766,7 @@ export const ProductDetailPage = () => {
 
         {/* Rating Breakdown: Green Stars & Total Count (Left) vs 5★-1★ Green Bars (Right) */}
         <RatingSummaryCard
-          summary={
-            ratingSummary || {
-              averageRating: hasReviews ? rawRating : 0,
-              totalReviews: totalReviewsCount,
-              ratingDistribution: product.ratingDistribution || {
-                5: 0,
-                4: 0,
-                3: 0,
-                2: 0,
-                1: 0,
-              },
-              ratingPercentages: {
-                5: 0,
-                4: 0,
-                3: 0,
-                2: 0,
-                1: 0,
-              },
-            }
-          }
+          summary={activeSummary}
           selectedRatingFilter={typeof activeFilter === 'number' ? activeFilter : null}
           onSelectRatingFilter={(star) => setActiveFilter(activeFilter === star ? 'ALL' : star)}
           onOpenWriteReview={handleOpenWriteReview}
@@ -1068,7 +1082,13 @@ export const ProductDetailPage = () => {
         onSubmit={handleModalSubmit}
         existingReview={editingReview}
         productTitle={product.title}
-        productImage={displayImage || product.images?.[0]}
+        productImage={
+          (displayImage && !displayImage.includes('unsplash.com'))
+            ? displayImage
+            : (product.images?.[0] && !product.images[0].includes('unsplash.com'))
+            ? product.images[0]
+            : ''
+        }
         productBrand={brandName}
         isVerifiedBuyer={eligibility.isVerifiedBuyer}
       />

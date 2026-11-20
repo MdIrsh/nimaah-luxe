@@ -333,7 +333,7 @@ export const ReviewCard = ({
           onClick={() => setLightboxIndex(null)}
         >
           <div
-            className="relative max-w-xl w-full max-h-[90dvh] bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl space-y-2.5 sm:space-y-3 flex flex-col overflow-hidden"
+            className="relative max-w-xl w-full max-h-[90dvh] bg-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl space-y-2.5 sm:space-y-3 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Lightbox Header */}

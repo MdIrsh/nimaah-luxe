@@ -2,10 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Edit2, Search, X, Check, Image as ImageIcon, Upload, Star, AlertCircle } from 'lucide-react';
 import { productService, DEMO_PRODUCTS } from '../services/productService';
 import uploadService, { formatFileSize } from '../services/uploadService';
-import { getProductImageUrl } from '../utils/imageUtils';
-
-export const FALLBACK_PRODUCT_IMAGE =
-  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
+import { getProductImageUrl, FALLBACK_PRODUCT_IMAGE } from '../utils/imageUtils';
 
 // Helper to extract clean direct image URL from Google Images search or redirect links
 export const cleanImageUrl = (url) => {
@@ -67,7 +64,7 @@ export const AdminProducts = () => {
       if (uploadedUrls && uploadedUrls.length > 0) {
         setForm((prev) => {
           const current = (prev.images || []).filter(
-            (img) => img && img !== FALLBACK_PRODUCT_IMAGE
+            (img) => img && !img.includes('unsplash.com')
           );
           return {
             ...prev,
@@ -119,18 +116,18 @@ export const AdminProducts = () => {
       const images = (prev.images || []).filter((_, idx) => idx !== index);
       return {
         ...prev,
-        images: images.length > 0 ? images : [FALLBACK_PRODUCT_IMAGE],
+        images,
       };
     });
   };
 
   const [form, setForm] = useState({
     title: '',
-    brand: 'StyleHub Atelier',
-    category: 'Dresses',
+    brand: "Ni'maah Luxe",
+    category: 'Kurtis',
     price: 15000,
     discountedPrice: 12999,
-    images: ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80'],
+    images: [],
     sizes: ['S', 'M', 'L'],
     fabric: 'Pure Mulberry Silk',
     stockCount: 15,
@@ -138,13 +135,13 @@ export const AdminProducts = () => {
   });
 
   const categories = [
+    'Kurtis',
     'Dresses',
+    'Ethnic Wear',
+    'Sarees',
     'Tops',
     'Jeans',
-    'Sarees',
-    'Kurtis',
     'Western Wear',
-    'Ethnic Wear',
     'Accessories',
   ];
 
@@ -171,10 +168,10 @@ export const AdminProducts = () => {
     setForm({
       title: '',
       brand: "Ni'maah Luxe",
-      category: 'Dresses',
+      category: 'Kurtis',
       price: 15000,
       discountedPrice: 12999,
-      images: ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80'],
+      images: [],
       sizes: ['S', 'M', 'L'],
       fabric: 'Pure Mulberry Silk',
       stockCount: 15,
@@ -186,13 +183,16 @@ export const AdminProducts = () => {
   const handleOpenEdit = (p) => {
     setEditingId(p._id);
     setSaveError('');
+    const validImgs = (p.images || []).filter(
+      (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
+    );
     setForm({
       title: p.title || '',
       brand: p.brand || "Ni'maah Luxe",
-      category: p.category || 'Dresses',
+      category: p.category || 'Kurtis',
       price: p.price || 0,
       discountedPrice: p.discountedPrice ?? p.price ?? 0,
-      images: p.images && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80'],
+      images: validImgs,
       sizes: p.sizes || ['S', 'M', 'L'],
       fabric: p.fabric || 'Pure Mulberry Silk',
       stockCount: p.stockCount ?? 10,
@@ -219,16 +219,20 @@ export const AdminProducts = () => {
       if (!form.price || Number(form.price) <= 0) throw new Error('Please enter a valid price');
       if (!form.description?.trim()) throw new Error('Please enter an editorial description');
 
+      const cleanImages = (form.images || []).filter(
+        (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
+      );
+      if (cleanImages.length === 0) {
+        throw new Error('Please upload at least one authentic product image from your device.');
+      }
+
       const payload = {
         ...form,
         title: form.title.trim(),
         price: Number(form.price),
         discountedPrice: Number(form.discountedPrice !== undefined ? form.discountedPrice : form.price),
         stockCount: Number(form.stockCount || 0),
-        images:
-          form.images && form.images.length > 0 && form.images[0]?.trim()
-            ? form.images.map(cleanImageUrl)
-            : [FALLBACK_PRODUCT_IMAGE],
+        images: cleanImages.map(cleanImageUrl),
       };
 
       if (editingId) {
