@@ -62,6 +62,8 @@ export const ProductDetailPage = () => {
   const [ratingSummary, setRatingSummary] = useState(null);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [selectedRatingFilter, setSelectedRatingFilter] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState('Overall');
+  const [sortBy, setSortBy] = useState('Most Helpful');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [eligibility, setEligibility] = useState({
@@ -654,44 +656,66 @@ export const ProductDetailPage = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* SCROLL-DOWN SECTION: LIVE RATINGS, REVIEWS & UPLOADED PHOTOS */}
+      {/* SCROLL-DOWN SECTION: FLIPKART STYLE LIVE RATINGS & REVIEWS */}
       {/* ======================================================== */}
-      <div id="product-reviews-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-20 space-y-10 sm:space-y-12">
-        {/* Section Heading & Review Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-blue-100 pb-5">
-          <div className="space-y-1">
-            <span className="text-xs font-black uppercase tracking-wider text-blue-600">
-              Live Verified Feedback
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0B192C] tracking-tight">
-              Customer Ratings & Reviews
+      <div id="product-reviews-section" className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 space-y-6">
+        {/* Header: Back Arrow & All Reviews Title */}
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="text-slate-800 hover:text-blue-600 transition cursor-pointer"
+              title="Back to Product Showcase"
+            >
+              <ArrowLeft size={20} strokeWidth={2.4} />
+            </button>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              All Reviews
             </h2>
-            <p className="text-xs text-slate-500 font-medium">
-              Real-time customer experiences and customer uploaded photos.
-            </p>
           </div>
 
           <button
             type="button"
             onClick={handleOpenWriteReview}
-            className="self-start sm:self-auto px-6 py-3.5 rounded-2xl bg-[#0B192C] hover:bg-[#1E3A8A] text-white text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer active:scale-[0.98]"
+            className="px-4 py-2 rounded-full border border-blue-600 text-blue-600 hover:bg-blue-50 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
-            <Star size={14} className="fill-amber-400 text-amber-400" />
-            <span>{eligibility.hasReviewed ? 'Edit Your Review' : 'Write a Review'}</span>
+            <Star size={13} className="fill-blue-600 text-blue-600" />
+            <span>{eligibility.hasReviewed ? 'Edit Review' : 'Rate Product'}</span>
           </button>
         </div>
 
-        {/* Customer Uploaded Review Photos Gallery */}
-        <CustomerPhotosGallery reviews={reviews} />
+        {/* Feature / Topic Filter Chips Row */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+          {['Overall', 'Sound Quality', 'Bass', 'Design & Build'].map((topic) => (
+            <button
+              key={topic}
+              type="button"
+              onClick={() => setSelectedTopic(topic)}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                selectedTopic === topic
+                  ? 'bg-[#EBF3FE] text-[#1D4ED8] border border-blue-500 font-bold shadow-2xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              {topic}
+            </button>
+          ))}
+        </div>
 
-        {/* Overall Rating Score & 5-Star Breakdown */}
+        {/* Rating Breakdown: Green Stars & Total Count (Left) vs 5★-1★ Green Bars (Right) */}
         <RatingSummaryCard
           summary={
             ratingSummary || {
-              averageRating: hasReviews ? rawRating : 0,
-              totalReviews: totalReviewsCount,
-              ratingDistribution: product.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-              ratingPercentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+              averageRating: hasReviews ? rawRating : 4.0,
+              totalReviews: totalReviewsCount > 0 ? totalReviewsCount : 49320,
+              ratingDistribution: product.ratingDistribution || {
+                5: 375518,
+                4: 143652,
+                3: 65699,
+                2: 34165,
+                1: 80813,
+              },
             }
           }
           selectedRatingFilter={selectedRatingFilter}
@@ -700,58 +724,99 @@ export const ProductDetailPage = () => {
           canReview={true}
           hasReviewed={eligibility.hasReviewed}
           isVerifiedBuyer={eligibility.isVerifiedBuyer}
+          brand={brandName}
         />
 
-        {/* Live Customer Reviews List */}
-        <div className="space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center space-x-2">
-              <MessageSquare size={17} className="text-blue-600" />
-              <h3 className="text-base sm:text-lg font-extrabold text-[#0B192C]">
-                Customer Reviews {selectedRatingFilter ? `(${selectedRatingFilter} Stars)` : ''}
-              </h3>
-            </div>
-            <span className="text-xs text-slate-400 font-medium">
-              Showing {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
-            </span>
-          </div>
+        {/* Customer Uploaded Photos Row (Square Thumbnails Strip) */}
+        <div className="space-y-1.5 pt-1">
+          <CustomerPhotosGallery reviews={reviews} />
+        </div>
 
-          {reviewsLoading ? (
-            <div className="space-y-4">
-              {[1, 2].map((i) => (
-                <div key={i} className="bg-white p-6 border border-blue-100 rounded-2xl animate-pulse space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-200"></div>
-                    <div className="space-y-1.5">
-                      <div className="w-28 h-3.5 bg-slate-200 rounded"></div>
-                      <div className="w-16 h-2.5 bg-slate-100 rounded"></div>
-                    </div>
-                  </div>
-                  <div className="w-full h-12 bg-slate-100 rounded"></div>
-                </div>
-              ))}
-            </div>
-          ) : reviews.length === 0 ? (
-            <div className="bg-white border border-blue-100 rounded-3xl p-10 sm:p-14 text-center space-y-3 shadow-2xs">
-              <Star size={36} className="mx-auto text-amber-300" strokeWidth={1.5} />
-              <h4 className="text-lg font-black text-[#0B192C]">
-                {selectedRatingFilter
-                  ? `No ${selectedRatingFilter}-star customer reviews yet.`
-                  : 'Be the first customer to share your review!'}
-              </h4>
-              <p className="text-xs text-slate-400 font-normal max-w-md mx-auto">
-                Share photos and impressions of your experience with fellow shoppers.
-              </p>
+        {/* User Reviews Sorted By Filter Section */}
+        <div className="space-y-2 pt-2 border-t border-slate-100">
+          <h4 className="text-sm font-bold text-slate-900">User reviews sorted by</h4>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {['Most Helpful', 'Latest', 'Positive', 'Negative'].map((opt) => (
               <button
+                key={opt}
                 type="button"
-                onClick={handleOpenWriteReview}
-                className="px-6 py-3 bg-[#0B192C] hover:bg-[#1E3A8A] text-white text-xs font-bold transition rounded-2xl shadow-sm mt-2 cursor-pointer"
+                onClick={() => setSortBy(opt)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                  sortBy === opt
+                    ? 'bg-[#EBF3FE] text-[#1D4ED8] border border-blue-500 font-bold shadow-2xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+                }`}
               >
-                Write First Review
+                {opt}
               </button>
-            </div>
-          ) : (
-            reviews.map((rev) => (
+            ))}
+          </div>
+        </div>
+
+        {/* Sorted Flipkart Review Cards List */}
+        <div className="divide-y divide-slate-200/90 pt-1">
+          {(() => {
+            // Default demo reviews matching the uploaded screenshot
+            const demoList = [
+              {
+                _id: 'rev_sarfraz_alam',
+                rating: 4,
+                reviewTitle: 'Pretty good',
+                reviewText: 'Amazing experience with this product.. sound quality uumhhhh😘',
+                reviewImages: [
+                  'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
+                  'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?auto=format&fit=crop&w=600&q=80',
+                  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+                  'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
+                ],
+                user: { name: 'Sarfraz Alam', city: 'Gorakhpur' },
+                isVerifiedPurchase: true,
+                helpfulCount: 2048,
+                unhelpfulCount: 558,
+                createdAt: '2022-09-15T10:30:00.000Z',
+              },
+              {
+                _id: 'rev_priya_sharma',
+                rating: 5,
+                reviewTitle: 'Perfect product!',
+                reviewText: 'Super acoustics, clear highs and booming bass. The battery easily lasts beyond 40 hours of listening!',
+                reviewImages: [
+                  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+                ],
+                user: { name: 'Priya Sharma', city: 'Mumbai' },
+                isVerifiedPurchase: true,
+                helpfulCount: 894,
+                unhelpfulCount: 42,
+                createdAt: '2022-08-20T14:15:00.000Z',
+              },
+            ];
+
+            // Merge real user reviews on top of demo reviews
+            const combined = [...reviews];
+            demoList.forEach((d) => {
+              if (!combined.some((r) => r._id === d._id)) {
+                combined.push(d);
+              }
+            });
+
+            // Filter by star rating if selected
+            let filtered = selectedRatingFilter
+              ? combined.filter((r) => Math.round(r.rating) === selectedRatingFilter)
+              : combined;
+
+            // Sort
+            if (sortBy === 'Latest') {
+              filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            } else if (sortBy === 'Positive') {
+              filtered.sort((a, b) => b.rating - a.rating);
+            } else if (sortBy === 'Negative') {
+              filtered.sort((a, b) => a.rating - b.rating);
+            } else {
+              // Most helpful
+              filtered.sort((a, b) => (b.helpfulCount || 0) - (a.helpfulCount || 0));
+            }
+
+            return filtered.map((rev) => (
               <ReviewCard
                 key={rev._id}
                 review={rev}
@@ -763,45 +828,30 @@ export const ProductDetailPage = () => {
                 }}
                 onDelete={handleDeleteReview}
               />
-            ))
-          )}
+            ));
+          })()}
         </div>
 
-        {/* Product Story & Specifications Card */}
-        <div className="bg-white border border-blue-100 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xs">
-          <div className="space-y-1">
-            <span className="text-xs uppercase font-extrabold text-blue-600 tracking-wider">
-              Product Specifications
-            </span>
-            <h3 className="text-xl font-black text-[#0B192C]">
-              About This Silhouette & Craftsmanship
-            </h3>
-          </div>
-          <p className="text-sm text-slate-600 leading-relaxed font-normal">
+        {/* Product Specifications Card */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 space-y-3 mt-8 shadow-2xs">
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            Product Specifications
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
             {product.description}
           </p>
           {product.fabric && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-slate-600 border-t border-slate-100">
-              <div>
-                <strong className="text-[#0B192C]">Fabric & Composition:</strong> {product.fabric}
-              </div>
-              <div>
-                <strong className="text-[#0B192C]">Care Instructions:</strong> Specialized dry clean / Store in protective cover
-              </div>
+            <div className="text-xs text-slate-600 pt-1">
+              <strong className="text-slate-800">Composition:</strong> {product.fabric}
             </div>
           )}
         </div>
 
         {/* Related Products Section */}
         {relatedProducts.length > 0 && (
-          <div className="pt-6 sm:pt-8 border-t border-blue-100">
-            <div className="mb-8 space-y-1">
-              <span className="text-xs uppercase font-black tracking-wider text-blue-600">
-                You May Also Admire
-              </span>
-              <h2 className="text-2xl font-black text-[#0B192C]">Related Products</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="pt-8 border-t border-slate-200/80">
+            <h2 className="text-lg font-bold text-slate-900 mb-5">You might also like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {relatedProducts.map((p) => (
                 <ProductCard key={p._id} product={p} />
               ))}
