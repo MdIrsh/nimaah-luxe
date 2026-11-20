@@ -5,6 +5,7 @@ export const RatingStars = ({
   rating = 0,
   maxRating = 5,
   size = 'md',
+  color = 'gold', // 'gold' | 'amber'
   interactive = false,
   onChange,
   className = '',
@@ -22,6 +23,13 @@ export const RatingStars = ({
 
   const starPx = starSizes[size] || 16;
   const currentRating = interactive && hoveredRating > 0 ? hoveredRating : rating;
+
+  // Color schemes
+  const isAmber = color === 'amber';
+  const filledStroke = isAmber ? '#D97706' : '#C5A059';
+  const filledFill = isAmber ? '#F59E0B' : '#C5A059';
+  const unfilledStroke = isAmber ? '#FDE68A' : '#E2D9CC';
+  const unfilledFill = isAmber ? '#FEF3C7' : 'transparent';
 
   return (
     <div
@@ -45,17 +53,19 @@ export const RatingStars = ({
             onMouseEnter={() => interactive && setHoveredRating(starValue)}
             className={`transition-all duration-150 ${
               interactive
-                ? 'cursor-pointer hover:scale-120 focus:outline-none p-0.5'
+                ? 'cursor-pointer hover:scale-120 active:scale-95 focus:outline-none p-0.5'
                 : 'cursor-default pointer-events-none'
             }`}
             aria-label={`${starValue} star rating`}
           >
             <Star
               size={starPx}
-              stroke={isFilled || isHalf ? '#D97706' : '#C5A059'}
+              stroke={isFilled || isHalf ? filledStroke : unfilledStroke}
               strokeWidth={1.8}
-              fill={isFilled ? '#F59E0B' : isHalf ? '#F59E0B' : 'transparent'}
-              className="transition-colors duration-150 drop-shadow-2xs"
+              fill={isFilled ? filledFill : isHalf ? filledFill : unfilledFill}
+              className={`transition-colors duration-150 ${
+                isAmber && isFilled ? 'drop-shadow-xs' : ''
+              }`}
             />
           </button>
         );

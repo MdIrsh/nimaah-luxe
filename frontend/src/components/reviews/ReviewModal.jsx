@@ -1,41 +1,45 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
-  Upload,
+  UploadCloud,
   CheckCircle2,
   AlertCircle,
   Trash2,
-  Image as ImageIcon,
+  Camera,
   Star,
   PenLine,
-  MessageCircle,
-  Info,
+  MessageSquare,
   Send,
+  ArrowRight,
+  Heart,
 } from 'lucide-react';
 import RatingStars from './RatingStars';
 import uploadService, { formatFileSize } from '../../services/uploadService';
+import { FALLBACK_PRODUCT_IMAGE, handleImageError } from '../../utils/imageUtils';
 
 export const ReviewModal = ({
   isOpen,
   onClose,
   onSubmit,
   existingReview = null,
-  productTitle = 'Atelier Creation',
+  productTitle = 'Audio Piece',
+  productImage = '',
+  productBrand = 'NOISE',
   isVerifiedBuyer = false,
 }) => {
-  const [rating, setRating] = useState(existingReview?.rating || 5);
+  const [rating, setRating] = useState(existingReview?.rating || 4);
   const [reviewTitle, setReviewTitle] = useState(existingReview?.reviewTitle || '');
   const [reviewText, setReviewText] = useState(existingReview?.reviewText || '');
   const [images, setImages] = useState(existingReview?.reviewImages || []);
 
   useEffect(() => {
     if (existingReview) {
-      setRating(existingReview.rating || 5);
+      setRating(existingReview.rating || 4);
       setReviewTitle(existingReview.reviewTitle || '');
       setReviewText(existingReview.reviewText || '');
       setImages(existingReview.reviewImages || []);
     } else {
-      setRating(5);
+      setRating(4);
       setReviewTitle('');
       setReviewText('');
       setImages([]);
@@ -54,11 +58,11 @@ export const ReviewModal = ({
   if (!isOpen) return null;
 
   const ratingDescriptions = {
-    5: 'Pure Sovereign Perfection — Flawless drape, stitching & texture',
-    4: 'Exceptional Luxury Quality — Exceeded expectations',
-    3: 'Graceful Silhouette — Good fit & appearance',
-    2: 'Fair Experience — Needs slight refinement',
-    1: 'Not as Anticipated — Does not meet expectations',
+    5: 'Masterpiece! Flawless acoustics and comfort.',
+    4: 'Great! Your opinion matters.',
+    3: 'Good experience, satisfactory quality.',
+    2: 'Fair experience, room for refinement.',
+    1: 'Needs significant improvement.',
   };
 
   const handleFileSelect = async (e) => {
@@ -122,7 +126,7 @@ export const ReviewModal = ({
     }
 
     if (!reviewText.trim()) {
-      setFormError('Please share your thoughts on the silhouette.');
+      setFormError('Please share your thoughts on the product.');
       return;
     }
 
@@ -143,217 +147,187 @@ export const ReviewModal = ({
     }
   };
 
+  const displayImg = productImage || FALLBACK_PRODUCT_IMAGE;
+
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
       onClick={onClose}
     >
+      {/* Modal Container: Mobile bottom-sheet & Desktop centered modal */}
       <div
-        className="relative max-w-lg w-full bg-[#FCFAF7] border border-[#F0E8DC] rounded-[28px] sm:rounded-3xl p-6 sm:p-7 shadow-2xl my-6 max-h-[92vh] overflow-y-auto no-scrollbar space-y-5"
+        className="relative w-full sm:max-w-xl bg-gradient-to-b from-[#F0F7FF] via-white to-[#F0F7FF]/60 rounded-t-[28px] sm:rounded-3xl border border-blue-100 shadow-2xl p-5 sm:p-7 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto no-scrollbar space-y-4 sm:space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top-Right Decorative 3D Gold Star Trophy Pedestal Artwork */}
-        <div className="absolute -top-3 -right-3 w-36 h-36 pointer-events-none select-none hidden sm:block opacity-95">
-          <div className="absolute inset-0 bg-radial from-amber-200/50 via-amber-100/10 to-transparent blur-xl" />
-          <svg viewBox="0 0 160 160" className="w-full h-full drop-shadow-sm" fill="none">
-            {/* Pedestal Bottom Base */}
-            <ellipse cx="106" cy="122" rx="34" ry="11" fill="url(#pedestal-base)" />
-            <path
-              d="M74 110 C74 110 74 122 106 122 C138 122 138 110 138 110 L138 100 C138 100 138 112 106 112 C74 112 74 100 74 100 Z"
-              fill="url(#pedestal-mid)"
+        {/* Mobile Drag Bar */}
+        <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto sm:hidden -mt-1 mb-2" />
+
+        {/* Circular Close Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full bg-white/95 border border-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shadow-2xs cursor-pointer z-20"
+          aria-label="Close review dialog"
+        >
+          <X size={16} strokeWidth={2.5} />
+        </button>
+
+        {/* Header with Integrated Product Showcase */}
+        <div className="flex items-center gap-4 sm:gap-5 pr-8">
+          {/* Product Image Box */}
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-[#E0F2FE] via-[#EDE9FE]/50 to-[#F0FDF4]/40 p-2 flex items-center justify-center border border-blue-100 shadow-xs relative overflow-hidden flex-shrink-0 group">
+            {/* Sparkles */}
+            <span className="absolute top-1.5 right-2 text-blue-400 text-xs select-none">✦</span>
+            <span className="absolute bottom-2 left-2 text-blue-300 text-[10px] select-none">✦</span>
+            <img
+              src={displayImg}
+              alt={productTitle}
+              referrerPolicy="no-referrer"
+              onError={handleImageError}
+              className="w-full h-full object-contain mix-blend-multiply drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
             />
-            {/* Pedestal Top Tier */}
-            <ellipse cx="106" cy="100" rx="28" ry="8.5" fill="url(#pedestal-top)" />
-            <ellipse cx="106" cy="92" rx="22" ry="6.5" fill="url(#pedestal-plate)" />
-
-            {/* Sparkle Left */}
-            <path d="M52 64 Q55 60 58 64 Q55 68 52 64 Z" fill="#F59E0B" />
-            <path d="M55 58 L55 70" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M49 64 L61 64" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-
-            {/* Sparkle Right */}
-            <path d="M142 66 Q144 63 146 66 Q144 69 142 66 Z" fill="#F59E0B" />
-            <path d="M144 61 L144 71" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M139 66 L149 66" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-
-            {/* 3D Gold Star on Pedestal */}
-            <g transform="translate(106, 62) scale(1.15)">
-              <path
-                d="M0 -30 L8 -10 L30 -8 L14 7 L19 28 L0 17 L-19 28 L-14 7 L-30 -8 L-8 -10 Z"
-                fill="url(#gold-star-gradient)"
-                stroke="#D97706"
-                strokeWidth="1.2"
-                strokeLinejoin="round"
-              />
-              <path d="M0 -30 L0 17 L8 -10 Z" fill="#FEF3C7" opacity="0.6" />
-              <path d="M0 -30 L0 17 L-8 -10 Z" fill="#B45309" opacity="0.45" />
-              <path d="M30 -8 L0 17 L14 7 Z" fill="#F59E0B" opacity="0.5" />
-              <path d="M-30 -8 L0 17 L-14 7 Z" fill="#78350F" opacity="0.4" />
-              <path d="M19 28 L0 17 L8 -10 Z" fill="#FBBF24" opacity="0.5" />
-            </g>
-
-            <defs>
-              <linearGradient id="pedestal-base" x1="72" y1="122" x2="140" y2="122" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#D97706" />
-                <stop offset="0.5" stopColor="#FDE68A" />
-                <stop offset="1" stopColor="#92400E" />
-              </linearGradient>
-              <linearGradient id="pedestal-mid" x1="74" y1="110" x2="138" y2="110" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#92400E" />
-                <stop offset="0.5" stopColor="#F59E0B" />
-                <stop offset="1" stopColor="#78350F" />
-              </linearGradient>
-              <linearGradient id="pedestal-top" x1="78" y1="100" x2="134" y2="100" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#FBBF24" />
-                <stop offset="0.5" stopColor="#FEF3C7" />
-                <stop offset="1" stopColor="#D97706" />
-              </linearGradient>
-              <linearGradient id="pedestal-plate" x1="84" y1="92" x2="128" y2="92" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#F59E0B" />
-                <stop offset="0.5" stopColor="#FFFBEB" />
-                <stop offset="1" stopColor="#B45309" />
-              </linearGradient>
-              <linearGradient id="gold-star-gradient" x1="-30" y1="-30" x2="30" y2="28" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#FDE68A" />
-                <stop offset="0.4" stopColor="#F59E0B" />
-                <stop offset="0.8" stopColor="#D97706" />
-                <stop offset="1" stopColor="#B45309" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-
-        {/* Modal Header */}
-        <div className="flex items-start justify-between relative z-10">
-          <div className="space-y-0.5 max-w-[80%]">
-            <span className="text-[11px] uppercase tracking-[0.22em] text-[#C5A059] font-bold flex items-center gap-1.5 font-sans">
-              <Star size={12} fill="#C5A059" className="text-[#C5A059]" />
-              PATRON IMPRESSIONS
-            </span>
-            <h3 className="text-2xl sm:text-[26px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
-              {existingReview ? 'Refine Your Review' : 'Share Your Experience'}
-            </h3>
-            <p className="text-xs text-slate-500 font-normal">
-              Your feedback helps us serve you better
-            </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shadow-2xs cursor-pointer"
-            aria-label="Close dialog"
-          >
-            <X size={16} strokeWidth={2.5} />
-          </button>
+          {/* Heading Content */}
+          <div className="space-y-0.5 min-w-0">
+            <span className="text-xl font-black tracking-tight text-[#0B192C] font-sans block truncate lowercase">
+              {productBrand ? productBrand.toLowerCase() : "ni'maah luxe"}
+            </span>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-[#0B192C] tracking-tight leading-tight">
+              {existingReview ? 'Refine Your Experience' : 'Share Your Experience'}
+            </h3>
+            <p className="text-xs text-slate-500 font-normal flex items-center gap-1.5 flex-wrap">
+              <span>Your feedback helps us serve you better</span>
+              <Heart size={13} className="text-blue-500 stroke-[2.2]" />
+            </p>
+          </div>
         </div>
 
         {/* Verified Buyer Callout (if eligible) */}
         {isVerifiedBuyer && (
-          <div className="bg-emerald-50/90 border border-emerald-200/80 rounded-xl px-3.5 py-2 flex items-center space-x-2 text-emerald-800 text-xs">
+          <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-3.5 py-2 flex items-center space-x-2 text-emerald-800 text-xs">
             <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0" />
             <span className="font-medium">
-              Verified Buyer privilege: Your review will carry the official verified badge.
+              Verified Buyer: Your review will carry the official verified badge.
             </span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 relative z-10">
-          {/* Section 1: Rating Card */}
-          <div className="bg-white/95 border border-[#EFE8DD] rounded-2xl p-4 sm:p-5 shadow-xs space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-[#0F172A] flex items-center gap-1.5">
-                <Star size={15} stroke="#C5A059" strokeWidth={2} fill="transparent" />
-                <span>
-                  Select Your Rating <span className="text-red-500">*</span>
-                </span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Section 1: Rate Your Experience Card */}
+          <div className="bg-gradient-to-r from-blue-50/50 via-white to-sky-50/40 border border-blue-100 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-2xs space-y-2.5">
+            {/* "Be the Voice" Script Watermark */}
+            <span
+              className="text-blue-600/75 text-2xl sm:text-3xl font-bold -rotate-12 absolute right-3 sm:right-5 top-2.5 select-none pointer-events-none"
+              style={{ fontFamily: "'Brush Script MT', 'Caveat', 'Playfair Display', cursive, serif" }}
+            >
+              Be the Voice
+            </span>
+
+            {/* Header */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#2563EB] flex items-center justify-center text-white shadow-2xs">
+                <Star size={11} fill="white" className="text-white" />
+              </div>
+              <label className="text-sm font-bold text-[#0B192C]">
+                Rate Your Experience <span className="text-red-500">*</span>
               </label>
             </div>
 
+            {/* Stars Row + Pill */}
             <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5">
               <RatingStars
                 rating={rating}
                 interactive={true}
                 size="2xl"
+                color="amber"
                 onChange={(newRating) => setRating(newRating)}
               />
-              <div className="bg-[#FDF4E7] text-[#0F172A] font-extrabold px-3.5 py-1 rounded-full text-sm font-sans flex items-center justify-center border border-[#F5E6CC]">
-                {rating} / 5
+              <div className="bg-[#E0F2FE] text-[#0369A1] font-extrabold px-3.5 py-1 rounded-full text-xs font-sans border border-blue-200/60 shadow-2xs">
+                {rating}.0 / 5
               </div>
             </div>
 
-            <p className="text-xs text-[#8C7A5B] italic font-serif pt-0.5">
-              {ratingDescriptions[rating] || ''}
+            {/* Dynamic Opinion Subtext */}
+            <p className="text-xs text-slate-500 font-medium italic pt-0.5">
+              {ratingDescriptions[rating] || 'Great! Your opinion matters.'}
             </p>
           </div>
 
           {/* Section 2: Review Title Input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-              <PenLine size={16} className="text-[#0F172A]" />
-              <span>Review Title (Optional)</span>
-            </label>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center">
+                <PenLine size={11} />
+              </div>
+              <label className="text-sm font-bold text-[#0B192C]">
+                Review Title (Optional)
+              </label>
+            </div>
             <div className="relative">
               <input
                 type="text"
                 maxLength={100}
                 value={reviewTitle}
                 onChange={(e) => setReviewTitle(e.target.value)}
-                placeholder="e.g., Exquisite drape and royal finish..."
-                className="w-full rounded-2xl border border-[#E2D9CC] bg-[#FAFAF8] focus:bg-white focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] px-4 py-3 pr-16 text-sm text-[#0F172A] placeholder:text-gray-400 transition outline-none"
+                placeholder="e.g. Great sound quality..."
+                className="w-full rounded-2xl border border-slate-200 bg-[#F8FAFC] focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 px-4 py-3 pr-16 text-sm text-[#0B192C] placeholder:text-slate-400 transition outline-none shadow-2xs"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-sans pointer-events-none">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-sans pointer-events-none">
                 {reviewTitle.length} / 100
               </span>
             </div>
           </div>
 
-          {/* Section 3: Impression & Critique Textarea */}
+          {/* Section 3: Your Impression & Critique */}
           <div className="space-y-1.5">
-            <label className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-              <MessageCircle size={16} className="text-[#0F172A]" />
-              <span>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center">
+                <MessageSquare size={11} />
+              </div>
+              <label className="text-sm font-bold text-[#0B192C]">
                 Your Impression & Critique <span className="text-red-500">*</span>
-              </span>
-            </label>
-            <div className="rounded-2xl border border-[#E2D9CC] bg-[#FAFAF8] focus-within:bg-white focus-within:border-[#C5A059] focus-within:ring-1 focus-within:ring-[#C5A059] transition p-3.5 sm:p-4">
+              </label>
+            </div>
+            <div className="relative rounded-2xl border border-slate-200 bg-[#F8FAFC] focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition p-3.5 sm:p-4 shadow-2xs">
               <textarea
                 required
                 rows={4}
                 maxLength={2000}
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Detail the drape, fabric weave, embroidery precision, and how the silhouette felt when worn..."
-                className="w-full text-sm text-[#0F172A] placeholder:text-gray-400 bg-transparent focus:outline-none resize-none leading-relaxed"
+                placeholder="Tell us about the product – design, performance, battery life and more..."
+                className="w-full text-sm text-[#0B192C] placeholder:text-slate-400 bg-transparent focus:outline-none resize-none leading-relaxed"
               />
-            </div>
-            <div className="text-right">
-              <span className="text-xs text-gray-400 font-sans">
-                {reviewText.length} / 2000 characters
-              </span>
+              <div className="flex items-center justify-end gap-1 text-[11px] text-slate-400 font-sans pt-1">
+                <span>{reviewText.length} / 2000</span>
+                <PenLine size={11} className="opacity-40" />
+              </div>
             </div>
           </div>
 
-          {/* Section 4: Add Photos Section */}
+          {/* Section 4: Add Photos */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                <ImageIcon size={16} className="text-[#0F172A]" />
-                <span>Add Photos (Optional)</span>
-              </label>
-              <span className="bg-[#F1F5F9] text-[#64748B] text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 border border-slate-200/60">
-                Max 50 MB • JPG, PNG, WEBP <Info size={12} />
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center">
+                <Camera size={11} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#0B192C]">Add Photos (Optional)</h4>
+                <p className="text-[11px] text-slate-400">Show us your product in action</p>
+              </div>
             </div>
 
-            {/* Dashed Modern Upload Area */}
-            <div className="relative border-2 border-dashed border-[#E9D7B8] bg-[#FDFBF7] hover:bg-[#FAF6ED] rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition flex flex-col items-center justify-center group overflow-hidden">
-              {/* Subtle ghost image silhouettes on sides */}
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden sm:block">
-                <ImageIcon size={44} className="text-[#C5A059]" />
-              </div>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden sm:block">
-                <ImageIcon size={44} className="text-[#C5A059]" />
+            {/* Modern Drag & Drop Upload Area */}
+            <div className="relative border-2 border-dashed border-blue-200 bg-gradient-to-r from-blue-50/40 via-sky-50/20 to-blue-50/40 hover:bg-blue-50/70 rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition flex flex-col items-center justify-center group overflow-hidden">
+              {/* Subtle ghost product watermark in the background */}
+              <div className="w-24 h-24 absolute -right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden sm:block">
+                <img
+                  src={displayImg}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-contain filter grayscale"
+                />
               </div>
 
               <input
@@ -371,42 +345,41 @@ export const ReviewModal = ({
                   isUploading ? 'opacity-50 pointer-events-none' : ''
                 }`}
               >
-                <div className="w-12 h-12 rounded-full bg-white shadow-xs border border-[#E8DCC8] flex items-center justify-center text-[#C5A059] group-hover:scale-105 transition mb-1">
-                  <Upload size={20} strokeWidth={2.2} />
+                <div className="w-12 h-12 rounded-2xl bg-white shadow-xs border border-blue-100 flex items-center justify-center text-[#2563EB] group-hover:scale-105 transition mb-1">
+                  <UploadCloud size={24} strokeWidth={2.2} />
                 </div>
-                <span className="text-sm font-bold text-[#0F172A] group-hover:text-[#C5A059] transition">
-                  Click to select photo from device
+                <span className="text-sm font-bold text-[#0B192C] group-hover:text-blue-600 transition">
+                  Click to upload photo from device
                 </span>
-                <span className="text-xs text-gray-400">
-                  Supports up to 50 MB high-resolution images
+                <span className="text-xs text-slate-400">
+                  Supports JPG, PNG, WEBP • Max 50 MB
                 </span>
               </label>
 
-              {/* Upload Progress Indicator */}
+              {/* Upload Progress */}
               {isUploading && selectedFile && (
-                <div className="w-full mt-3 p-3 bg-white border border-[#E9E1D6] rounded-xl space-y-2 text-left z-10 shadow-2xs">
+                <div className="w-full mt-3 p-3 bg-white border border-blue-100 rounded-xl space-y-2 text-left z-10 shadow-2xs">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-[#0F172A] truncate max-w-[200px]">
+                    <span className="font-semibold text-[#0B192C] truncate max-w-[200px]">
                       {selectedFile.name}
                     </span>
-                    <span className="text-gray-400 font-mono">
+                    <span className="text-slate-400 font-mono">
                       {formatFileSize(selectedFile.size)}
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-[#DDA74A] to-[#B38738] transition-all duration-200 ease-out rounded-full"
+                      className="h-full bg-blue-600 transition-all duration-200 ease-out rounded-full"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-[10px] text-gray-500">
+                  <div className="flex justify-between text-[10px] text-slate-500">
                     <span>Uploading photo...</span>
-                    <span className="font-bold text-[#C5A059]">{uploadProgress}%</span>
+                    <span className="font-bold text-blue-600">{uploadProgress}%</span>
                   </div>
                 </div>
               )}
 
-              {/* Upload Error Banner */}
               {uploadError && (
                 <div className="w-full mt-2 text-left p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center space-x-1.5 z-10">
                   <AlertCircle size={14} className="flex-shrink-0" />
@@ -415,13 +388,13 @@ export const ReviewModal = ({
               )}
             </div>
 
-            {/* Thumbnail Gallery for Uploaded Photos */}
+            {/* Thumbnail Preview Strip */}
             {images.length > 0 && (
               <div className="flex flex-wrap gap-2.5 pt-1">
                 {images.map((img, idx) => (
                   <div
                     key={idx}
-                    className="relative w-16 h-20 rounded-xl overflow-hidden border border-[#E2D9CC] shadow-2xs group"
+                    className="relative w-16 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-2xs group"
                   >
                     <img
                       src={img}
@@ -443,7 +416,7 @@ export const ReviewModal = ({
             )}
           </div>
 
-          {/* Form Level Error Message */}
+          {/* Form Error Banner */}
           {formError && (
             <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center space-x-2">
               <AlertCircle size={15} className="flex-shrink-0" />
@@ -451,20 +424,20 @@ export const ReviewModal = ({
             </div>
           )}
 
-          {/* Section 5: Action Buttons */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-2">
+          {/* Action Buttons: Outlined Cancel & Dark Navy Publish Review */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-1">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting || isUploading}
-              className="w-full py-3.5 rounded-2xl border-2 border-[#0F172A] text-[#0F172A] font-bold text-sm hover:bg-slate-100 active:scale-[0.99] transition duration-150 flex items-center justify-center shadow-xs cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 rounded-2xl border-2 border-[#0B192C] text-[#0B192C] font-bold text-sm hover:bg-slate-100 active:scale-[0.99] transition duration-150 flex items-center justify-center shadow-xs cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isUploading}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#DDA74A] via-[#C5A059] to-[#B38738] hover:from-[#d19c3f] hover:to-[#a4792b] text-white font-bold text-sm shadow-md active:scale-[0.99] transition duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 rounded-2xl bg-[#0B192C] hover:bg-[#1E3A8A] text-white font-bold text-sm shadow-md active:scale-[0.99] transition duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Send size={15} className="-rotate-12" />
               <span>
@@ -474,6 +447,7 @@ export const ReviewModal = ({
                   ? 'Update Review'
                   : 'Publish Review'}
               </span>
+              <ArrowRight size={16} />
             </button>
           </div>
         </form>

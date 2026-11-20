@@ -889,6 +889,8 @@ export const ProductDetailPage = () => {
         onSubmit={handleModalSubmit}
         existingReview={editingReview}
         productTitle={product.title}
+        productImage={displayImage || product.images?.[0]}
+        productBrand={product.brand}
         isVerifiedBuyer={eligibility.isVerifiedBuyer}
       />
     </div>
