@@ -26,10 +26,10 @@ export const ReviewCard = ({
   const [showMenu, setShowMenu] = useState(false);
   const [reported, setReported] = useState(review.isReported || false);
 
-  // Helpful state
-  const [helpfulCount, setHelpfulCount] = useState(review.helpfulCount ?? 2048);
-  const [unhelpfulCount, setUnhelpfulCount] = useState(review.unhelpfulCount ?? 558);
-  const [userVoted, setUserVoted] = useState(null); // 'helpful' | 'unhelpful' | null
+  // Real database helpful counts (default 0)
+  const [helpfulCount, setHelpfulCount] = useState(Number(review.helpfulCount || 0));
+  const [unhelpfulCount, setUnhelpfulCount] = useState(Number(review.unhelpfulCount || 0));
+  const [userVoted, setUserVoted] = useState(null);
 
   const handleHelpful = async () => {
     try {
@@ -90,28 +90,19 @@ export const ReviewCard = ({
         month: 'short',
         year: 'numeric',
       })
-    : 'Sep, 2022';
+    : '';
 
-  const reviewerName = review.user?.name || 'Rahul Sharma';
+  const reviewerName = review.user?.name || 'Customer';
   const reviewerAvatar =
     review.user?.avatar ||
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
-  const reviewerCity = review.user?.city || review.user?.addresses?.[0]?.city || 'Gorakhpur';
+  const reviewerLocation = review.user?.city || review.user?.addresses?.[0]?.city || '';
 
   const imagesList = Array.isArray(review.reviewImages) ? review.reviewImages : [];
 
-  const defaultHeadline =
-    review.rating === 5
-      ? 'Excellent Product Quality!'
-      : review.rating === 4
-      ? 'Pretty good'
-      : review.rating === 3
-      ? 'Satisfactory experience'
-      : 'Could be better';
-
   return (
     <div className="py-4 border-b border-slate-200/90 space-y-2.5 transition">
-      {/* 1. Star Rating, Score & Headline */}
+      {/* 1. Star Rating, Score & Title */}
       <div className="flex items-center gap-1.5 flex-wrap">
         <div className="flex items-center">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -119,7 +110,7 @@ export const ReviewCard = ({
               key={star}
               size={14}
               className={
-                star <= review.rating
+                star <= (review.rating || 5)
                   ? 'text-[#16A34A] fill-[#16A34A]'
                   : 'text-slate-200 fill-slate-200'
               }
@@ -129,48 +120,45 @@ export const ReviewCard = ({
         <span className="text-xs font-bold text-[#16A34A] font-mono ml-0.5">
           {Number(review.rating || 5).toFixed(1)}
         </span>
-        <span className="text-slate-400 font-bold">•</span>
-        <h5 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
-          {review.reviewTitle || defaultHeadline}
-        </h5>
+        {review.reviewTitle && (
+          <>
+            <span className="text-slate-400 font-bold">•</span>
+            <h5 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
+              {review.reviewTitle}
+            </h5>
+          </>
+        )}
       </div>
 
-      {/* 2. Review for Variant Info */}
-      <div className="text-[11px] text-slate-400 font-normal">
-        Review for: Color Pearl White • Verified Item
-      </div>
-
-      {/* 3. Review Description */}
+      {/* 2. Review Description */}
       <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-normal whitespace-pre-line">
         {review.reviewText}
       </p>
 
-      {/* 4. Customer Review Photos Gallery (Horizontal Row) */}
+      {/* 3. Customer Review Photos Gallery */}
       {imagesList.length > 0 && (
-        <div className="space-y-1 pt-0.5">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            {imagesList.map((img, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setLightboxIndex(idx)}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
-                title={`Click to view photo ${idx + 1}`}
-              >
-                <img
-                  src={img}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  onError={handleImageError}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                />
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+          {imagesList.map((img, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setLightboxIndex(idx)}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border border-slate-200 flex-shrink-0 cursor-pointer hover:opacity-90 transition bg-slate-100 relative group shadow-2xs"
+              title={`Click to view photo ${idx + 1}`}
+            >
+              <img
+                src={img}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={handleImageError}
+                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+              />
+            </button>
+          ))}
         </div>
       )}
 
-      {/* 5. Reviewer Name, Avatar & Location */}
+      {/* 4. Reviewer Name & Location */}
       <div className="flex items-center gap-2 pt-0.5">
         <img
           src={reviewerAvatar}
@@ -184,11 +172,12 @@ export const ReviewCard = ({
           className="w-5 h-5 rounded-full object-cover border border-slate-200"
         />
         <span className="text-xs text-slate-500 font-semibold">
-          {reviewerName}, {reviewerCity}
+          {reviewerName}
+          {reviewerLocation ? `, ${reviewerLocation}` : ''}
         </span>
       </div>
 
-      {/* 6. Footer: Helpful, Dislike, Verified Purchase Badge, Menu */}
+      {/* 5. Footer: Helpful, Dislike, Verified Purchase Badge, Menu */}
       <div className="flex items-center justify-between text-xs text-slate-500 pt-1 flex-wrap gap-2">
         {/* Left: Helpful & Dislike Actions */}
         <div className="flex items-center gap-4">
@@ -204,7 +193,7 @@ export const ReviewCard = ({
               className={userVoted === 'helpful' ? 'fill-blue-600 text-blue-600' : ''}
             />
             <span>
-              Helpful for {helpfulCount > 999 ? `${(helpfulCount / 1000).toFixed(0)}K` : helpfulCount}
+              Helpful {helpfulCount > 0 ? `(${helpfulCount})` : ''}
             </span>
           </button>
 
@@ -219,16 +208,18 @@ export const ReviewCard = ({
               size={14}
               className={userVoted === 'unhelpful' ? 'fill-slate-800 text-slate-800' : ''}
             />
-            <span>{unhelpfulCount}</span>
+            {unhelpfulCount > 0 && <span>({unhelpfulCount})</span>}
           </button>
         </div>
 
         {/* Right: Verified Purchase Badge + More Options Menu */}
         <div className="flex items-center gap-3 relative">
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
-            <CheckCircle2 size={13} className="text-slate-900 fill-slate-900 text-white flex-shrink-0" />
-            <span>Verified Purchase • {formattedDate}</span>
-          </div>
+          {review.isVerifiedPurchase && (
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
+              <CheckCircle2 size={13} className="text-emerald-600 fill-emerald-600 text-white flex-shrink-0" />
+              <span>Verified Purchase {formattedDate ? `• ${formattedDate}` : ''}</span>
+            </div>
+          )}
 
           <div className="relative">
             <button

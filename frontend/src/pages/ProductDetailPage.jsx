@@ -72,6 +72,8 @@ export const ProductDetailPage = () => {
     isVerifiedBuyer: false,
   });
 
+  const selectedRatingFilter = typeof activeFilter === 'number' ? activeFilter : null;
+
   useEffect(() => {
     let isMounted = true;
     const fetchProduct = async () => {
@@ -157,10 +159,10 @@ export const ProductDetailPage = () => {
           setProduct((prev) =>
             prev
               ? {
-                  ...prev,
-                  ratings: data.summary.averageRating,
-                  numReviews: data.summary.totalReviews,
-                }
+                ...prev,
+                ratings: data.summary.averageRating,
+                numReviews: data.summary.totalReviews,
+              }
               : prev
           );
         }
@@ -212,10 +214,10 @@ export const ProductDetailPage = () => {
             setProduct((prev) =>
               prev
                 ? {
-                    ...prev,
-                    ratings: data.productRating.averageRating,
-                    numReviews: data.productRating.totalReviews,
-                  }
+                  ...prev,
+                  ratings: data.productRating.averageRating,
+                  numReviews: data.productRating.totalReviews,
+                }
                 : prev
             );
           }
@@ -232,10 +234,10 @@ export const ProductDetailPage = () => {
             setProduct((prev) =>
               prev
                 ? {
-                    ...prev,
-                    ratings: data.productRating.averageRating,
-                    numReviews: data.productRating.totalReviews,
-                  }
+                  ...prev,
+                  ratings: data.productRating.averageRating,
+                  numReviews: data.productRating.totalReviews,
+                }
                 : prev
             );
           }
@@ -250,10 +252,10 @@ export const ProductDetailPage = () => {
             setProduct((prev) =>
               prev
                 ? {
-                    ...prev,
-                    ratings: data.productRating.averageRating,
-                    numReviews: data.productRating.totalReviews,
-                  }
+                  ...prev,
+                  ratings: data.productRating.averageRating,
+                  numReviews: data.productRating.totalReviews,
+                }
                 : prev
             );
           }
@@ -266,10 +268,10 @@ export const ProductDetailPage = () => {
           setProduct((prev) =>
             prev
               ? {
-                  ...prev,
-                  ratings: data.averageRating,
-                  numReviews: data.totalReviews,
-                }
+                ...prev,
+                ratings: data.averageRating,
+                numReviews: data.totalReviews,
+              }
               : prev
           );
         }
@@ -404,7 +406,7 @@ export const ProductDetailPage = () => {
   );
   const rawRating = Number(ratingSummary?.averageRating ?? product.ratings ?? product.averageRating ?? 0);
   const hasReviews = totalReviewsCount > 0 && rawRating > 0;
-  const safeRatingDisplay = hasReviews ? rawRating.toFixed(1) : '4.0';
+  const safeRatingDisplay = hasReviews ? rawRating.toFixed(1) : '0.0';
 
   const productImages =
     Array.isArray(product.images) && product.images.length > 0
@@ -598,11 +600,10 @@ export const ProductDetailPage = () => {
                       key={sz}
                       type="button"
                       onClick={() => setSelectedSize(sz)}
-                      className={`min-w-12 py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                        selectedSize === sz
-                          ? 'bg-[#0B192C] text-white border-[#0B192C] shadow-xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-blue-400'
-                      }`}
+                      className={`min-w-12 py-2 px-3 text-xs font-bold rounded-xl border transition ${selectedSize === sz
+                        ? 'bg-[#0B192C] text-white border-[#0B192C] shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-700 hover:border-blue-400'
+                        }`}
                     >
                       {sz}
                     </button>
@@ -707,14 +708,21 @@ export const ProductDetailPage = () => {
         <RatingSummaryCard
           summary={
             ratingSummary || {
-              averageRating: hasReviews ? rawRating : 4.0,
-              totalReviews: totalReviewsCount > 0 ? totalReviewsCount : 49320,
+              averageRating: hasReviews ? rawRating : 0,
+              totalReviews: totalReviewsCount,
               ratingDistribution: product.ratingDistribution || {
-                5: 375518,
-                4: 143652,
-                3: 65699,
-                2: 34165,
-                1: 80813,
+                5: 0,
+                4: 0,
+                3: 0,
+                2: 0,
+                1: 0,
+              },
+              ratingPercentages: {
+                5: 0,
+                4: 0,
+                3: 0,
+                2: 0,
+                1: 0,
               },
             }
           }
@@ -802,61 +810,9 @@ export const ProductDetailPage = () => {
         {/* Sorted Flipkart Review Cards List */}
         <div className="divide-y divide-slate-200/90 pt-1">
           {(() => {
-            const demoList = [
-              {
-                _id: 'rev_rahul_sharma',
-                rating: 5,
-                reviewTitle: 'Excellent Product Quality!',
-                reviewText:
-                  'The sound quality is excellent. Bass is powerful and battery backup is also very good. Highly recommended!',
-                reviewImages: [
-                  'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
-                  'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?auto=format&fit=crop&w=600&q=80',
-                ],
-                user: {
-                  name: 'Rahul Sharma',
-                  city: 'Delhi',
-                  avatar:
-                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
-                },
-                isVerifiedPurchase: true,
-                helpfulCount: 2450,
-                unhelpfulCount: 112,
-                createdAt: '2022-10-04T12:00:00.000Z',
-              },
-              {
-                _id: 'rev_sarfraz_alam',
-                rating: 4,
-                reviewTitle: 'Pretty good',
-                reviewText: 'Amazing experience with this product.. sound quality uumhhhh😘',
-                reviewImages: [
-                  'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
-                  'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?auto=format&fit=crop&w=600&q=80',
-                  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
-                  'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
-                ],
-                user: {
-                  name: 'Sarfraz Alam',
-                  city: 'Gorakhpur',
-                  avatar:
-                    'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=400&q=80',
-                },
-                isVerifiedPurchase: true,
-                helpfulCount: 2048,
-                unhelpfulCount: 558,
-                createdAt: '2022-09-15T10:30:00.000Z',
-              },
-            ];
+            // Strictly real database reviews only (No mock / dummy data)
+            let filtered = [...reviews];
 
-            const combined = [...reviews];
-            demoList.forEach((d) => {
-              if (!combined.some((r) => r._id === d._id)) {
-                combined.push(d);
-              }
-            });
-
-            // Filter reviews
-            let filtered = [...combined];
             if (activeFilter === 'WITH_PHOTOS') {
               filtered = filtered.filter(
                 (r) => Array.isArray(r.reviewImages) && r.reviewImages.length > 0
@@ -883,17 +839,37 @@ export const ProductDetailPage = () => {
 
             if (filtered.length === 0) {
               return (
-                <div className="py-12 text-center space-y-2">
-                  <p className="text-sm font-semibold text-slate-700">
-                    No reviews match the selected filter.
+                <div className="py-12 text-center space-y-3 bg-white rounded-2xl border border-slate-100 p-8 shadow-2xs">
+                  <Star size={36} className="mx-auto text-slate-300" strokeWidth={1.5} />
+                  <h4 className="text-base font-bold text-slate-900">
+                    {activeFilter !== 'ALL'
+                      ? 'No reviews match the selected filter.'
+                      : 'No customer reviews recorded yet.'}
+                  </h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    {activeFilter !== 'ALL'
+                      ? 'Try clearing the filter to see all patron reviews.'
+                      : 'Be the first patron to share your experience and upload photos of this piece.'}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFilter('ALL')}
-                    className="text-xs text-blue-600 underline font-bold cursor-pointer"
-                  >
-                    View All Reviews
-                  </button>
+                  <div className="pt-1 flex items-center justify-center gap-3">
+                    {activeFilter !== 'ALL' ? (
+                      <button
+                        type="button"
+                        onClick={() => setActiveFilter('ALL')}
+                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                      >
+                        Reset Filter
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleOpenWriteReview}
+                        className="px-5 py-2.5 bg-[#0B192C] hover:bg-[#1E3A8A] text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs"
+                      >
+                        Write First Review
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             }
@@ -1025,11 +1001,10 @@ export const ProductDetailPage = () => {
                           setIsSizeGuideOpen(false);
                         }
                       }}
-                      className={`cursor-pointer transition ${
-                        selectedSize === row.size
-                          ? 'bg-blue-50 font-bold text-blue-700'
-                          : 'hover:bg-slate-50 text-slate-600'
-                      }`}
+                      className={`cursor-pointer transition ${selectedSize === row.size
+                        ? 'bg-blue-50 font-bold text-blue-700'
+                        : 'hover:bg-slate-50 text-slate-600'
+                        }`}
                     >
                       <td className="py-2.5 px-3 font-bold text-[#0B192C]">{row.size}</td>
                       <td className="py-2.5 px-3">{row.bust}</td>

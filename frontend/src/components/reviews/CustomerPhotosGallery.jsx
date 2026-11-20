@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, ZoomIn, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { handleImageError } from '../../utils/imageUtils';
 
-export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
+export const CustomerPhotosGallery = ({ reviews = [] }) => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(null);
 
   // Extract all reviewImages from all approved reviews
@@ -10,7 +10,7 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
   reviews.forEach((rev) => {
     if (Array.isArray(rev.reviewImages) && rev.reviewImages.length > 0) {
       rev.reviewImages.forEach((img) => {
-        if (img) {
+        if (img && typeof img === 'string') {
           allPhotos.push({
             url: img,
             userName: rev.user?.name || 'Customer',
@@ -29,51 +29,22 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
     }
   });
 
-  const displayPhotos =
-    allPhotos.length > 0
-      ? allPhotos
-      : [
-          {
-            url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
-            userName: 'Sarfraz Alam',
-            rating: 4,
-            title: 'Amazing experience with this product.. sound quality uumhhhh😘',
-            date: 'Sep, 2022',
-            isVerified: true,
-          },
-          {
-            url: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?auto=format&fit=crop&w=600&q=80',
-            userName: 'Rahul Sharma',
-            rating: 5,
-            title: 'The sound quality is excellent. Bass is powerful!',
-            date: 'Aug, 2022',
-            isVerified: true,
-          },
-          {
-            url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
-            userName: 'Priya Sharma',
-            rating: 5,
-            title: 'Battery backup is very good. Highly recommended!',
-            date: 'Jul, 2022',
-            isVerified: true,
-          },
-          {
-            url: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
-            userName: 'Ayesha Khan',
-            rating: 4,
-            title: 'Ergonomic in-ear fit and very lightweight',
-            date: 'May, 2022',
-            isVerified: true,
-          },
-        ];
+  // STRICTLY NO MOCK PHOTOS: If no customer has uploaded photos yet, render nothing!
+  if (allPhotos.length === 0) return null;
 
-  const currentPhoto = activePhotoIndex !== null ? displayPhotos[activePhotoIndex] : null;
+  const currentPhoto = activePhotoIndex !== null ? allPhotos[activePhotoIndex] : null;
 
   return (
     <div className="py-2">
+      <div className="flex items-center justify-between pb-1.5">
+        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Customer Photos ({allPhotos.length})
+        </span>
+      </div>
+
       {/* Horizontal Strip of Square Customer Photos (Flipkart Style) */}
       <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar py-2">
-        {displayPhotos.map((photo, idx) => (
+        {allPhotos.map((photo, idx) => (
           <button
             key={idx}
             type="button"
@@ -116,7 +87,7 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
                   </span>
                 )}
                 <span className="text-[10px] text-slate-400 font-bold ml-2">
-                  {activePhotoIndex + 1} / {displayPhotos.length}
+                  {activePhotoIndex + 1} / {allPhotos.length}
                 </span>
               </div>
               <button
@@ -130,12 +101,12 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
 
             {/* Main Image with Navigation Arrows */}
             <div className="relative max-h-[65vh] overflow-hidden rounded-2xl bg-black/5 flex items-center justify-center">
-              {displayPhotos.length > 1 && (
+              {allPhotos.length > 1 && (
                 <button
                   type="button"
                   onClick={() =>
                     setActivePhotoIndex(
-                      (activePhotoIndex - 1 + displayPhotos.length) % displayPhotos.length
+                      (activePhotoIndex - 1 + allPhotos.length) % allPhotos.length
                     )
                   }
                   className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition cursor-pointer z-10"
@@ -152,11 +123,11 @@ export const CustomerPhotosGallery = ({ reviews = [], onFilterWithPhotos }) => {
                 className="max-h-[65vh] max-w-full object-contain"
               />
 
-              {displayPhotos.length > 1 && (
+              {allPhotos.length > 1 && (
                 <button
                   type="button"
                   onClick={() =>
-                    setActivePhotoIndex((activePhotoIndex + 1) % displayPhotos.length)
+                    setActivePhotoIndex((activePhotoIndex + 1) % allPhotos.length)
                   }
                   className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition cursor-pointer z-10"
                 >
