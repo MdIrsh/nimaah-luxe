@@ -2,63 +2,11 @@ import mongoose from 'mongoose';
 import { Review } from '../models/Review.js';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
-import '../models/User.js'; // Ensure User model is loaded
 import { recalculateProductRating } from '../services/reviewService.js';
 import { broadcastReviewEvent } from '../config/socket.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 
-// Helper to normalize review object for JSON responses
-export const formatReviewResponse = (reviewDoc) => {
-  if (!reviewDoc) return null;
-  const r = typeof reviewDoc.toObject === 'function' ? reviewDoc.toObject() : { ...reviewDoc };
-
-  const finalTitle = (r.reviewTitle || r.title || '').trim();
-  const finalMessage = (r.reviewMessage || r.reviewText || r.comment || '').trim();
-  const finalImages =
-    (Array.isArray(r.uploadedImages) && r.uploadedImages.length > 0)
-      ? r.uploadedImages
-      : (Array.isArray(r.reviewImages) && r.reviewImages.length > 0)
-      ? r.reviewImages
-      : (Array.isArray(r.images) ? r.images : []);
-
-  const isVerified = Boolean(r.verifiedPurchase || r.isVerifiedPurchase);
-  const custName = r.customerName || r.user?.name || 'Customer';
-  const custAvatar =
-    r.user?.avatar ||
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
-
-  return {
-    _id: r._id,
-    id: r._id,
-    productId: r.productId || r.product?._id || r.product,
-    product: r.product,
-    userId: r.userId || r.user?._id || r.user,
-    user: r.user,
-    customerName: custName,
-    customerAvatar: custAvatar,
-    rating: Number(r.rating || 5),
-    reviewTitle: finalTitle,
-    title: finalTitle,
-    reviewMessage: finalMessage,
-    reviewText: finalMessage,
-    comment: finalMessage,
-    uploadedImages: finalImages,
-    reviewImages: finalImages,
-    images: finalImages,
-    verifiedPurchase: isVerified,
-    isVerifiedPurchase: isVerified,
-    helpfulCount: Number(r.helpfulCount || 0),
-    unhelpfulCount: Number(r.unhelpfulCount || 0),
-    helpfulUsers: r.helpfulUsers || [],
-    unhelpfulUsers: r.unhelpfulUsers || [],
-    isReported: Boolean(r.isReported),
-    status: r.status || 'APPROVED',
-    createdAt: r.createdAt,
-    updatedAt: r.updatedAt,
-  };
-};
-
-// @desc    Submit a new review for a product (or update existing)
+// @desc    Submit a new review for a product
 // @route   POST /api/reviews OR POST /api/products/:productId/reviews
 // @access  Private (Authenticated Customer)
 export const createReview = async (req, res) => {
@@ -66,17 +14,8 @@ export const createReview = async (req, res) => {
     const productId = req.params.productId || req.body.productId;
     const rating = req.body.rating;
     const title = req.body.reviewTitle || req.body.title || '';
-    const comment =
-      req.body.reviewMessage ||
-      req.body.reviewText ||
-      req.body.comment ||
-      req.body.message ||
-      '';
-    const images =
-      req.body.uploadedImages ||
-      req.body.reviewImages ||
-      req.body.images ||
-      [];
+    const comment = req.body.reviewText || req.body.comment || '';
+    const images = req.body.reviewImages || req.body.images || [];
 
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
       return errorResponse(res, 'Valid Product ID is required', 400);
@@ -96,13 +35,19 @@ export const createReview = async (req, res) => {
       return errorResponse(res, 'Product not found', 404);
     }
 
-    // Clean review images
-    const imagesList = Array.isArray(images)
-      ? images
-          .filter((img) => img && typeof img === 'string')
-          .map((s) => s.trim())
-          .filter((s) => !s.startsWith('blob:')) // Disallow temporary browser blob URLs
-      : [];
+    // Check for duplicate review by the same user
+    const existing = await Review.findOne({
+      product: productId,
+      user: req.user._id,
+    });
+
+    if (existing) {
+      return errorResponse(
+        res,
+        'You have already shared a review for this product. You can edit your existing review.',
+        400
+      );
+    }
 
     // Verify Purchase: check if customer has a delivered order containing this product
     const deliveredOrder = await Order.findOne({
@@ -111,74 +56,36 @@ export const createReview = async (req, res) => {
       orderStatus: 'Delivered',
     });
 
-    const isVerifiedBuyer = Boolean(deliveredOrder);
-    const customerName = req.user.name || req.body.customerName || 'Customer';
+    // Clean review images
+    const imagesList = Array.isArray(images)
+      ? images.filter((img) => img && typeof img === 'string').map((s) => s.trim())
+      : [];
 
-    // Check for existing review by the same user
-    const existing = await Review.findOne({
-      $or: [
-        { product: productId, user: req.user._id },
-        { productId: productId, userId: req.user._id },
-      ],
+    const review = await Review.create({
+      user: req.user._id,
+      product: productId,
+      order: deliveredOrder ? deliveredOrder._id : null,
+      rating: starRating,
+      reviewTitle: title.trim(),
+      reviewText: comment.trim(),
+      reviewImages: imagesList,
+      isVerifiedPurchase: Boolean(deliveredOrder),
+      status: 'APPROVED', // Instant live publication with admin moderation power
+      helpfulCount: 0,
+      unhelpfulCount: 0,
+      helpfulUsers: [],
+      unhelpfulUsers: [],
+      isReported: false,
     });
-
-    let review;
-    if (existing) {
-      // Update existing review gracefully instead of throwing error
-      existing.rating = starRating;
-      existing.reviewTitle = title.trim();
-      existing.title = title.trim();
-      existing.reviewText = comment.trim();
-      existing.reviewMessage = comment.trim();
-      existing.comment = comment.trim();
-      existing.uploadedImages = imagesList;
-      existing.reviewImages = imagesList;
-      existing.images = imagesList;
-      existing.customerName = customerName;
-      existing.isVerifiedPurchase = isVerifiedBuyer;
-      existing.verifiedPurchase = isVerifiedBuyer;
-      existing.status = 'APPROVED';
-      await existing.save();
-      review = existing;
-    } else {
-      // Create new review
-      review = await Review.create({
-        user: req.user._id,
-        userId: req.user._id,
-        customerName,
-        product: productId,
-        productId,
-        order: deliveredOrder ? deliveredOrder._id : null,
-        orderId: deliveredOrder ? deliveredOrder._id : null,
-        rating: starRating,
-        reviewTitle: title.trim(),
-        title: title.trim(),
-        reviewText: comment.trim(),
-        reviewMessage: comment.trim(),
-        comment: comment.trim(),
-        reviewImages: imagesList,
-        uploadedImages: imagesList,
-        images: imagesList,
-        isVerifiedPurchase: isVerifiedBuyer,
-        verifiedPurchase: isVerifiedBuyer,
-        status: 'APPROVED',
-        helpfulCount: 0,
-        unhelpfulCount: 0,
-        helpfulUsers: [],
-        unhelpfulUsers: [],
-        isReported: false,
-      });
-    }
 
     await review.populate('user', 'name email avatar role');
 
     // Recalculate aggregate ratings
     const productRating = await recalculateProductRating(productId);
-    const formattedReview = formatReviewResponse(review);
 
     // Broadcast real-time Socket.IO events
     broadcastReviewEvent('review:created', {
-      review: formattedReview,
+      review,
       productRating,
     });
     broadcastReviewEvent('product:ratingUpdated', productRating);
@@ -186,7 +93,7 @@ export const createReview = async (req, res) => {
     return successResponse(
       res,
       'Review submitted and published successfully',
-      { review: formattedReview, productRating },
+      { review, productRating },
       201
     );
   } catch (error) {
@@ -202,7 +109,7 @@ export const getProductReviews = async (req, res) => {
   try {
     const productId = req.params.productId;
     const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const starFilter = parseInt(req.query.rating);
     const sort = req.query.sort || 'newest';
     const withPhotos = req.query.withPhotos === 'true';
@@ -212,18 +119,9 @@ export const getProductReviews = async (req, res) => {
       return errorResponse(res, 'Valid Product ID is required', 400);
     }
 
-    const objectId = mongoose.Types.ObjectId.isValid(productId)
-      ? new mongoose.Types.ObjectId(productId)
-      : productId;
-
     const query = {
-      $or: [
-        { product: objectId },
-        { product: productId.toString() },
-        { productId: objectId },
-        { productId: productId.toString() },
-      ],
-      status: { $ne: 'REJECTED' },
+      product: productId,
+      status: 'APPROVED',
     };
 
     if (starFilter && starFilter >= 1 && starFilter <= 5) {
@@ -231,15 +129,7 @@ export const getProductReviews = async (req, res) => {
     }
 
     if (withPhotos) {
-      query.$and = [
-        {
-          $or: [
-            { 'uploadedImages.0': { $exists: true } },
-            { 'reviewImages.0': { $exists: true } },
-            { 'images.0': { $exists: true } },
-          ],
-        },
-      ];
+      query['reviewImages.0'] = { $exists: true };
     }
 
     if (verifiedOnly) {
@@ -253,14 +143,11 @@ export const getProductReviews = async (req, res) => {
     else sortOptions = { createdAt: -1 }; // newest / recent
 
     const total = await Review.countDocuments(query);
-    const rawReviews = await Review.find(query)
+    const reviews = await Review.find(query)
       .populate('user', 'name email avatar')
       .sort(sortOptions)
       .skip((page - 1) * limit)
       .limit(limit);
-
-    // Format every review to include all field aliases
-    const reviews = rawReviews.map(formatReviewResponse);
 
     // Also fetch fresh product rating summary
     const summary = await recalculateProductRating(productId);

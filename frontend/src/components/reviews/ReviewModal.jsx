@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import RatingStars from './RatingStars';
 import uploadService, { formatFileSize } from '../../services/uploadService';
-import { FALLBACK_PRODUCT_IMAGE, getProductImageUrl, handleImageError } from '../../utils/imageUtils';
+import { FALLBACK_PRODUCT_IMAGE, handleImageError } from '../../utils/imageUtils';
 
 export const ReviewModal = ({
   isOpen,
@@ -135,13 +135,8 @@ export const ReviewModal = ({
       await onSubmit({
         rating,
         reviewTitle: reviewTitle.trim(),
-        title: reviewTitle.trim(),
-        reviewMessage: reviewText.trim(),
         reviewText: reviewText.trim(),
-        comment: reviewText.trim(),
-        uploadedImages: images,
         reviewImages: images,
-        images: images,
       });
       onClose();
     } catch (err) {
@@ -346,9 +341,8 @@ export const ReviewModal = ({
               />
               <label
                 htmlFor="review-image-upload"
-                className={`cursor-pointer inline-flex flex-col items-center space-y-1 z-10 ${
-                  isUploading ? 'opacity-50 pointer-events-none' : ''
-                }`}
+                className={`cursor-pointer inline-flex flex-col items-center space-y-1 z-10 ${isUploading ? 'opacity-50 pointer-events-none' : ''
+                  }`}
               >
                 <div className="w-12 h-12 rounded-2xl bg-white shadow-xs border border-blue-100 flex items-center justify-center text-[#2563EB] group-hover:scale-105 transition mb-1">
                   <UploadCloud size={24} strokeWidth={2.2} />
@@ -402,10 +396,9 @@ export const ReviewModal = ({
                     className="relative w-16 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-2xs group"
                   >
                     <img
-                      src={getProductImageUrl(img)}
+                      src={img}
                       alt="Uploaded review"
                       referrerPolicy="no-referrer"
-                      onError={handleImageError}
                       className="w-full h-full object-cover"
                     />
                     <button
@@ -450,8 +443,8 @@ export const ReviewModal = ({
                 {isSubmitting
                   ? 'Publishing...'
                   : existingReview
-                  ? 'Update Review'
-                  : 'Publish Review'}
+                    ? 'Update Review'
+                    : 'Publish Review'}
               </span>
               <ArrowRight size={16} />
             </button>

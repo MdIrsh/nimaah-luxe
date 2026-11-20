@@ -302,50 +302,21 @@ export const ProductDetailPage = () => {
   };
 
   const handleModalSubmit = async (formData) => {
-    try {
-      const res = editingReview
-        ? await reviewService.updateReview(editingReview._id, formData)
-        : await reviewService.createReview(id, formData);
-
-      const reviewData = res?.review || res?.data?.review || res;
-      const productRating = res?.productRating || res?.summary || res?.data?.productRating;
-
-      if (reviewData && (reviewData._id || reviewData.id)) {
-        setReviews((prev) => [
-          reviewData,
-          ...prev.filter((r) => r._id !== (reviewData._id || reviewData.id)),
-        ]);
+    if (editingReview) {
+      await reviewService.updateReview(editingReview._id, formData);
+    } else {
+      await reviewService.createReview(id, formData);
+    }
+    fetchReviews();
+    if (user && id) {
+      const res = await reviewService.checkEligibility(id);
+      if (res) {
+        setEligibility({
+          hasReviewed: Boolean(res.hasReviewed),
+          existingReview: res.existingReview || null,
+          isVerifiedBuyer: Boolean(res.isVerifiedBuyer),
+        });
       }
-
-      if (productRating) {
-        setRatingSummary(productRating);
-        setProduct((prev) =>
-          prev
-            ? {
-                ...prev,
-                ratings: productRating.averageRating,
-                numReviews: productRating.totalReviews,
-              }
-            : prev
-        );
-      }
-
-      setActiveFilter('ALL');
-      await fetchReviews();
-
-      if (user && id) {
-        const elig = await reviewService.checkEligibility(id);
-        if (elig) {
-          setEligibility({
-            hasReviewed: Boolean(elig.hasReviewed),
-            existingReview: elig.existingReview || null,
-            isVerifiedBuyer: Boolean(elig.isVerifiedBuyer),
-          });
-        }
-      }
-    } catch (err) {
-      console.error('Submit review error in page:', err);
-      throw err;
     }
   };
 
@@ -434,8 +405,8 @@ export const ProductDetailPage = () => {
     ratingSummary?.totalReviews ?? product.numReviews ?? product.totalReviews ?? reviews.length ?? 0
   );
   const rawRating = Number(ratingSummary?.averageRating ?? product.ratings ?? product.averageRating ?? 0);
-  const hasReviews = totalReviewsCount > 0 || reviews.length > 0;
-  const safeRatingDisplay = hasReviews && rawRating > 0 ? rawRating.toFixed(1) : (reviews.length > 0 ? (reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / reviews.length).toFixed(1) : '0.0');
+  const hasReviews = totalReviewsCount > 0 && rawRating > 0;
+  const safeRatingDisplay = hasReviews ? rawRating.toFixed(1) : '0.0';
 
   const productImages =
     Array.isArray(product.images) && product.images.length > 0
@@ -717,7 +688,7 @@ export const ProductDetailPage = () => {
 
         {/* Feature / Topic Filter Chips Row */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-          {['Overall', 'Sound Quality', 'Bass', 'Design & Build'].map((topic) => (
+          {['Overall', 'Fabric & Weave', 'Fit & Silhouette', 'Craftsmanship'].map((topic) => (
             <button
               key={topic}
               type="button"
@@ -836,35 +807,18 @@ export const ProductDetailPage = () => {
         {/* Sorted Flipkart Review Cards List */}
         <div className="divide-y divide-slate-200/90 pt-1">
           {(() => {
-            if (reviewsLoading) {
-              return (
-                <div className="py-12 text-center space-y-3 bg-white rounded-2xl border border-slate-100 p-8 shadow-2xs">
-                  <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-xs text-slate-500 font-medium">Loading customer reviews...</p>
-                </div>
-              );
-            }
-
             // Strictly real database reviews only (No mock / dummy data)
             let filtered = [...reviews];
 
             if (activeFilter === 'WITH_PHOTOS') {
-              filtered = filtered.filter((r) => {
-                const imgs =
-                  (Array.isArray(r.uploadedImages) && r.uploadedImages.length > 0)
-                    ? r.uploadedImages
-                    : (Array.isArray(r.reviewImages) && r.reviewImages.length > 0)
-                    ? r.reviewImages
-                    : (Array.isArray(r.images) ? r.images : []);
-                return imgs.filter((img) => img && typeof img === 'string').length > 0;
-              });
-            } else if (activeFilter === 'VERIFIED') {
               filtered = filtered.filter(
-                (r) => Boolean(r.verifiedPurchase || r.isVerifiedPurchase)
+                (r) => Array.isArray(r.reviewImages) && r.reviewImages.length > 0
               );
+            } else if (activeFilter === 'VERIFIED') {
+              filtered = filtered.filter((r) => r.isVerifiedPurchase === true);
             } else if (typeof activeFilter === 'number') {
               filtered = filtered.filter(
-                (r) => Math.round(Number(r.rating || 0)) === activeFilter
+                (r) => Math.round(r.rating) === activeFilter
               );
             }
 
@@ -872,31 +826,30 @@ export const ProductDetailPage = () => {
             if (sortBy === 'Most Recent') {
               filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             } else if (sortBy === 'Highest Rating') {
-              filtered.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
+              filtered.sort((a, b) => b.rating - a.rating);
             } else if (sortBy === 'Lowest Rating') {
-              filtered.sort((a, b) => Number(a.rating || 0) - Number(b.rating || 0));
+              filtered.sort((a, b) => a.rating - b.rating);
             } else {
               // Most Helpful
-              filtered.sort((a, b) => Number(b.helpfulCount || 0) - Number(a.helpfulCount || 0));
+              filtered.sort((a, b) => (b.helpfulCount || 0) - (a.helpfulCount || 0));
             }
 
             if (filtered.length === 0) {
-              const hasAnyReviews = reviews.length > 0;
               return (
                 <div className="py-12 text-center space-y-3 bg-white rounded-2xl border border-slate-100 p-8 shadow-2xs">
                   <Star size={36} className="mx-auto text-slate-300" strokeWidth={1.5} />
                   <h4 className="text-base font-bold text-slate-900">
-                    {hasAnyReviews
+                    {activeFilter !== 'ALL'
                       ? 'No reviews match the selected filter.'
                       : 'No customer reviews recorded yet.'}
                   </h4>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    {hasAnyReviews
+                    {activeFilter !== 'ALL'
                       ? 'Try clearing the filter to see all patron reviews.'
                       : 'Be the first patron to share your experience and upload photos of this piece.'}
                   </p>
                   <div className="pt-1 flex items-center justify-center gap-3">
-                    {hasAnyReviews ? (
+                    {activeFilter !== 'ALL' ? (
                       <button
                         type="button"
                         onClick={() => setActiveFilter('ALL')}
@@ -920,7 +873,7 @@ export const ProductDetailPage = () => {
 
             return filtered.map((rev) => (
               <ReviewCard
-                key={rev._id || rev.id}
+                key={rev._id}
                 review={rev}
                 currentUserId={user?._id}
                 isAdmin={user?.role === 'admin'}

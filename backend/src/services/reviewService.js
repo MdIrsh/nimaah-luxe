@@ -17,13 +17,8 @@ export const recalculateProductRating = async (productId) => {
   const stats = await Review.aggregate([
     {
       $match: {
-        $or: [
-          { product: objectId },
-          { product: productId.toString() },
-          { productId: objectId },
-          { productId: productId.toString() },
-        ],
-        status: { $ne: 'REJECTED' },
+        product: objectId,
+        status: 'APPROVED',
       },
     },
     {

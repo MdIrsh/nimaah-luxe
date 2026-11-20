@@ -1,44 +1,28 @@
 import React, { useState } from 'react';
 import { X, ZoomIn, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getProductImageUrl, handleImageError } from '../../utils/imageUtils';
+import { handleImageError } from '../../utils/imageUtils';
 
 export const CustomerPhotosGallery = ({ reviews = [] }) => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(null);
 
-  // Extract all customer photos from all reviews
+  // Extract all reviewImages from all approved reviews
   const allPhotos = [];
   reviews.forEach((rev) => {
-    const rawImages =
-      (Array.isArray(rev.uploadedImages) && rev.uploadedImages.length > 0)
-        ? rev.uploadedImages
-        : (Array.isArray(rev.reviewImages) && rev.reviewImages.length > 0)
-        ? rev.reviewImages
-        : (Array.isArray(rev.images) ? rev.images : []);
-
-    if (rawImages.length > 0) {
-      rawImages.forEach((img) => {
+    if (Array.isArray(rev.reviewImages) && rev.reviewImages.length > 0) {
+      rev.reviewImages.forEach((img) => {
         if (img && typeof img === 'string') {
           allPhotos.push({
-            url: getProductImageUrl(img),
-            userName:
-              rev.customerName ||
-              rev.user?.name ||
-              rev.name ||
-              'Customer',
+            url: img,
+            userName: rev.user?.name || 'Customer',
             rating: rev.rating || 5,
-            title:
-              rev.reviewTitle ||
-              rev.title ||
-              rev.reviewMessage ||
-              rev.reviewText ||
-              '',
+            title: rev.reviewTitle || '',
             date: rev.createdAt
               ? new Date(rev.createdAt).toLocaleDateString('en-US', {
-                  month: 'short',
-                  year: 'numeric',
-                })
+                month: 'short',
+                year: 'numeric',
+              })
               : '',
-            isVerified: Boolean(rev.verifiedPurchase || rev.isVerifiedPurchase),
+            isVerified: rev.isVerifiedPurchase,
           });
         }
       });
