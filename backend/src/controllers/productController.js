@@ -102,6 +102,20 @@ export const sanitizeImageUrl = (url) => {
   return trimmed;
 };
 
+export const sanitizeSizes = (sizes) => {
+  if (!sizes) return ['M'];
+  if (typeof sizes === 'string') {
+    return sizes.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+  }
+  if (Array.isArray(sizes)) {
+    return sizes
+      .flatMap((s) => (typeof s === 'string' ? s.split(',') : s))
+      .map((s) => (typeof s === 'string' ? s.trim().toUpperCase() : s))
+      .filter(Boolean);
+  }
+  return ['M'];
+};
+
 // @desc    Create new product
 // @route   POST /api/products
 // @access  Private/Admin
@@ -109,6 +123,9 @@ export const createProduct = async (req, res) => {
   try {
     if (req.body.images && Array.isArray(req.body.images)) {
       req.body.images = req.body.images.map(sanitizeImageUrl);
+    }
+    if (req.body.sizes) {
+      req.body.sizes = sanitizeSizes(req.body.sizes);
     }
     const product = new Product(req.body);
     const createdProduct = await product.save();
@@ -125,6 +142,9 @@ export const updateProduct = async (req, res) => {
   try {
     if (req.body.images && Array.isArray(req.body.images)) {
       req.body.images = req.body.images.map(sanitizeImageUrl);
+    }
+    if (req.body.sizes) {
+      req.body.sizes = sanitizeSizes(req.body.sizes);
     }
 
     let product = null;

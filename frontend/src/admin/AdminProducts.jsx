@@ -251,13 +251,18 @@ export const AdminProducts = () => {
   };
 
   const handleToggleSize = (sz) => {
+    let updated;
     if (form.sizes.includes(sz)) {
-      const updated = form.sizes.filter((s) => s !== sz);
-      setForm({ ...form, sizes: updated.length > 0 ? updated : [sz], size: updated[0] || sz });
+      updated = form.sizes.filter((s) => s !== sz);
+      if (updated.length === 0) updated = [sz];
     } else {
-      const updated = [...form.sizes, sz];
-      setForm({ ...form, sizes: updated, size: sz });
+      updated = [...form.sizes, sz];
     }
+    setForm({
+      ...form,
+      sizes: updated,
+      size: updated.join(','),
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -291,9 +296,19 @@ export const AdminProducts = () => {
 
       const colorName = form.color?.trim() || 'Red';
       const colorsPayload = [{ name: colorName, hexCode: '#000000' }];
-      const sizesPayload = form.sizes && form.sizes.length > 0
-        ? form.sizes
-        : [form.size || 'M'];
+
+      // Parse sizes safely: split comma-separated values like 'S,XL' into ['S', 'XL']
+      let rawSizes = [];
+      if (typeof form.size === 'string' && form.size.trim()) {
+        rawSizes = form.size.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+      }
+      if (rawSizes.length === 0 && Array.isArray(form.sizes)) {
+        rawSizes = form.sizes
+          .flatMap((s) => (typeof s === 'string' ? s.split(',') : s))
+          .map((s) => (typeof s === 'string' ? s.trim().toUpperCase() : s))
+          .filter(Boolean);
+      }
+      const sizesPayload = rawSizes.length > 0 ? Array.from(new Set(rawSizes)) : ['M'];
 
       const payload = {
         title: form.title.trim(),
@@ -844,9 +859,10 @@ export const AdminProducts = () => {
                       value={form.size}
                       onChange={(e) => {
                         const s = e.target.value;
-                        setForm({ ...form, size: s, sizes: [s] });
+                        const parts = s.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean);
+                        setForm({ ...form, size: s, sizes: parts.length > 0 ? parts : [s] });
                       }}
-                      placeholder="M"
+                      placeholder="M or S,XL"
                       className="w-full px-3.5 py-2.5 bg-[#FAF9F6] border border-[#E9E1D6] rounded-lg text-xs text-[#29251F] focus:outline-none focus:border-[#C5A059] focus:bg-white transition font-medium"
                     />
                   </div>
