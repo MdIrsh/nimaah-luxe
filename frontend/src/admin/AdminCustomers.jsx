@@ -71,12 +71,12 @@ export const AdminCustomers = () => {
     name: '',
     email: '',
     phone: '',
-    city: 'Delhi',
-    state: 'Delhi',
+    city: '',
+    state: '',
     country: 'India',
-    pincode: '110001',
+    pincode: '',
     fullAddress: '',
-    customerType: 'New',
+    customerType: 'Regular',
     status: 'Active',
     gender: 'Female',
     dateOfBirth: '',
@@ -246,13 +246,13 @@ export const AdminCustomers = () => {
 
     const rows = filteredCustomers.map((c, idx) => {
       const custId = c.customerId || `CUST${String(idx + 1).padStart(3, '0')}`;
-      const phone = c.phone || c.addresses?.[0]?.phone || '9876543210';
-      const city = c.city || c.addresses?.[0]?.city || 'Delhi';
-      const orderCount = c.orderCount ?? (idx === 0 ? 5 : 0);
-      const totalSpend = c.totalSpent ?? (idx === 0 ? 15000 : 0);
-      const type = c.customerType || (totalSpend >= 25000 ? 'VIP' : totalSpend >= 10000 ? 'Premium' : 'Regular');
+      const phone = c.phone || c.addresses?.[0]?.phone || '—';
+      const city = c.city || c.addresses?.[0]?.city || '—';
+      const orderCount = c.orderCount || 0;
+      const totalSpend = c.totalSpent || 0;
+      const type = c.customerType || 'Regular';
       const status = c.status || 'Active';
-      const lastLogin = formatLuxeDate(c.lastLogin || c.updatedAt || c.createdAt);
+      const lastLogin = c.lastLogin ? formatLuxeDate(c.lastLogin) : '—';
       const joinDate = formatLuxeDate(c.createdAt);
 
       return [
@@ -300,11 +300,11 @@ export const AdminCustomers = () => {
     setEditCustomerForm({
       name: customer.name || '',
       email: customer.email || '',
-      phone: customer.phone || primaryAddr.phone || '9876543210',
-      city: customer.city || primaryAddr.city || 'Delhi',
-      state: primaryAddr.state || 'Delhi',
-      country: primaryAddr.country || 'India',
-      pincode: primaryAddr.postalCode || '110001',
+      phone: customer.phone || primaryAddr.phone || '',
+      city: customer.city || primaryAddr.city || '',
+      state: primaryAddr.state || customer.state || '',
+      country: primaryAddr.country || customer.country || 'India',
+      pincode: primaryAddr.postalCode || customer.pincode || '',
       fullAddress: primaryAddr.street || customer.fullAddress || '',
       customerType: customer.customerType || 'Regular',
       status: customer.status || 'Active',
@@ -816,16 +816,14 @@ export const AdminCustomers = () => {
               ) : (
                 filteredCustomers.map((c, idx) => {
                   const custId = c.customerId || `CUST${String(idx + 1).padStart(3, '0')}`;
-                  const phone = c.phone || c.addresses?.[0]?.phone || '9876543210';
-                  const city = c.city || c.addresses?.[0]?.city || 'Delhi';
-                  const orderCount = c.orderCount ?? (idx === 0 ? 5 : (c.orders?.length || 0));
-                  const totalSpend = c.totalSpent ?? (idx === 0 ? 15000 : 0);
-                  const type =
-                    c.customerType ||
-                    (totalSpend >= 25000 ? 'VIP' : totalSpend >= 10000 ? 'Premium' : 'Regular');
+                  const phone = c.phone || c.addresses?.[0]?.phone || '—';
+                  const city = c.city || c.addresses?.[0]?.city || '—';
+                  const orderCount = c.orderCount || 0;
+                  const totalSpend = c.totalSpent || 0;
+                  const type = c.customerType || 'Regular';
                   const status = c.status || 'Active';
                   const joinDate = formatLuxeDate(c.createdAt);
-                  const lastLogin = formatLuxeDate(c.lastLogin || c.updatedAt || c.createdAt);
+                  const lastLogin = c.lastLogin ? formatLuxeDate(c.lastLogin) : '—';
                   const initials = (c.name || 'Patron')
                     .split(' ')
                     .map((n) => n[0])
@@ -1067,17 +1065,17 @@ export const AdminCustomers = () => {
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">Mobile Number</span>
                       <span className="font-mono text-gray-800">
-                        {selectedCustomer.phone || selectedCustomer.addresses?.[0]?.phone || '9876543210'}
+                        {selectedCustomer.phone || selectedCustomer.addresses?.[0]?.phone || '—'}
                       </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">Gender</span>
-                      <span className="font-semibold text-gray-700">{selectedCustomer.gender || 'Female'}</span>
+                      <span className="font-semibold text-gray-700">{selectedCustomer.gender || '—'}</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">Date of Birth</span>
                       <span className="font-mono text-gray-700">
-                        {selectedCustomer.dateOfBirth ? formatLuxeDate(selectedCustomer.dateOfBirth) : '15-Aug-1996'}
+                        {selectedCustomer.dateOfBirth ? formatLuxeDate(selectedCustomer.dateOfBirth) : '—'}
                       </span>
                     </div>
                     <div>
@@ -1089,7 +1087,7 @@ export const AdminCustomers = () => {
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">Last Login</span>
                       <span className="font-mono text-gray-700">
-                        {formatLuxeDate(selectedCustomer.lastLogin || selectedCustomer.updatedAt)}
+                        {selectedCustomer.lastLogin ? formatLuxeDate(selectedCustomer.lastLogin) : '—'}
                       </span>
                     </div>
                     <div>
@@ -1123,25 +1121,25 @@ export const AdminCustomers = () => {
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">Country</span>
                       <span className="font-bold text-gray-800">
-                        {selectedCustomer.addresses?.[0]?.country || selectedCustomer.country || 'India'}
+                        {selectedCustomer.addresses?.[0]?.country || selectedCustomer.country || '—'}
                       </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">State</span>
                       <span className="font-bold text-gray-800">
-                        {selectedCustomer.addresses?.[0]?.state || selectedCustomer.state || 'Delhi'}
+                        {selectedCustomer.addresses?.[0]?.state || selectedCustomer.state || '—'}
                       </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">City</span>
                       <span className="font-bold text-gray-800">
-                        {selectedCustomer.city || selectedCustomer.addresses?.[0]?.city || 'Delhi'}
+                        {selectedCustomer.city || selectedCustomer.addresses?.[0]?.city || '—'}
                       </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-gray-400 uppercase font-semibold block">Pincode</span>
                       <span className="font-mono text-gray-800">
-                        {selectedCustomer.addresses?.[0]?.postalCode || selectedCustomer.pincode || '110001'}
+                        {selectedCustomer.addresses?.[0]?.postalCode || selectedCustomer.pincode || '—'}
                       </span>
                     </div>
                     <div className="col-span-2 sm:col-span-4 bg-[#FAF9F6] p-3 rounded-lg border border-[#E9E1D6]/70">
@@ -1151,7 +1149,7 @@ export const AdminCustomers = () => {
                       <p className="font-medium text-gray-800 leading-relaxed">
                         {selectedCustomer.addresses?.[0]?.street ||
                           selectedCustomer.fullAddress ||
-                          'Atelier Villa Suite 12, Connaught Circus, Central Delhi - 110001'}
+                          'No address saved'}
                       </p>
                     </div>
                   </div>
@@ -1165,7 +1163,7 @@ export const AdminCustomers = () => {
                       Order Summary
                     </span>
                     <span className="font-mono text-xs font-bold text-[#29251F]">
-                      Total: {selectedCustomer.orderCount || 5} Orders
+                      Total: {selectedCustomer.orderCount || 0} Orders
                     </span>
                   </div>
 
@@ -1173,31 +1171,31 @@ export const AdminCustomers = () => {
                     <div className="bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-100">
                       <span className="text-[9.5px] uppercase font-bold text-emerald-800 block">Completed</span>
                       <span className="text-base font-bold text-emerald-700">
-                        {selectedCustomer.completedOrders ?? 4}
+                        {selectedCustomer.completedOrders || 0}
                       </span>
                     </div>
                     <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-100">
                       <span className="text-[9.5px] uppercase font-bold text-amber-800 block">Pending</span>
                       <span className="text-base font-bold text-amber-700">
-                        {selectedCustomer.pendingOrders ?? 1}
+                        {selectedCustomer.pendingOrders || 0}
                       </span>
                     </div>
                     <div className="bg-rose-50/60 p-2.5 rounded-lg border border-rose-100">
                       <span className="text-[9.5px] uppercase font-bold text-rose-800 block">Cancelled</span>
                       <span className="text-base font-bold text-rose-700">
-                        {selectedCustomer.cancelledOrders ?? 0}
+                        {selectedCustomer.cancelledOrders || 0}
                       </span>
                     </div>
                     <div className="bg-blue-50/60 p-2.5 rounded-lg border border-blue-100">
                       <span className="text-[9.5px] uppercase font-bold text-blue-800 block">Returned</span>
                       <span className="text-base font-bold text-blue-700">
-                        {selectedCustomer.returnedOrders ?? 0}
+                        {selectedCustomer.returnedOrders || 0}
                       </span>
                     </div>
                     <div className="col-span-2 sm:col-span-1 bg-[#FAF9F6] p-2.5 rounded-lg border border-[#E9E1D6]">
                       <span className="text-[9.5px] uppercase font-bold text-gray-500 block">Last Order</span>
                       <span className="text-[11px] font-mono text-gray-800 block mt-1">
-                        {formatLuxeDate(selectedCustomer.lastOrderDate || selectedCustomer.createdAt)}
+                        {selectedCustomer.lastOrderDate ? formatLuxeDate(selectedCustomer.lastOrderDate) : 'No orders yet'}
                       </span>
                     </div>
                   </div>
@@ -1217,31 +1215,31 @@ export const AdminCustomers = () => {
                     <div className="bg-[#FAF9F6] p-3 rounded-lg border border-[#E9E1D6]">
                       <span className="text-[9.5px] uppercase font-bold text-gray-500 block">Lifetime Spend</span>
                       <span className="text-base font-bold text-[#29251F] font-mono mt-0.5 block">
-                        ₹{(selectedCustomer.totalSpent ?? 15000).toLocaleString('en-IN')}
+                        ₹{(selectedCustomer.totalSpent || 0).toLocaleString('en-IN')}
                       </span>
                     </div>
                     <div className="bg-[#FAF9F6] p-3 rounded-lg border border-[#E9E1D6]">
                       <span className="text-[9.5px] uppercase font-bold text-gray-500 block">Avg. Order Value</span>
                       <span className="text-base font-bold text-[#29251F] font-mono mt-0.5 block">
-                        ₹{(selectedCustomer.avgOrderValue ?? 3000).toLocaleString('en-IN')}
+                        ₹{(selectedCustomer.avgOrderValue || 0).toLocaleString('en-IN')}
                       </span>
                     </div>
                     <div className="bg-[#FAF9F6] p-3 rounded-lg border border-[#E9E1D6]">
                       <span className="text-[9.5px] uppercase font-bold text-gray-500 block">Highest Order</span>
                       <span className="text-base font-bold text-[#29251F] font-mono mt-0.5 block">
-                        ₹{(selectedCustomer.highestOrderValue ?? 12999).toLocaleString('en-IN')}
+                        ₹{(selectedCustomer.highestOrderValue || 0).toLocaleString('en-IN')}
                       </span>
                     </div>
                     <div className="bg-[#FAF9F6] p-3 rounded-lg border border-[#E9E1D6]">
                       <span className="text-[9.5px] uppercase font-bold text-[#C5A059] block">Reward Points</span>
                       <span className="text-base font-bold text-[#29251F] font-mono mt-0.5 block">
-                        {(selectedCustomer.rewardPoints ?? 450).toLocaleString('en-IN')} pts
+                        {(selectedCustomer.rewardPoints || 0).toLocaleString('en-IN')} pts
                       </span>
                     </div>
                     <div className="col-span-2 sm:col-span-1 bg-[#FAF9F6] p-3 rounded-lg border border-[#E9E1D6]">
                       <span className="text-[9.5px] uppercase font-bold text-emerald-700 block">Store Credit</span>
                       <span className="text-base font-bold text-emerald-800 font-mono mt-0.5 block">
-                        ₹{(selectedCustomer.storeCredit ?? 0).toLocaleString('en-IN')}
+                        ₹{(selectedCustomer.storeCredit || 0).toLocaleString('en-IN')}
                       </span>
                     </div>
                   </div>

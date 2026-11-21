@@ -112,10 +112,10 @@ export const getAdminCustomers = async (req, res) => {
     const enrichedCustomers = customers.map((c, idx) => {
       const agg = ordersMap.get(c._id.toString());
       const defaultCustomerId = `CUST${String(idx + 1).padStart(3, '0')}`;
-      const totalSpent = agg?.totalSpent || (idx === 0 ? 15000 : 0);
-      const orderCount = agg?.orderCount || (idx === 0 ? 5 : 0);
+      const totalSpent = agg?.totalSpent || 0;
+      const orderCount = agg?.orderCount || 0;
       const avgOrderValue = orderCount > 0 ? Math.round(totalSpent / orderCount) : 0;
-      const highestOrder = agg?.highestOrderValue || (idx === 0 ? 6500 : 0);
+      const highestOrder = agg?.highestOrderValue || 0;
 
       // Determine customer type if not explicitly set
       let derivedType = c.customerType || 'New';
@@ -126,10 +126,13 @@ export const getAdminCustomers = async (req, res) => {
         else derivedType = 'New';
       }
 
-      // Default mock phone/city for initial seed customer Khalid if missing
       const primaryAddress = c.addresses?.[0] || {};
-      const phone = c.phone || primaryAddress.phone || (idx === 0 ? '9876543210' : '');
-      const city = c.city || primaryAddress.city || (idx === 0 ? 'Delhi' : '');
+      const phone = c.phone || primaryAddress.phone || '';
+      const city = c.city || primaryAddress.city || '';
+
+      const fullStreet = primaryAddress.street
+        ? `${primaryAddress.street}${primaryAddress.city ? ', ' + primaryAddress.city : ''}${primaryAddress.state ? ', ' + primaryAddress.state : ''}${primaryAddress.postalCode ? ' - ' + primaryAddress.postalCode : ''}`
+        : '';
 
       return {
         ...c.toObject(),
@@ -137,30 +140,28 @@ export const getAdminCustomers = async (req, res) => {
         phone,
         city,
         status: c.status || 'Active',
-        customerType: derivedType,
-        gender: c.gender || 'Female',
-        dateOfBirth: c.dateOfBirth || '1996-08-15',
-        isEmailVerified: c.isEmailVerified !== undefined ? c.isEmailVerified : true,
-        isPhoneVerified: c.isPhoneVerified !== undefined ? c.isPhoneVerified : true,
+        customerType: c.customerType || derivedType,
+        gender: c.gender || '',
+        dateOfBirth: c.dateOfBirth || '',
+        isEmailVerified: c.isEmailVerified !== undefined ? c.isEmailVerified : false,
+        isPhoneVerified: c.isPhoneVerified !== undefined ? c.isPhoneVerified : Boolean(phone),
         kycStatus: c.kycStatus || 'Verified',
-        rewardPoints: c.rewardPoints || (orderCount > 0 ? orderCount * 120 : 150),
+        rewardPoints: c.rewardPoints || 0,
         storeCredit: c.storeCredit || 0,
         internalNotes: Array.isArray(c.internalNotes) ? c.internalNotes : [],
         orderCount,
         totalSpent,
         avgOrderValue,
         highestOrderValue: highestOrder,
-        completedOrders: agg?.completedOrders || (idx === 0 ? 4 : 0),
-        pendingOrders: agg?.pendingOrders || (idx === 0 ? 1 : 0),
+        completedOrders: agg?.completedOrders || 0,
+        pendingOrders: agg?.pendingOrders || 0,
         cancelledOrders: agg?.cancelledOrders || 0,
         returnedOrders: agg?.returnedOrders || 0,
-        lastOrderDate: agg?.lastOrderDate || c.updatedAt || c.createdAt,
-        country: primaryAddress.country || 'India',
-        state: primaryAddress.state || 'Delhi',
-        pincode: primaryAddress.postalCode || '110001',
-        fullAddress: primaryAddress.street
-          ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} - ${primaryAddress.postalCode}`
-          : 'Connaught Place, Central Atelier Road, Delhi - 110001',
+        lastOrderDate: agg?.lastOrderDate || null,
+        country: primaryAddress.country || '',
+        state: primaryAddress.state || '',
+        pincode: primaryAddress.postalCode || '',
+        fullAddress: fullStreet,
       };
     });
 
@@ -238,26 +239,29 @@ export const createAdminCustomer = async (req, res) => {
       role: 'customer',
       customerId: finalCustomerId,
       phone: phone?.trim() || '',
-      city: city?.trim() || 'Delhi',
+      city: city?.trim() || '',
       status: status || 'Active',
       customerType: customerType || 'New',
-      gender: gender || 'Female',
+      gender: gender || '',
       dateOfBirth: dateOfBirth || '',
       isEmailVerified: true,
       isPhoneVerified: Boolean(phone),
       kycStatus: 'Verified',
-      addresses: [
-        {
-          fullName: name.trim(),
-          phone: phone?.trim() || '',
-          street: fullAddress?.trim() || 'High Street Atelier Suite',
-          city: city?.trim() || 'Delhi',
-          state: state?.trim() || 'Delhi',
-          postalCode: pincode?.trim() || '110001',
-          country: country?.trim() || 'India',
-          isDefault: true,
-        },
-      ],
+      addresses:
+        fullAddress || city || phone
+          ? [
+              {
+                fullName: name.trim(),
+                phone: phone?.trim() || '',
+                street: fullAddress?.trim() || '',
+                city: city?.trim() || '',
+                state: state?.trim() || '',
+                postalCode: pincode?.trim() || '',
+                country: country?.trim() || 'India',
+                isDefault: true,
+              },
+            ]
+          : [],
       internalNotes: initialNote ? [{ note: initialNote, author: 'Admin' }] : [],
     });
 
