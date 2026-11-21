@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/orderService';
 import { paymentService } from '../services/paymentService';
 import logoImg from '../assets/nimaah-luxe-logo.png';
+import { getProductImageUrl, handleImageError, FALLBACK_PRODUCT_IMAGE } from '../utils/imageUtils';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -522,7 +523,8 @@ export const CheckoutPage = () => {
             <div className="space-y-4 max-h-72 overflow-y-auto pr-2 divide-y divide-[#FAF9F6]">
               {cart.map((item) => {
                 const prod = item.product || {};
-                const img = (Array.isArray(prod.images) && prod.images[0]) || prod.image || item.image || '';
+                const rawImg = (Array.isArray(prod.images) && prod.images[0]) || prod.image || item.image || '';
+                const img = getProductImageUrl(rawImg);
                 const itemTotal = Number(item.price || 0) * Number(item.quantity || 1);
 
                 return (
@@ -531,8 +533,9 @@ export const CheckoutPage = () => {
                       {img ? (
                         <img
                           src={img}
-                          alt=""
-                          className="w-12 h-16 object-cover border border-[#E9E1D6] flex-shrink-0"
+                          alt={prod.title || item.title || 'Product'}
+                          onError={handleImageError}
+                          className="w-12 h-16 object-cover border border-[#E9E1D6] flex-shrink-0 bg-[#FAF9F6]"
                         />
                       ) : (
                         <div className="w-12 h-16 bg-[#FAF9F6] border border-[#E9E1D6] flex items-center justify-center flex-shrink-0 text-gray-400">

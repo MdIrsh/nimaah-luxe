@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, ArrowRight, ShoppingBag, ShieldCheck, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { getProductImageUrl, handleImageError, FALLBACK_PRODUCT_IMAGE } from '../utils/imageUtils';
 
 export const CartPage = () => {
   const {
@@ -75,19 +76,27 @@ export const CartPage = () => {
         <div className="lg:col-span-8 space-y-8">
           <div className="bg-white border border-[#E9E1D6] divide-y divide-[#E9E1D6] shadow-xs">
             {cart.map((item) => {
-              const image =
-                item.product?.images?.[0] ||
-                'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=400&q=80';
+              const rawImg =
+                (Array.isArray(item.product?.images) && item.product.images[0]) ||
+                item.product?.image ||
+                item.image ||
+                '';
+              const image = getProductImageUrl(rawImg);
 
               return (
                 <div key={item.cartItemId} className="p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                   {/* Thumbnail & Title */}
                   <div className="flex items-center space-x-6">
                     <Link
-                      to={`/product/${item.product._id}`}
+                      to={`/product/${item.product?._id || item.product}`}
                       className="w-20 h-28 bg-[#FAF9F6] border border-[#E9E1D6] flex-shrink-0 overflow-hidden block shadow-2xs"
                     >
-                      <img src={image} alt={item.product.title} className="w-full h-full object-cover object-top" />
+                      <img
+                        src={image}
+                        alt={item.product?.title || item.title || 'Product'}
+                        onError={handleImageError}
+                        className="w-full h-full object-cover object-top"
+                      />
                     </Link>
 
                     <div className="space-y-1.5">

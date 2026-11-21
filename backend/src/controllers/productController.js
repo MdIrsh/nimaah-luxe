@@ -99,6 +99,12 @@ export const sanitizeImageUrl = (url) => {
     } catch {}
   }
 
+  // Normalize local /uploads/ URLs to clean relative paths so they load across all environments
+  if (trimmed.includes('/uploads/')) {
+    const filename = trimmed.split('/uploads/')[1]?.split('?')[0];
+    if (filename) return `/uploads/${filename}`;
+  }
+
   return trimmed;
 };
 
