@@ -76,12 +76,21 @@ export const CheckoutPage = () => {
 
       // Step 1: Call backend to create Razorpay Order with server-side validation
       setProcessingStage('Generating encrypted Razorpay Order ID on backend...');
-      const cartItemsPayload = cart.map((item) => ({
-        productId: item.product._id,
-        quantity: item.quantity,
-        size: item.size,
-        color: item.color,
-      }));
+      const cartItemsPayload = cart
+        .filter((item) => item && (item.product || item.title))
+        .map((item) => {
+          const prod = item.product || item;
+          return {
+            productId: prod._id || prod.id || null,
+            title: prod.title || item.title || 'Haute Couture Piece',
+            price: Number(prod.discountedPrice || prod.price || item.price || 0),
+            image: (Array.isArray(prod.images) && prod.images[0]) || prod.image || item.image || '',
+            quantity: Number(item.quantity || 1),
+            size: item.size || 'M',
+            color: item.color || 'Default',
+          };
+        });
+
       const razorpayOrderData = await paymentService.createRazorpayOrder(
         grandTotal,
         `rcpt_${Date.now()}`,
@@ -172,15 +181,18 @@ export const CheckoutPage = () => {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              orderItems: cart.map((item) => ({
-                product: item.product._id,
-                title: item.product.title,
-                image: item.product.images?.[0] || '',
-                price: item.price,
-                size: item.size,
-                color: item.color,
-                quantity: item.quantity,
-              })),
+              orderItems: cart.map((item) => {
+                const prod = item.product || item;
+                return {
+                  product: prod._id || prod.id || null,
+                  title: prod.title || item.title || 'Haute Couture Piece',
+                  price: Number(prod.discountedPrice || prod.price || item.price || 0),
+                  image: (Array.isArray(prod.images) && prod.images[0]) || prod.image || item.image || '',
+                  quantity: Number(item.quantity || 1),
+                  size: item.size || 'M',
+                  color: item.color || 'Default',
+                };
+              }),
               shippingAddress: formData,
               itemsPrice: subtotal,
               taxPrice: estimatedTax,
@@ -195,6 +207,7 @@ export const CheckoutPage = () => {
             console.error('Payment verification failed:', verifyError);
             alert(
               verifyError.response?.data?.message ||
+                verifyError.message ||
                 'Payment verification failed. Please contact boutique support.'
             );
           } finally {
@@ -214,7 +227,8 @@ export const CheckoutPage = () => {
       paymentObject.open();
     } catch (error) {
       console.error('Razorpay initialization error:', error);
-      alert(error.message || 'Payment initiation failed. Please try again.');
+      const msg = error.response?.data?.message || error.message || 'Payment initiation failed. Please try again.';
+      alert(msg);
       setIsProcessing(false);
       setProcessingStage('');
     }
