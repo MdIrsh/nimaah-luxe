@@ -7,7 +7,19 @@ export const CartProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem('stylehub_cart');
       const parsed = saved ? JSON.parse(saved) : [];
-      return Array.isArray(parsed) ? parsed : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((item) => {
+        const prod = item.product;
+        if (prod) {
+          const orig = Number(prod.price || 0);
+          const disc = Number(prod.discountedPrice || 0);
+          const effective = (disc > 0 && orig > 0 && disc < orig) ? disc : (orig > 0 ? orig : disc);
+          if (effective > 0) {
+            return { ...item, price: effective };
+          }
+        }
+        return item;
+      });
     } catch {
       return [];
     }
@@ -34,16 +46,29 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('stylehub_wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
 
+  // Helper to safely get the true active selling price
+  const getProductPrice = (product) => {
+    if (!product) return 0;
+    const orig = Number(product.price || 0);
+    const disc = Number(product.discountedPrice || 0);
+    if (disc > 0 && orig > 0 && disc < orig) {
+      return disc;
+    }
+    return orig > 0 ? orig : disc;
+  };
+
   // Add dress/item to cart with chosen size & color
   const addToCart = (product, size = 'M', color = null, quantity = 1) => {
     const selectedColor = color || (product.colors && product.colors[0]?.name) || 'Default';
     const cartItemId = `${product._id}-${size}-${selectedColor}`;
+    const effectivePrice = getProductPrice(product);
 
     setCart((prev) => {
       const existingIndex = prev.findIndex((item) => item.cartItemId === cartItemId);
       if (existingIndex > -1) {
         const updated = [...prev];
         updated[existingIndex].quantity += quantity;
+        updated[existingIndex].price = effectivePrice;
         return updated;
       } else {
         return [
@@ -54,7 +79,7 @@ export const CartProvider = ({ children }) => {
             size,
             color: selectedColor,
             quantity,
-            price: product.discountedPrice || product.price,
+            price: effectivePrice,
           },
         ];
       }
@@ -66,13 +91,15 @@ export const CartProvider = ({ children }) => {
     if (!product) return;
     const selectedColor = color || (product.colors && product.colors[0]?.name) || 'Default';
     const cartItemId = `${product._id}-${size}-${selectedColor}`;
+    const effectivePrice = getProductPrice(product);
+
     const singleItem = {
       cartItemId,
       product,
       size,
       color: selectedColor,
       quantity,
-      price: product.discountedPrice || product.price,
+      price: effectivePrice,
     };
     setCart([singleItem]);
   };

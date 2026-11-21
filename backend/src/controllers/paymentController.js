@@ -38,13 +38,14 @@ export const createOrder = async (req, res) => {
           }
         }
 
-        const unitPrice = Number(
-          product?.discountedPrice ||
-            product?.price ||
-            item.price ||
-            item.unitPrice ||
-            1500
-        );
+        const origPrice = Number(product?.price || item.price || 0);
+        const discPrice = Number(product?.discountedPrice || 0);
+        const unitPrice =
+          discPrice > 0 && origPrice > 0 && discPrice < origPrice
+            ? discPrice
+            : origPrice > 0
+            ? origPrice
+            : Number(item.price || discPrice || 1500);
         const qty = Number(item.quantity || 1);
         subtotal += unitPrice * qty;
 

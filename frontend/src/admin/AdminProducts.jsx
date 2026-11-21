@@ -142,9 +142,9 @@ export const AdminProducts = () => {
     category: 'Kurtis',
     sku: 'KUR-001',
     description: '',
-    price: 15000,
-    discountedPrice: 12999,
-    discountPercent: 13,
+    price: '',
+    discountedPrice: '',
+    discountPercent: 0,
     stockCount: 15,
     minStock: 5,
     stockStatus: 'In Stock',
@@ -193,9 +193,9 @@ export const AdminProducts = () => {
       category: 'Kurtis',
       sku: `KUR-${Math.floor(100 + Math.random() * 900)}`,
       description: '',
-      price: 15000,
-      discountedPrice: 12999,
-      discountPercent: 13,
+      price: '',
+      discountedPrice: '',
+      discountPercent: 0,
       stockCount: 15,
       minStock: 5,
       stockStatus: 'In Stock',
@@ -288,11 +288,14 @@ export const AdminProducts = () => {
         throw new Error('Please upload at least one authentic product image from your device.');
       }
 
-      const origPrice = Number(form.price || form.discountedPrice);
-      const salePrice = Number(form.discountedPrice);
+      const origPrice = Number(form.price || form.discountedPrice || 0);
+      let salePrice = Number(form.discountedPrice || 0);
+      if (salePrice <= 0 || salePrice >= origPrice) {
+        salePrice = origPrice;
+      }
       const disc = origPrice > 0 && salePrice < origPrice
         ? Math.round(((origPrice - salePrice) / origPrice) * 100)
-        : Number(form.discountPercent || 0);
+        : 0;
 
       const colorName = form.color?.trim() || 'Red';
       const colorsPayload = [{ name: colorName, hexCode: '#000000' }];
