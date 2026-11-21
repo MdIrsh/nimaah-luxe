@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAdminStats, getAdminCustomers } from '../controllers/adminController.js';
+import { getAdminStats, getAdminCustomers, updateAdminCustomer } from '../controllers/adminController.js';
 import {
   getAdminReviews,
   moderateReviewStatus,
@@ -15,6 +15,7 @@ router.use(protect, adminOnly);
 
 router.get('/stats', getAdminStats);
 router.get('/customers', getAdminCustomers);
+router.put('/customers/:id', updateAdminCustomer);
 
 // Admin Reviews Management
 router.get('/reviews', getAdminReviews);

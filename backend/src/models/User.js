@@ -37,6 +37,23 @@ const userSchema = new mongoose.Schema(
       enum: ['customer', 'admin', 'super_admin'],
       default: 'customer',
     },
+    customerId: {
+      type: String,
+      default: '',
+    },
+    phone: {
+      type: String,
+      default: '',
+    },
+    city: {
+      type: String,
+      default: '',
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive', 'Suspended'],
+      default: 'Active',
+    },
     avatar: {
       type: String,
       default: '',
