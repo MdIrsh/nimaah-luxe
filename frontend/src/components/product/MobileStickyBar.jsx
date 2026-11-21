@@ -52,19 +52,19 @@ export const MobileStickyBar = ({
       <button
         type="button"
         onClick={onAddToCart}
-        className="flex-1 py-3 px-3.5 rounded-2xl bg-[#0B192C] hover:bg-[#1E3A8A] active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition"
+        className="py-3 px-3.5 rounded-2xl border border-slate-300 bg-white hover:bg-slate-50 active:scale-[0.98] text-[#0B192C] font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
       >
         <ShoppingCart size={15} />
-        <span>{addedSuccess ? 'Added ✓' : 'Add to Cart'}</span>
+        <span>{addedSuccess ? 'Added ✓' : 'Add to Bag'}</span>
       </button>
 
       {/* Instant Buy Now Button */}
       <button
         type="button"
         onClick={onBuyNow}
-        className="py-3 px-3 rounded-2xl bg-[#2563EB] hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-1 shadow-md transition"
+        className="flex-1 py-3 px-4 rounded-2xl bg-[#0B192C] hover:bg-[#1E3A8A] active:scale-[0.98] text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition"
       >
-        <Zap size={14} className="fill-white" />
+        <Zap size={15} className="fill-amber-400 text-amber-400" />
         <span>Buy Now</span>
       </button>
     </div>

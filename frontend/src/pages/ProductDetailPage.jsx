@@ -678,7 +678,7 @@ export const ProductDetailPage = () => {
             {/* 100% Authentic Products & Brand Warranty Banner */}
             <AuthenticityBanner brand={brandName} />
 
-            {/* Action Buttons: Separate Wishlist & Add to Cart */}
+            {/* Action Buttons: Wishlist & Buy Now (Replaced Add to Cart with Buy Now as requested) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-2">
               <button
                 type="button"
@@ -695,11 +695,23 @@ export const ProductDetailPage = () => {
 
               <button
                 type="button"
-                onClick={handleAddToCart}
-                className="w-full py-4 rounded-2xl bg-[#0B192C] hover:bg-[#1E3A8A] text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                onClick={handleBuyNow}
+                className="w-full py-4 rounded-2xl bg-[#0B192C] hover:bg-[#1E3A8A] text-white font-black text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
               >
-                <ShoppingCart size={18} />
-                <span>{addedSuccess ? 'Added to Bag ✓' : 'Add to Cart'}</span>
+                <Zap size={18} className="fill-amber-400 text-amber-400" />
+                <span>Buy Now</span>
+              </button>
+            </div>
+
+            {/* Secondary Option: Add to Cart for multi-item shoppers */}
+            <div className="flex items-center justify-center pt-1">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="text-xs font-semibold text-slate-500 hover:text-[#0B192C] transition inline-flex items-center gap-1.5 cursor-pointer underline underline-offset-4"
+              >
+                <ShoppingCart size={13} />
+                <span>{addedSuccess ? 'Item Added to Bag ✓' : 'Add to Cart instead'}</span>
               </button>
             </div>
 
