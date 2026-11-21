@@ -129,6 +129,7 @@ export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})
       .populate('user', 'id name email')
+      .populate('orderItems.product', 'title images price sku brand')
       .sort({ createdAt: -1 });
 
     return successResponse(res, 'All orders retrieved for Admin', {
