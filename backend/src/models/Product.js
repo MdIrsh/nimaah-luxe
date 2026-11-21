@@ -26,6 +26,11 @@ const productSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
+    sku: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     brand: {
       type: String,
       default: 'StyleHub Atelier',
@@ -42,6 +47,10 @@ const productSchema = new mongoose.Schema(
     discountedPrice: {
       type: Number,
       default: 0.0,
+    },
+    discountPercent: {
+      type: Number,
+      default: 0,
     },
     category: {
       type: String,
@@ -82,6 +91,15 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 15,
+    },
+    minStock: {
+      type: Number,
+      default: 5,
+    },
+    stockStatus: {
+      type: String,
+      enum: ['In Stock', 'Low Stock', 'Out of Stock', 'Pre-order'],
+      default: 'In Stock',
     },
     ratings: {
       type: Number,
