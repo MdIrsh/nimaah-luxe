@@ -1,5 +1,13 @@
 import express from 'express';
-import { getAdminStats, getAdminCustomers, updateAdminCustomer } from '../controllers/adminController.js';
+import {
+  getAdminStats,
+  getAdminCustomers,
+  createAdminCustomer,
+  updateAdminCustomer,
+  addCustomerNote,
+  toggleCustomerStatus,
+  deleteAdminCustomer,
+} from '../controllers/adminController.js';
 import {
   getAdminReviews,
   moderateReviewStatus,
@@ -14,8 +22,14 @@ const router = express.Router();
 router.use(protect, adminOnly);
 
 router.get('/stats', getAdminStats);
+
+// Customer Management
 router.get('/customers', getAdminCustomers);
+router.post('/customers', createAdminCustomer);
 router.put('/customers/:id', updateAdminCustomer);
+router.post('/customers/:id/notes', addCustomerNote);
+router.patch('/customers/:id/status', toggleCustomerStatus);
+router.delete('/customers/:id', deleteAdminCustomer);
 
 // Admin Reviews Management
 router.get('/reviews', getAdminReviews);

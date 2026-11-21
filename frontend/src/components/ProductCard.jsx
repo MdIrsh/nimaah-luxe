@@ -5,16 +5,14 @@ import { useCart } from '../context/CartContext';
 import { getSocket } from '../services/socket';
 import { getProductImageUrl, handleImageError } from '../utils/imageUtils';
 
-export const ProductCard = ({ product }) => {
-  if (!product) return null;
-
+export const ProductCard = ({ product = {} }) => {
   const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
 
   const [liveRating, setLiveRating] = useState(
-    Number(product.averageRating ?? product.ratings ?? 0)
+    Number(product?.averageRating ?? product?.ratings ?? 0)
   );
   const [liveReviewsCount, setLiveReviewsCount] = useState(
-    Number(product.totalReviews ?? product.numReviews ?? 0)
+    Number(product?.totalReviews ?? product?.numReviews ?? 0)
   );
 
   useEffect(() => {
@@ -34,7 +32,7 @@ export const ProductCard = ({ product }) => {
   }, [product?._id]);
 
   const availableSizes =
-    Array.isArray(product.sizes) && product.sizes.length > 0
+    Array.isArray(product?.sizes) && product.sizes.length > 0
       ? product.sizes
       : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
@@ -42,6 +40,8 @@ export const ProductCard = ({ product }) => {
     availableSizes.includes('M') ? 'M' : availableSizes[0]
   );
   const [justAdded, setJustAdded] = useState(false);
+
+  if (!product || !product._id) return null;
 
   const isFavorited = isWishlisted(product._id);
 

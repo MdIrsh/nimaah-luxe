@@ -51,9 +51,51 @@ const userSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Active', 'Inactive', 'Suspended'],
+      enum: ['Active', 'Inactive', 'Blocked'],
       default: 'Active',
     },
+    customerType: {
+      type: String,
+      enum: ['New', 'Regular', 'Premium', 'VIP'],
+      default: 'New',
+    },
+    gender: {
+      type: String,
+      enum: ['Female', 'Male', 'Other', 'Not Specified'],
+      default: 'Not Specified',
+    },
+    dateOfBirth: {
+      type: String,
+      default: '',
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: true,
+    },
+    isPhoneVerified: {
+      type: Boolean,
+      default: true,
+    },
+    kycStatus: {
+      type: String,
+      enum: ['Verified', 'Pending', 'Not Submitted'],
+      default: 'Verified',
+    },
+    rewardPoints: {
+      type: Number,
+      default: 250,
+    },
+    storeCredit: {
+      type: Number,
+      default: 0,
+    },
+    internalNotes: [
+      {
+        note: { type: String, required: true },
+        author: { type: String, default: 'Admin' },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     avatar: {
       type: String,
       default: '',
