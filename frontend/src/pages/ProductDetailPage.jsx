@@ -39,7 +39,7 @@ import { getProductImageUrl, handleImageError, FALLBACK_PRODUCT_IMAGE } from '..
 export const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
+  const { addToCart, buyNow, isWishlisted, addToWishlist, removeFromWishlist } = useCart();
   const { user } = useAuth();
 
   const location = useLocation();
@@ -369,7 +369,7 @@ export const ProductDetailPage = () => {
 
   const handleBuyNow = () => {
     if (!product) return;
-    addToCart(product, selectedSize, selectedColor, quantity);
+    buyNow(product, selectedSize, selectedColor, quantity);
     navigate('/checkout');
   };
 

@@ -61,6 +61,22 @@ export const CartProvider = ({ children }) => {
     });
   };
 
+  // Direct Buy Now: sets the cart to ONLY this 1 item for express direct checkout
+  const buyNow = (product, size = 'M', color = null, quantity = 1) => {
+    if (!product) return;
+    const selectedColor = color || (product.colors && product.colors[0]?.name) || 'Default';
+    const cartItemId = `${product._id}-${size}-${selectedColor}`;
+    const singleItem = {
+      cartItemId,
+      product,
+      size,
+      color: selectedColor,
+      quantity,
+      price: product.discountedPrice || product.price,
+    };
+    setCart([singleItem]);
+  };
+
   const removeFromCart = (cartItemId) => {
     setCart((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
   };
@@ -166,6 +182,7 @@ export const CartProvider = ({ children }) => {
         coupon,
         couponError,
         addToCart,
+        buyNow,
         removeFromCart,
         updateQuantity,
         updateItemSize,

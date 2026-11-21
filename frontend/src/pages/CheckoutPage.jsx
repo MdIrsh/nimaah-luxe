@@ -10,6 +10,8 @@ import {
   ArrowRight,
   Package,
   Crown,
+  Trash2,
+  ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -32,8 +34,16 @@ const loadRazorpayScript = () => {
 };
 
 export const CheckoutPage = () => {
-  const { cart, subtotal, discountAmount, shippingFee, estimatedTax, grandTotal, clearCart } =
-    useCart();
+  const {
+    cart,
+    subtotal,
+    discountAmount,
+    shippingFee,
+    estimatedTax,
+    grandTotal,
+    clearCart,
+    removeFromCart,
+  } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -303,6 +313,35 @@ export const CheckoutPage = () => {
     );
   }
 
+  if (cart.length === 0 && !createdOrder) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-24 text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-[#FAF7F2] border border-[#E9E1D6] flex items-center justify-center mx-auto text-[#C5A059]">
+          <ShoppingBag size={26} />
+        </div>
+        <div className="space-y-2">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-[#C5A059] font-cinzel font-semibold block">
+            Atelier Bag Empty
+          </span>
+          <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#29251F]">
+            No Items in Checkout
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500 font-light leading-relaxed max-w-sm mx-auto">
+            Your shopping bag has no items currently queued for acquisition. Select a luxury piece to proceed.
+          </p>
+        </div>
+        <div className="pt-2">
+          <Link
+            to="/shop"
+            className="inline-flex px-8 py-4 bg-[#29251F] hover:bg-[#C5A059] text-white text-xs uppercase tracking-[0.2em] font-semibold transition shadow-md"
+          >
+            Explore Haute Couture
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
       <div className="border-b border-[#E9E1D6] pb-8 mb-10">
@@ -449,31 +488,80 @@ export const CheckoutPage = () => {
         {/* Right Summary Column */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-white border border-[#E9E1D6] p-7 sm:p-8 space-y-7 shadow-xs">
-            <h3 className="font-serif-luxury text-2xl text-[#29251F] border-b border-[#E9E1D6] pb-4">
-              Order Review
-            </h3>
+            <div className="flex items-center justify-between border-b border-[#E9E1D6] pb-4">
+              <h3 className="font-serif-luxury text-2xl text-[#29251F]">
+                Order Review
+              </h3>
+              <span className="text-xs text-gray-500 font-light">
+                {cart.length} {cart.length === 1 ? 'Piece' : 'Pieces'}
+              </span>
+            </div>
 
-            <div className="space-y-4 max-h-64 overflow-y-auto pr-2 divide-y divide-[#FAF9F6]">
-              {cart.map((item) => (
-                <div key={item.cartItemId} className="pt-3.5 first:pt-0 flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-3.5">
-                    <img
-                      src={item.product?.images?.[0]}
-                      alt=""
-                      className="w-11 h-15 object-cover border border-[#E9E1D6]"
-                    />
-                    <div>
-                      <p className="font-semibold text-[#29251F] line-clamp-1">{item.product.title}</p>
-                      <p className="text-[10px] text-gray-500 font-light">
-                        Size: {item.size} • Color: {item.color} • Qty: {item.quantity}
-                      </p>
+            {/* Quick single-item action if multiple items are present */}
+            {cart.length > 1 && (
+              <div className="flex items-center justify-between bg-amber-50/70 border border-amber-200/60 p-2.5 rounded text-xs text-amber-900">
+                <span className="font-medium text-[11px]">Multiple pieces in cart ({cart.length})</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Keep only the latest added item
+                    const latestItem = cart[cart.length - 1];
+                    cart.forEach((it) => {
+                      if (it.cartItemId !== latestItem.cartItemId) {
+                        removeFromCart(it.cartItemId);
+                      }
+                    });
+                  }}
+                  className="text-[11px] font-bold text-[#C5A059] hover:underline cursor-pointer"
+                >
+                  Keep Only 1 Piece
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-4 max-h-72 overflow-y-auto pr-2 divide-y divide-[#FAF9F6]">
+              {cart.map((item) => {
+                const prod = item.product || {};
+                const img = (Array.isArray(prod.images) && prod.images[0]) || prod.image || item.image || '';
+                const itemTotal = Number(item.price || 0) * Number(item.quantity || 1);
+
+                return (
+                  <div key={item.cartItemId} className="pt-3.5 first:pt-0 flex items-center justify-between text-xs gap-3">
+                    <div className="flex items-center space-x-3.5 min-w-0">
+                      {img ? (
+                        <img
+                          src={img}
+                          alt=""
+                          className="w-12 h-16 object-cover border border-[#E9E1D6] flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-16 bg-[#FAF9F6] border border-[#E9E1D6] flex items-center justify-center flex-shrink-0 text-gray-400">
+                          <Package size={16} />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[#29251F] truncate">{prod.title || item.title || 'Couture Piece'}</p>
+                        <p className="text-[10px] text-gray-500 font-light">
+                          Size: {item.size} • Color: {item.color} • Qty: {item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className="font-serif-luxury font-semibold text-sm">
+                        ₹{itemTotal.toLocaleString('en-IN')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.cartItemId)}
+                        title="Remove piece from checkout"
+                        className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition rounded cursor-pointer"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
-                  <span className="font-serif-luxury font-semibold text-sm">
-                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Price breakdown */}
