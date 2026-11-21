@@ -47,9 +47,15 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
-    const user = await User.findOne({ email }).select('+password');
-    if (!user || !(await user.comparePassword(password))) {
+    if (!cleanEmail || !cleanPassword) {
+      return errorResponse(res, 'Please provide email and password', 400);
+    }
+
+    const user = await User.findOne({ email: cleanEmail }).select('+password');
+    if (!user || !(await user.comparePassword(cleanPassword))) {
       return errorResponse(res, 'Invalid email or password', 401);
     }
 
@@ -128,12 +134,15 @@ export const updateProfile = async (req, res) => {
 export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
+
+    if (!cleanEmail || !cleanPassword) {
       return errorResponse(res, 'Please provide email and password', 400);
     }
 
-    const user = await User.findOne({ email }).select('+password');
-    if (!user || !(await user.comparePassword(password))) {
+    const user = await User.findOne({ email: cleanEmail }).select('+password');
+    if (!user || !(await user.comparePassword(cleanPassword))) {
       return errorResponse(res, 'Invalid email or password', 401);
     }
 

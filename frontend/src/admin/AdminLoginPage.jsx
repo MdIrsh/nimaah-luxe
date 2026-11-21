@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, Lock, AlertTriangle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, Lock, AlertTriangle, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logoImg from '../assets/nimaah-luxe-logo.png';
 
 export const AdminLoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +29,7 @@ export const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      const res = await adminLogin(email.trim(), password);
+      const res = await adminLogin(email.trim().toLowerCase(), password.trim());
       const role = (res?.data?.role || '').toLowerCase();
       if (role === 'admin' || role === 'super_admin') {
         navigate('/admin/dashboard', { replace: true });
@@ -133,13 +134,21 @@ export const AdminLoginPage = () => {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full px-4 py-3 bg-[#0E0C09] border border-[#2F271E] text-[#F3EAD8] focus:outline-none focus:border-[#C5A059] transition text-xs font-mono placeholder:text-gray-600"
+                  placeholder="Enter admin password (e.g. irshad1234)"
+                  className="w-full pl-4 pr-11 py-3 bg-[#0E0C09] border border-[#2F271E] text-[#F3EAD8] focus:outline-none focus:border-[#C5A059] transition text-xs font-mono placeholder:text-gray-600"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#C5A059] transition cursor-pointer p-1"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
