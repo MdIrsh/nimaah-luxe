@@ -454,7 +454,7 @@ export const AdminProducts = () => {
                           e.currentTarget.onerror = null;
                           e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
                         }}
-                        className="w-11 h-14 object-cover object-top border border-[#E9E1D6] rounded-xs bg-[#FAF9F6]"
+                        className="w-11 h-14 object-contain p-0.5 border border-[#E9E1D6] rounded-xs bg-[#FAF9F6]"
                       />
                       {p.images && p.images.length > 1 && (
                         <span className="absolute -bottom-1 -right-1 bg-[#14110C] text-[#C5A059] border border-[#C5A059]/40 text-[9px] font-bold px-1 rounded shadow-xs" title={`${p.images.length} images total`}>
@@ -1032,7 +1032,7 @@ export const AdminProducts = () => {
                                   e.currentTarget.onerror = null;
                                   e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
                                 }}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain p-1"
                               />
 
                               {/* Exact Wireframe Badge: [Cover Image] [Image 2] [Image 3] */}

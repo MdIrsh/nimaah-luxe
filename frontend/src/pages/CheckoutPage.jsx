@@ -535,7 +535,7 @@ export const CheckoutPage = () => {
                           src={img}
                           alt={prod.title || item.title || 'Product'}
                           onError={handleImageError}
-                          className="w-12 h-16 object-cover border border-[#E9E1D6] flex-shrink-0 bg-[#FAF9F6]"
+                          className="w-12 h-16 object-contain p-0.5 border border-[#E9E1D6] flex-shrink-0 bg-[#FAF9F6]"
                         />
                       ) : (
                         <div className="w-12 h-16 bg-[#FAF9F6] border border-[#E9E1D6] flex items-center justify-center flex-shrink-0 text-gray-400">

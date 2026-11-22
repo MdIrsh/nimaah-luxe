@@ -166,7 +166,7 @@ export const CustomerOrders = () => {
                       <img
                         src={item.image}
                         alt={item.title}
-                        className="w-14 h-20 object-cover object-top border border-[#E9E1D6]"
+                        className="w-14 h-20 object-contain p-1 border border-[#E9E1D6] bg-[#FAF9F6]"
                       />
                       <div>
                         <h4 className="font-serif-luxury text-sm text-[#29251F] font-semibold">{item.title}</h4>

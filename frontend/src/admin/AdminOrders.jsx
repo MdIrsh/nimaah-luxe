@@ -274,7 +274,7 @@ export const AdminOrders = () => {
                                   src={thumbnail}
                                   alt={item.title || 'Product Thumbnail'}
                                   onError={handleImageError}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-contain p-1"
                                 />
                               </div>
 

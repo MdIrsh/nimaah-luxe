@@ -89,13 +89,13 @@ export const CartPage = () => {
                   <div className="flex items-center space-x-6">
                     <Link
                       to={`/product/${item.product?._id || item.product}`}
-                      className="w-20 h-28 bg-[#FAF9F6] border border-[#E9E1D6] flex-shrink-0 overflow-hidden block shadow-2xs"
+                      className="w-20 h-28 bg-[#FAF9F6] border border-[#E9E1D6] flex-shrink-0 overflow-hidden flex items-center justify-center p-1 shadow-2xs"
                     >
                       <img
                         src={image}
                         alt={item.product?.title || item.title || 'Product'}
                         onError={handleImageError}
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-contain"
                       />
                     </Link>
 

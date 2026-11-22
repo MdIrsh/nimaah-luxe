@@ -114,7 +114,7 @@ export const ProductShowcase = ({
                   alt=""
                   referrerPolicy="no-referrer"
                   onError={handleImageError}
-                  className="w-full h-full object-contain mix-blend-multiply"
+                  className="w-full h-full object-contain"
                 />
               </button>
             );

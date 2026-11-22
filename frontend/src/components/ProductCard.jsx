@@ -97,7 +97,7 @@ export const ProductCard = ({ product = {} }) => {
       {/* Product Image Frame */}
       <Link
         to={`/product/${product._id}`}
-        className="relative block aspect-[3/4] overflow-hidden bg-[#FAF9F6]"
+        className="relative block aspect-[3/4] overflow-hidden bg-[#FAF9F6] p-2 sm:p-2.5 flex items-center justify-center"
       >
         <img
           src={mainImage}
@@ -105,7 +105,7 @@ export const ProductCard = ({ product = {} }) => {
           referrerPolicy="no-referrer"
           onError={handleImageError}
           loading="lazy"
-          className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+          className="w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
         />
 
         {product.images?.length > 1 && (
@@ -115,7 +115,7 @@ export const ProductCard = ({ product = {} }) => {
             referrerPolicy="no-referrer"
             onError={handleImageError}
             loading="lazy"
-            className="hidden lg:block w-full h-full object-cover object-top absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out"
+            className="hidden lg:block w-full h-full object-contain p-2 sm:p-2.5 absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out"
           />
         )}
 
