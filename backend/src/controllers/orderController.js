@@ -115,7 +115,9 @@ export const getOrderById = async (req, res) => {
 // @access  Private
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.user._id })
+      .populate('orderItems.product', 'title images price sku brand')
+      .sort({ createdAt: -1 });
     return successResponse(res, 'Customer orders fetched', orders);
   } catch (error) {
     return errorResponse(res, error.message, 500);
@@ -214,38 +216,33 @@ export const getOrderTracking = async (req, res) => {
     else if (status === 'Admin Received') currentStep = 2;
     else if (status === 'Processing & Tailoring') currentStep = 3;
     else if (status === 'Shipped') currentStep = 4;
-    else if (status === 'Delivered') currentStep = 6;
+    else if (status === 'Delivered') currentStep = 5;
     else if (status === 'Cancelled') currentStep = 0;
-
-    // Advance to Out for Delivery if shipped for over 24 hours
-    if (status === 'Shipped' && (Date.now() - updatedAt.getTime()) > 24 * 60 * 60 * 1000) {
-      currentStep = 5;
-    }
 
     const steps = [
       {
         step: 1,
         key: 'order_placed',
         title: 'Order Placed',
-        description: 'Payment successful. Your order has been received.',
+        description: 'Bespoke acquisition verified and logged in sanctuary ledger.',
         timestamp: createdAt.toISOString(),
         isCompleted: currentStep >= 1,
         isCurrent: currentStep === 1,
       },
       {
         step: 2,
-        key: 'order_confirmed',
-        title: 'Order Confirmed',
-        description: 'Seller confirmed your order. Your order is being processed.',
+        key: 'admin_received',
+        title: 'Admin Received',
+        description: 'Atelier master confirmed order. Materials and artisan allocated.',
         timestamp: currentStep >= 2 ? new Date(paidAt.getTime() + 15 * 60 * 1000).toISOString() : null,
         isCompleted: currentStep >= 2,
         isCurrent: currentStep === 2,
       },
       {
         step: 3,
-        key: 'packed',
-        title: 'Packed',
-        description: 'Your product is packed. Package is ready for shipment.',
+        key: 'processing_tailoring',
+        title: 'Processing & Tailoring',
+        description: 'Master craftsmen tailoring silhouette with royal bespoke finishing.',
         timestamp: currentStep >= 3 ? new Date(paidAt.getTime() + 18 * 60 * 60 * 1000).toISOString() : null,
         isCompleted: currentStep >= 3,
         isCurrent: currentStep === 3,
@@ -254,37 +251,27 @@ export const getOrderTracking = async (req, res) => {
         step: 4,
         key: 'shipped',
         title: 'Shipped',
-        description: `Package handed to courier. Your parcel is on its way.`,
+        description: `Dispatched via ${order.courierPartner || 'BlueDart Luxury Express'} with insured transit tracking.`,
         timestamp: currentStep >= 4 ? updatedAt.toISOString() : null,
         isCompleted: currentStep >= 4,
         isCurrent: currentStep === 4,
       },
       {
         step: 5,
-        key: 'out_for_delivery',
-        title: 'Out for Delivery',
-        description: 'Courier is on the way. Your package will arrive soon.',
-        timestamp: currentStep >= 5 ? new Date(updatedAt.getTime() + 24 * 60 * 60 * 1000).toISOString() : null,
-        isCompleted: currentStep >= 5,
-        isCurrent: currentStep === 5,
-      },
-      {
-        step: 6,
         key: 'delivered',
         title: 'Delivered',
-        description: 'Order delivered successfully. Enjoy your purchase!',
+        description: 'White-glove arrival completed. Bespoke wardrobe received by patron.',
         timestamp: deliveredAt ? deliveredAt.toISOString() : null,
-        isCompleted: currentStep >= 6,
-        isCurrent: currentStep === 6,
+        isCompleted: currentStep >= 5,
+        isCurrent: currentStep === 5,
       },
     ];
 
     let latestScan = 'Order verified and securely assigned to atelier fulfillment.';
     if (currentStep === 2) latestScan = 'Order confirmed by master craftsman. Materials allocated.';
-    else if (currentStep === 3) latestScan = 'Quality check passed. Package sealed in royal satin protective packaging.';
+    else if (currentStep === 3) latestScan = 'Artisan tailoring active. Garment undergoing hand embroidery & drape check.';
     else if (currentStep === 4) latestScan = `Dispatched from Atelier Hub to regional transit center via ${order.courierPartner || 'BlueDart'}.`;
-    else if (currentStep === 5) latestScan = 'Arrived at local destination hub. Out for delivery with BlueDart courier associate.';
-    else if (currentStep === 6) latestScan = `Package safely delivered at destination on ${deliveredAt ? deliveredAt.toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'recent'}.`;
+    else if (currentStep === 5) latestScan = `Package safely delivered at destination on ${deliveredAt ? deliveredAt.toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'recent'}.`;
     else if (status === 'Cancelled') latestScan = 'Order was cancelled.';
 
     const trackingNumber =

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { orderService } from '../services/orderService';
 import { useAuth } from '../context/AuthContext';
+import { getProductImageUrl, handleImageError, FALLBACK_PRODUCT_IMAGE } from '../utils/imageUtils';
 import {
   Check,
   Truck,
@@ -98,43 +99,36 @@ export const TrackOrderPage = () => {
       {
         id: 1,
         title: 'Order Placed',
-        desc: 'Payment successful',
+        desc: 'Bespoke acquisition verified and logged in sanctuary ledger.',
         isCompleted: true,
         isCurrent: false,
       },
       {
         id: 2,
-        title: 'Order Confirmed',
-        desc: 'Seller confirmed your order',
+        title: 'Admin Received',
+        desc: 'Atelier master confirmed order. Materials and artisan allocated.',
         isCompleted: true,
         isCurrent: false,
       },
       {
         id: 3,
-        title: 'Packed',
-        desc: 'Your product is packed',
+        title: 'Processing & Tailoring',
+        desc: 'Master craftsmen tailoring silhouette with royal bespoke finishing.',
         isCompleted: true,
         isCurrent: false,
       },
       {
         id: 4,
         title: 'Shipped',
-        desc: 'Package handed to courier',
+        desc: 'Dispatched via insured luxury courier with real-time tracking.',
         isCompleted: false,
         isCurrent: true,
         isShipped: true,
       },
       {
         id: 5,
-        title: 'Out for Delivery',
-        desc: 'Courier is on the way',
-        isCompleted: false,
-        isCurrent: false,
-      },
-      {
-        id: 6,
         title: 'Delivered',
-        desc: 'Order delivered successfully',
+        desc: 'White-glove arrival completed. Bespoke wardrobe received by patron.',
         isCompleted: false,
         isCurrent: false,
       },
@@ -173,43 +167,36 @@ export const TrackOrderPage = () => {
     {
       id: 1,
       title: 'Order Placed',
-      desc: 'Payment successful',
+      desc: 'Bespoke acquisition verified and logged in sanctuary ledger.',
       isCompleted: true,
       isCurrent: false,
     },
     {
       id: 2,
-      title: 'Order Confirmed',
-      desc: 'Seller confirmed your order',
+      title: 'Admin Received',
+      desc: 'Atelier master confirmed order. Materials and artisan allocated.',
       isCompleted: true,
       isCurrent: false,
     },
     {
       id: 3,
-      title: 'Packed',
-      desc: 'Your product is packed',
+      title: 'Processing & Tailoring',
+      desc: 'Master craftsmen tailoring silhouette with royal bespoke finishing.',
       isCompleted: true,
       isCurrent: false,
     },
     {
       id: 4,
       title: 'Shipped',
-      desc: 'Package handed to courier',
+      desc: 'Dispatched via insured luxury courier with real-time tracking.',
       isCompleted: false,
       isCurrent: true,
       isShipped: true,
     },
     {
       id: 5,
-      title: 'Out for Delivery',
-      desc: 'Courier is on the way',
-      isCompleted: false,
-      isCurrent: false,
-    },
-    {
-      id: 6,
       title: 'Delivered',
-      desc: 'Order delivered successfully',
+      desc: 'White-glove arrival completed. Bespoke wardrobe received by patron.',
       isCompleted: false,
       isCurrent: false,
     },
@@ -288,17 +275,13 @@ export const TrackOrderPage = () => {
 
         {/* Product Card */}
         <div className="flex items-center space-x-4 mt-6 mb-8">
-          <div className="w-20 h-24 sm:w-22 sm:h-26 rounded-2xl overflow-hidden bg-[#F5EDE2] flex-shrink-0 shadow-2xs">
+          <div className="w-20 h-24 sm:w-22 sm:h-26 rounded-2xl overflow-hidden bg-[#FAF9F6] border border-[#E9E1D6] flex-shrink-0 shadow-2xs flex items-center justify-center p-1.5">
             <img
-              src={activeProduct.image}
+              src={getProductImageUrl(activeProduct.image) || FALLBACK_PRODUCT_IMAGE}
               alt={activeProduct.title}
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src =
-                  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80';
-              }}
-              className="w-full h-full object-cover object-top"
+              onError={handleImageError}
+              className="w-full h-full object-contain"
             />
           </div>
 

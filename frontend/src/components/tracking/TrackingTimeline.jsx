@@ -15,7 +15,7 @@ export const TrackingTimeline = ({ steps, currentStatus }) => {
           </h3>
         </div>
         <span className="text-[11px] font-semibold text-gray-500">
-          6 Fulfillment Stages
+          5 Fulfillment Stages
         </span>
       </div>
 
