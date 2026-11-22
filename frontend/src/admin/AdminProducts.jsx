@@ -78,7 +78,7 @@ export const AdminProducts = () => {
       if (uploadedUrls && uploadedUrls.length > 0) {
         setForm((prev) => {
           const current = (prev.images || []).filter(
-            (img) => img && !img.includes('unsplash.com')
+            (img) => img && img !== FALLBACK_PRODUCT_IMAGE
           );
           return {
             ...prev,
@@ -213,7 +213,7 @@ export const AdminProducts = () => {
     setSaveError('');
     setUploadError('');
     const validImgs = (p.images || []).filter(
-      (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
+      (img) => img && typeof img === 'string' && img.trim()
     );
     const origPrice = Number(p.price || 0);
     const salePrice = Number(p.discountedPrice ?? p.price ?? 0);
@@ -235,9 +235,9 @@ export const AdminProducts = () => {
       category: p.category || 'Kurtis',
       sku: p.sku || `KUR-${Math.floor(100 + Math.random() * 900)}`,
       description: p.description || '',
-      price: origPrice || 15000,
-      discountedPrice: salePrice || 12999,
-      discountPercent: disc || 13,
+      price: origPrice || '',
+      discountedPrice: salePrice || '',
+      discountPercent: disc || 0,
       stockCount: Number(p.stockCount ?? 15),
       minStock: Number(p.minStock ?? 5),
       stockStatus: p.stockStatus || (Number(p.stockCount) > 5 ? 'In Stock' : 'Low Stock'),
@@ -281,11 +281,21 @@ export const AdminProducts = () => {
         throw new Error('Please enter an editorial Description.');
       }
 
-      const cleanImages = (form.images || []).filter(
-        (img) => img && typeof img === 'string' && !img.includes('unsplash.com')
+      let cleanImages = (form.images || []).filter(
+        (img) => img && typeof img === 'string' && img.trim()
       );
+
+      // Auto-capture any pending image URL in the URL input box
+      if (urlInput && urlInput.trim()) {
+        const pendingUrl = cleanImageUrl(urlInput.trim());
+        if (pendingUrl && !cleanImages.includes(pendingUrl)) {
+          cleanImages.push(pendingUrl);
+        }
+      }
+
+      // If no image is provided yet, fallback gracefully to luxury atelier placeholder
       if (cleanImages.length === 0) {
-        throw new Error('Please upload at least one authentic product image from your device.');
+        cleanImages = [FALLBACK_PRODUCT_IMAGE];
       }
 
       const origPrice = Number(form.price || form.discountedPrice || 0);
