@@ -14,12 +14,10 @@ export const AdminLoginPage = () => {
   const { user, isAdmin, adminLogin } = useAuth();
   const navigate = useNavigate();
 
-  // If already authenticated as Admin, navigate to Admin Dashboard; if customer, redirect to storefront
+  // If already authenticated as Admin, navigate to Admin Dashboard
   useEffect(() => {
     if (user && isAdmin) {
       navigate('/admin/dashboard', { replace: true });
-    } else if (user && !isAdmin) {
-      navigate('/', { replace: true });
     }
   }, [user, isAdmin, navigate]);
 
@@ -29,6 +27,10 @@ export const AdminLoginPage = () => {
     setLoading(true);
 
     try {
+      // Clear any previous conflicting customer tokens before authenticating as admin
+      localStorage.removeItem('stylehub_token');
+      localStorage.removeItem('stylehub_user');
+
       const res = await adminLogin(email.trim().toLowerCase(), password.trim());
       const role = (res?.data?.role || '').toLowerCase();
       if (role === 'admin' || role === 'super_admin') {
@@ -123,6 +125,9 @@ export const AdminLoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@stylehub.com"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full px-4 py-3 bg-[#0E0C09] border border-[#2F271E] text-[#F3EAD8] focus:outline-none focus:border-[#C5A059] transition text-xs font-mono placeholder:text-gray-600"
                 />
               </div>
@@ -139,6 +144,9 @@ export const AdminLoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter admin password (e.g. irshad1234)"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full pl-4 pr-11 py-3 bg-[#0E0C09] border border-[#2F271E] text-[#F3EAD8] focus:outline-none focus:border-[#C5A059] transition text-xs font-mono placeholder:text-gray-600"
                 />
                 <button

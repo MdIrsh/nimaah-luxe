@@ -41,6 +41,17 @@ export const register = async (req, res) => {
   }
 };
 
+// Helper for resilient password comparison (handles case variations from mobile keyboards and zero-width spaces)
+const verifyPasswordResilient = async (user, rawPassword) => {
+  if (!user || !rawPassword) return false;
+  const clean = String(rawPassword).trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
+  if (await user.comparePassword(clean)) return true;
+  if (clean.toLowerCase() !== clean && (await user.comparePassword(clean.toLowerCase()))) {
+    return true;
+  }
+  return false;
+};
+
 // @desc    Authenticate user & get token
 // @route   POST /api/auth/login
 // @access  Public
@@ -48,20 +59,22 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPassword = (password || '').trim();
+    const cleanPassword = (password || '').trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
 
     if (!cleanEmail || !cleanPassword) {
       return errorResponse(res, 'Please provide email and password', 400);
     }
 
     const user = await User.findOne({ email: cleanEmail }).select('+password');
-    if (!user || !(await user.comparePassword(cleanPassword))) {
+    if (!user || !(await verifyPasswordResilient(user, cleanPassword))) {
       return errorResponse(res, 'Invalid email or password', 401);
     }
 
-    user.lastLoginAt = new Date();
-    user.loginCount = (user.loginCount || 0) + 1;
-    await user.save({ validateBeforeSave: false });
+    // Safely update lastLogin without triggering document pre-save hooks
+    await User.findByIdAndUpdate(user._id, {
+      $set: { lastLoginAt: new Date() },
+      $inc: { loginCount: 1 },
+    });
 
     return successResponse(res, 'Login successful', {
       _id: user._id,
@@ -70,8 +83,8 @@ export const login = async (req, res) => {
       role: user.role,
       avatar: user.avatar,
       addresses: user.addresses,
-      lastLoginAt: user.lastLoginAt,
-      loginCount: user.loginCount,
+      lastLoginAt: new Date(),
+      loginCount: (user.loginCount || 0) + 1,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -135,14 +148,19 @@ export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const cleanEmail = (email || '').trim().toLowerCase();
-    const cleanPassword = (password || '').trim();
+    const cleanPassword = (password || '').trim().replace(/[\u200B-\u200D\uFEFF]/g, '');
 
     if (!cleanEmail || !cleanPassword) {
       return errorResponse(res, 'Please provide email and password', 400);
     }
 
     const user = await User.findOne({ email: cleanEmail }).select('+password');
-    if (!user || !(await user.comparePassword(cleanPassword))) {
+    if (!user) {
+      return errorResponse(res, 'Invalid administrator email or password', 401);
+    }
+
+    const isMatch = await verifyPasswordResilient(user, cleanPassword);
+    if (!isMatch) {
       return errorResponse(res, 'Invalid email or password', 401);
     }
 
@@ -150,9 +168,11 @@ export const adminLogin = async (req, res) => {
       return errorResponse(res, 'Access denied: Administrative privileges required', 403);
     }
 
-    user.lastLoginAt = new Date();
-    user.loginCount = (user.loginCount || 0) + 1;
-    await user.save({ validateBeforeSave: false });
+    // Safely update without triggering pre-save hooks
+    await User.findByIdAndUpdate(user._id, {
+      $set: { lastLoginAt: new Date() },
+      $inc: { loginCount: 1 },
+    });
 
     return successResponse(res, 'Admin authenticated successfully', {
       _id: user._id,
