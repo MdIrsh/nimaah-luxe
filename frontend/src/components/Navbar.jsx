@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -19,6 +19,10 @@ import {
   Clock,
   CheckCircle2,
   ShieldCheck,
+  MapPin,
+  Settings,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
 import InstagramIcon from './InstagramIcon';
 import { useAuth } from '../context/AuthContext';
@@ -39,6 +43,29 @@ export const Navbar = () => {
   const safeCartCount = Number(itemsCount || 0);
   const navigate = useNavigate();
   const location = useLocation();
+  const userMenuRef = useRef(null);
+
+  // Close user dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
+
+  // Close dropdown on navigation
+  useEffect(() => {
+    setIsUserMenuOpen(false);
+  }, [location.pathname, location.search]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -166,48 +193,71 @@ export const Navbar = () => {
               )}
             </Link>
 
-            {/* Customer Profile & Account Dropdown (Flipkart style: Clean Customer Menu Only) */}
-            <div className="relative">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-1 p-0.5 text-[#29251F] hover:text-[#A68B66] transition-colors focus:outline-none"
-                    aria-expanded={isUserMenuOpen}
-                    title="Account Menu"
-                  >
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#C5A059]/60 overflow-hidden bg-[#FAF9F6] flex items-center justify-center shadow-xs">
-                      {user.avatar ? (
-                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <User size={15} />
-                      )}
-                    </div>
-                    <ChevronDown size={13} className="text-[#A68B66] hidden sm:block" />
-                  </button>
+            {/* Customer Profile & Account Dropdown (Luxury Minimalist Icon + Popup Menu) */}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                className="flex items-center space-x-1 sm:space-x-1.5 focus:outline-none cursor-pointer group"
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="true"
+                aria-label="User Account Menu"
+              >
+                {/* Circular Beige Container with Dark User Silhouette */}
+                <div className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-[#F5F0E8] hover:bg-[#EFE8DC] border border-[#E8DEC8] flex items-center justify-center text-[#29251F] shadow-2xs group-hover:border-[#C5A059] group-hover:scale-105 transition-all duration-200 overflow-hidden">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user.name || 'User'} className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={16} strokeWidth={2.2} className="text-[#29251F]" />
+                  )}
+                </div>
+                <ChevronDown
+                  size={12}
+                  className={`text-[#7A7269] transition-transform duration-300 hidden sm:block ${
+                    isUserMenuOpen ? 'rotate-180 text-[#14110C]' : 'group-hover:text-[#14110C]'
+                  }`}
+                />
+              </button>
 
-                  {isUserMenuOpen && (
-                    <div
-                      className="absolute right-0 mt-3 w-64 bg-white border border-[#E9E1D6] shadow-xl py-2 z-50 rounded-xs"
-                      onMouseLeave={() => setIsUserMenuOpen(false)}
-                    >
-                      {/* Patron Header */}
-                      <div className="px-5 py-3 border-b border-[#FAF9F6] space-y-1">
-                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">Hello,</p>
-                        <p className="text-sm font-semibold text-[#29251F] truncate">{user.name}</p>
-                        <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
-                        <span className="inline-block mt-1 text-[9.5px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-xs bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6]">
-                          {isAdmin ? 'Store Administrator' : "Ni'maah Privé Patron"}
-                        </span>
-                      </div>
+              {/* Luxury Dropdown Popup Menu */}
+              {isUserMenuOpen && (
+                <div
+                  className="absolute right-0 mt-3 w-60 sm:w-64 bg-white border border-[#EFE8DD] rounded-2xl shadow-[0_12px_36px_rgba(30,24,18,0.12)] p-2.5 z-50 animate-in fade-in zoom-in-95 duration-200"
+                  role="menu"
+                  aria-orientation="vertical"
+                >
+                  {user ? (
+                    <>
+                      {/* 1. Header Card: Welcome Back! / My Account */}
+                      <Link
+                        to="/account/profile"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center space-x-3 p-2.5 rounded-xl hover:bg-[#FAF9F6] transition group border-b border-[#FAF6F0] mb-1.5"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[#F5F0E8] border border-[#E8DEC8] flex items-center justify-center text-[#29251F] shrink-0 overflow-hidden shadow-2xs">
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <User size={18} strokeWidth={2.2} className="text-[#29251F]" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="font-serif-luxury text-sm font-bold text-[#14110C] group-hover:text-[#A68B66] transition truncate block leading-tight">
+                            Welcome Back!
+                          </span>
+                          <span className="text-[11px] text-[#7A7269] font-medium block truncate mt-0.5">
+                            {user.name || 'My Account'}
+                          </span>
+                        </div>
+                      </Link>
 
                       {/* Admin Quick Switch (Strictly visible ONLY to verified Admins) */}
                       {isAdmin && (
-                        <div className="p-2 mx-3 my-1.5 bg-[#14110C] border border-[#C5A059]/40 rounded-xs shadow-xs">
+                        <div className="mb-1.5 p-1.5 bg-[#14110C] rounded-xl border border-[#C5A059]/40 shadow-xs">
                           <Link
                             to="/admin/dashboard"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center justify-between text-xs text-[#C5A059] font-bold hover:text-white transition px-2 py-1"
+                            className="flex items-center justify-between px-2.5 py-1.5 text-xs text-[#C5A059] font-bold hover:text-white transition"
                           >
                             <span className="flex items-center space-x-2">
                               <ShieldCheck size={14} className="text-[#C5A059]" />
@@ -218,122 +268,137 @@ export const Navbar = () => {
                         </div>
                       )}
 
-                      {/* 1. My Profile */}
-                      <Link
-                        to="/account/profile"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-5 py-2.5 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
-                      >
-                        <User size={15} className="mr-3 text-[#A68B66]" />
-                        My Profile
-                      </Link>
+                      {/* Menu Items */}
+                      <div className="space-y-0.5">
+                        <Link
+                          to="/account/orders"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-3 py-2.5 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#C5A059] transition group"
+                        >
+                          <ShoppingBag size={16} strokeWidth={1.8} className="mr-3 text-[#29251F]/75 group-hover:text-[#C5A059] transition shrink-0" />
+                          <span>My Orders</span>
+                        </Link>
 
-                      {/* 2. My Orders */}
-                      <Link
-                        to="/account/orders"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-5 py-2.5 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
-                      >
-                        <Package size={15} className="mr-3 text-[#A68B66]" />
-                        My Orders
-                      </Link>
+                        <Link
+                          to="/wishlist"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#C5A059] transition group"
+                        >
+                          <div className="flex items-center">
+                            <Heart size={16} strokeWidth={1.8} className="mr-3 text-[#29251F]/75 group-hover:text-[#C5A059] transition shrink-0" />
+                            <span>Wishlist</span>
+                          </div>
+                          {safeWishlistCount > 0 && (
+                            <span className="px-2 py-0.5 bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6] text-[10px] rounded-full font-bold">
+                              {safeWishlistCount}
+                            </span>
+                          )}
+                        </Link>
 
-                      {/* 3. Wishlist */}
+                        <Link
+                          to="/account/profile"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-3 py-2.5 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#C5A059] transition group"
+                        >
+                          <MapPin size={16} strokeWidth={1.8} className="mr-3 text-[#29251F]/75 group-hover:text-[#C5A059] transition shrink-0" />
+                          <span>Address Book</span>
+                        </Link>
+
+                        <Link
+                          to="/account/profile"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-3 py-2.5 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#C5A059] transition group"
+                        >
+                          <Settings size={16} strokeWidth={1.8} className="mr-3 text-[#29251F]/75 group-hover:text-[#C5A059] transition shrink-0" />
+                          <span>Settings</span>
+                        </Link>
+
+                        <div className="h-[1px] bg-[#FAF6F0] my-1" />
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            logout();
+                            setIsUserMenuOpen(false);
+                            navigate('/login');
+                          }}
+                          className="w-full flex items-center px-3 py-2.5 rounded-xl text-xs font-medium text-[#C84C4C] hover:bg-red-50/70 transition group text-left cursor-pointer"
+                        >
+                          <LogOut size={16} strokeWidth={1.8} className="mr-3 text-[#C84C4C] group-hover:text-red-700 transition shrink-0" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Guest Header */}
                       <Link
-                        to="/wishlist"
+                        to="/login"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center justify-between px-5 py-2.5 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
+                        className="flex items-center space-x-3 p-2.5 rounded-xl hover:bg-[#FAF9F6] transition group border-b border-[#FAF6F0] mb-1.5"
                       >
-                        <span className="flex items-center">
-                          <Heart size={15} className="mr-3 text-[#A68B66]" />
-                          Wishlist
-                        </span>
-                        {safeWishlistCount > 0 && (
-                          <span className="px-2 py-0.5 bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6] text-[10px] rounded-full font-bold">
-                            {safeWishlistCount}
+                        <div className="w-10 h-10 rounded-full bg-[#F5F0E8] border border-[#E8DEC8] flex items-center justify-center text-[#29251F] shrink-0 shadow-2xs">
+                          <User size={18} strokeWidth={2.2} className="text-[#29251F]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="font-serif-luxury text-sm font-bold text-[#14110C] group-hover:text-[#A68B66] transition truncate block leading-tight">
+                            Welcome Patron
                           </span>
-                        )}
-                      </Link>
-
-                      {/* 4. Cart */}
-                      <Link
-                        to="/cart"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center justify-between px-5 py-2.5 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium"
-                      >
-                        <span className="flex items-center">
-                          <ShoppingBag size={15} className="mr-3 text-[#A68B66]" />
-                          Cart
-                        </span>
-                        {itemsCount > 0 && (
-                          <span className="px-2 py-0.5 bg-[#29251F] text-white text-[10px] rounded-full font-bold">
-                            {itemsCount}
+                          <span className="text-[11px] text-[#7A7269] font-medium block truncate mt-0.5">
+                            Sign in to access your bag & orders
                           </span>
-                        )}
+                        </div>
                       </Link>
 
-                      {/* 5. Notifications */}
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          setIsNotificationsModalOpen(true);
-                        }}
-                        className="w-full flex items-center justify-between px-5 py-2.5 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium text-left"
-                      >
-                        <span className="flex items-center">
-                          <Bell size={15} className="mr-3 text-[#A68B66]" />
-                          Notifications
-                        </span>
-                        <span className="w-2 h-2 rounded-full bg-[#C5A059]"></span>
-                      </button>
+                      {/* Guest Menu Items */}
+                      <div className="space-y-0.5">
+                        <Link
+                          to="/login"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-3 py-2.5 rounded-xl text-xs font-semibold text-[#14110C] bg-[#FAF9F6] hover:bg-[#EDE6DC] transition group"
+                        >
+                          <LogIn size={16} strokeWidth={2} className="mr-3 text-[#C5A059] shrink-0" />
+                          <span>Sign In</span>
+                        </Link>
 
-                      {/* 6. Customer Support */}
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          setIsSupportModalOpen(true);
-                        }}
-                        className="w-full flex items-center px-5 py-2.5 text-xs text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#A68B66] transition font-medium text-left"
-                      >
-                        <Headphones size={15} className="mr-3 text-[#A68B66]" />
-                        Customer Support
-                      </button>
+                        <Link
+                          to="/register"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-3 py-2.5 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#C5A059] transition group"
+                        >
+                          <UserPlus size={16} strokeWidth={1.8} className="mr-3 text-[#29251F]/75 group-hover:text-[#C5A059] transition shrink-0" />
+                          <span>Create Account</span>
+                        </Link>
 
-                      <div className="border-t border-[#E9E1D6] my-1"></div>
+                        <div className="h-[1px] bg-[#FAF6F0] my-1" />
 
-                      {/* 7. Logout */}
-                      <button
-                        onClick={() => {
-                          logout();
-                          setIsUserMenuOpen(false);
-                          navigate('/login');
-                        }}
-                        className="w-full flex items-center px-5 py-2.5 text-xs text-red-600 hover:bg-red-50 transition font-medium text-left"
-                      >
-                        <LogOut size={15} className="mr-3" />
-                        Logout
-                      </button>
-                    </div>
+                        <Link
+                          to="/track-order"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center px-3 py-2.5 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#C5A059] transition group"
+                        >
+                          <Package size={16} strokeWidth={1.8} className="mr-3 text-[#29251F]/75 group-hover:text-[#C5A059] transition shrink-0" />
+                          <span>Track Order</span>
+                        </Link>
+
+                        <Link
+                          to="/wishlist"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF9F6] hover:text-[#C5A059] transition group"
+                        >
+                          <div className="flex items-center">
+                            <Heart size={16} strokeWidth={1.8} className="mr-3 text-[#29251F]/75 group-hover:text-[#C5A059] transition shrink-0" />
+                            <span>Wishlist</span>
+                          </div>
+                          {safeWishlistCount > 0 && (
+                            <span className="px-2 py-0.5 bg-[#FAF9F6] text-[#A68B66] border border-[#E9E1D6] text-[10px] rounded-full font-bold">
+                              {safeWishlistCount}
+                            </span>
+                          )}
+                        </Link>
+                      </div>
+                    </>
                   )}
-                </>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Link
-                    to="/login"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="hidden sm:inline-block px-3.5 py-1.5 sm:px-4 sm:py-2 bg-[#29251F] hover:bg-[#C5A059] text-white text-[10px] sm:text-[11px] uppercase tracking-[0.15em] sm:tracking-[0.2em] font-semibold transition shadow-xs whitespace-nowrap"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/login"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="sm:hidden p-1.5 text-[#29251F] hover:text-[#A68B66] transition-colors rounded-full"
-                    title="Patron Sign In"
-                    aria-label="Sign In"
-                  >
-                    <User size={18} strokeWidth={1.6} />
-                  </Link>
                 </div>
               )}
             </div>
