@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   CreditCard,
   CheckCheck,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -51,6 +52,10 @@ export const AdminLayout = () => {
   // Live Notifications State
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationRef = useRef(null);
+
+  // Admin Profile Menu State
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   const [notifications, setNotifications] = useState([]);
 
@@ -107,16 +112,29 @@ export const AdminLayout = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Close notifications dropdown on click outside
+  // Close notifications & profile dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notificationRef.current && !notificationRef.current.contains(e.target)) {
         setIsNotificationsOpen(false);
       }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setIsProfileMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
+
+  // Close dropdowns on route changes
+  useEffect(() => {
+    setIsProfileMenuOpen(false);
+    setIsNotificationsOpen(false);
+  }, [location.pathname]);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
@@ -421,27 +439,144 @@ export const AdminLayout = () => {
               <Sun size={18} />
             </button>
 
-            {/* Admin Profile Dropdown */}
-            <div className="flex items-center space-x-2.5 pl-2 border-l border-[#E5DAC6]">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-[#C5A059] shadow-xs flex-shrink-0">
-                <img
-                  src={
-                    user?.avatar ||
-                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
-                  }
-                  alt="Admin Avatar"
-                  className="w-full h-full object-cover"
+            {/* Admin Profile Dropdown (Interactive Clickable Header Widget) */}
+            <div className="relative pl-2 border-l border-[#E5DAC6]" ref={profileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                className="flex items-center space-x-2.5 focus:outline-none cursor-pointer group py-1"
+                aria-expanded={isProfileMenuOpen}
+                aria-haspopup="true"
+                aria-label="Admin Profile Menu"
+              >
+                <div className="w-8.5 h-8.5 rounded-full overflow-hidden border border-[#C5A059] shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                  <img
+                    src={
+                      user?.avatar ||
+                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+                    }
+                    alt={user?.name || 'Admin Avatar'}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="hidden sm:flex flex-col text-left">
+                  <span className="text-xs font-bold text-[#14110C] leading-tight group-hover:text-[#C5A059] transition-colors">
+                    {user?.name || 'Admin'}
+                  </span>
+                  <span className="text-[10px] text-gray-500 leading-tight">
+                    {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : 'Super Admin'}
+                  </span>
+                </div>
+                <ChevronDown
+                  size={14}
+                  className={`text-gray-400 hidden sm:block transition-transform duration-200 ${
+                    isProfileMenuOpen ? 'rotate-180 text-[#14110C]' : 'group-hover:text-[#14110C]'
+                  }`}
                 />
-              </div>
-              <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-[#14110C] leading-tight">
-                  {user?.name || 'Admin'}
-                </span>
-                <span className="text-[10px] text-gray-500 leading-tight">
-                  Super Admin
-                </span>
-              </div>
-              <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
+              </button>
+
+              {/* Admin Profile Dropdown Menu */}
+              {isProfileMenuOpen && (
+                <div
+                  className="absolute right-0 mt-2.5 w-68 bg-white border border-[#E8DEC8] rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-200"
+                  role="menu"
+                >
+                  {/* Profile Header */}
+                  <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EFE8DD] mb-2 flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-[#C5A059] shadow-xs shrink-0">
+                      <img
+                        src={
+                          user?.avatar ||
+                          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+                        }
+                        alt="Admin Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-xs font-bold text-[#14110C] truncate">
+                          {user?.name || 'Irshad Khan'}
+                        </span>
+                        <ShieldCheck size={13} className="text-[#C5A059] shrink-0" />
+                      </div>
+                      <span className="text-[11px] text-gray-500 block truncate">
+                        {user?.email || 'mdirshad869917@gmail.com'}
+                      </span>
+                      <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#C5A059]/15 text-[#8C6D37] border border-[#C5A059]/30">
+                        {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Admin' : 'Super Admin'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Menu Links */}
+                  <div className="space-y-0.5">
+                    <Link
+                      to="/"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF7F2] hover:text-[#C5A059] transition group"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <ExternalLink size={15} className="text-gray-400 group-hover:text-[#C5A059] transition" />
+                        <span>Visit Storefront</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 group-hover:text-[#C5A059]">&rarr;</span>
+                    </Link>
+
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF7F2] hover:text-[#C5A059] transition group"
+                    >
+                      <LayoutDashboard size={15} className="text-gray-400 group-hover:text-[#C5A059] transition" />
+                      <span>Command Center</span>
+                    </Link>
+
+                    <Link
+                      to="/admin/orders"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF7F2] hover:text-[#C5A059] transition group"
+                    >
+                      <Package size={15} className="text-gray-400 group-hover:text-[#C5A059] transition" />
+                      <span>Orders Management</span>
+                    </Link>
+
+                    <Link
+                      to="/admin/products"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF7F2] hover:text-[#C5A059] transition group"
+                    >
+                      <ShoppingBag size={15} className="text-gray-400 group-hover:text-[#C5A059] transition" />
+                      <span>Inventory & Products</span>
+                    </Link>
+
+                    <Link
+                      to="/account/profile"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#29251F] hover:bg-[#FAF7F2] hover:text-[#C5A059] transition group"
+                    >
+                      <User size={15} className="text-gray-400 group-hover:text-[#C5A059] transition" />
+                      <span>Patron Profile</span>
+                    </Link>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="my-1.5 border-t border-[#EFE8DD]" />
+
+                  {/* Logout Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 transition cursor-pointer"
+                  >
+                    <LogOut size={15} className="text-red-500" />
+                    <span>Sign Out Command Center</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
